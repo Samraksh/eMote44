@@ -15,6 +15,7 @@ static const INT8 XOFF_CLOCK_HALT = 0x02;
 
 BOOL USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBits, int StopBits, int FlowValue )
 {
+	//hal_printf(" USART_INIT ");
     return USART_Driver::Initialize( ComPortNum, BaudRate, Parity, DataBits, StopBits, FlowValue );
 }
 
@@ -25,16 +26,19 @@ BOOL USART_Uninitialize( int ComPortNum )
 
 int USART_Write( int ComPortNum, const char* Data, size_t size )
 {
+	//hal_printf(" USART_WRITE ");
     return USART_Driver::Write( ComPortNum, Data, size );
 }
 
 int USART_Read( int ComPortNum, char* Data, size_t size )
 {
+	//hal_printf(" USART_READ ");
     return USART_Driver::Read( ComPortNum, Data, size );
 }
 
 BOOL USART_Flush( int ComPortNum )
 {
+	//hal_printf(" USART_FLUSH ");
     return USART_Driver::Flush( ComPortNum );
 }
 
@@ -196,17 +200,22 @@ BOOL USART_Driver::Initialize( int ComPortNum, int BaudRate, int Parity, int Dat
 
     if((ComPortNum < 0) || (ComPortNum >= TOTAL_USART_PORT))
     {
+		//hal_printf(" 203 USART USART_Driver::Initialize in usart.cpp\n ");	
         //DEBUG_TRACE1(TRACE_ALWAYS, "ERROR: VTE_USART_Initialize: invalid ComPortNum %u\r\n", ComPortNum);
         return FALSE;
     }
-
+	//hal_printf(" 207 USART USART_Driver::Initialize in usart.cpp\n ");
     {
         GLOBAL_LOCK(irq);
 
         HAL_USART_STATE& State = Hal_Usart_State[ComPortNum];
+		
+		//hal_printf(" 213 USART USART_Driver::Initialize in usart.cpp\n ");
 
         if(!IS_USART_INITIALIZED(State))
         {
+			//hal_printf(" 217 USART USART_Driver::Initialize in usart.cpp\n ");
+           
             State.fDataEventSet = FALSE;
             State.PortIndex     = ComPortNum;
 
@@ -411,14 +420,14 @@ BOOL USART_Driver::Flush( int ComPortNum )
 {
     NATIVE_PROFILE_PAL_COM();
     if((ComPortNum < 0) || (ComPortNum >= TOTAL_USART_PORT)) {ASSERT(FALSE); return FALSE;}
-
+	//hal_printf(" 423 USART USART_Driver::Flush in usart.cpp\n ");
     HAL_USART_STATE& State = Hal_Usart_State[ComPortNum];
-
+	//hal_printf(" 425 USART USART_Driver::Flush in usart.cpp\n ");
     if ( IS_POWERSAVE_ENABLED(State) || (!IS_USART_INITIALIZED(State))) return TRUE;
 
-
+	//hal_printf(" 428 USART USART_Driver::Flush in usart.cpp\n ");
     UINT32 IrqId = USART_TX_IRQ_INDEX(ComPortNum);
-
+	//hal_printf(" 429 USART USART_Driver::Flush in usart.cpp\n ");
     if ((USART_FLAG_STATE(State, HAL_USART_STATE::c_TX_SWFLOW_CTRL) && (!USART_FLAG_STATE(State, HAL_USART_STATE::c_TX_XON_STATE)))
         || !CPU_USART_TxHandshakeEnabledState(ComPortNum))
     {
@@ -430,13 +439,14 @@ BOOL USART_Driver::Flush( int ComPortNum )
 
     {
         GLOBAL_LOCK(irq);
-
+		hal_printf(" 442 USART USART_Driver::Flush in usart.cpp\n ");
         if(irq.WasDisabled() || !CPU_USART_TxBufferEmptyInterruptState( ComPortNum ) || 0 == CPU_INTC_InterruptEnableState( IrqId ))
         {
+			hal_printf(" 445 USART USART_Driver::Flush in usart.cpp\n ");
             while(State.TxQueue.IsEmpty() == false)
             {
                 char c;
-
+				hal_printf(" 449 USART USART_Driver::Flush in usart.cpp\n ");
                 // this could happen while we are spinning, if so drop everything and return
                 if (IS_POWERSAVE_ENABLED(State) || !CPU_USART_TxHandshakeEnabledState(ComPortNum))
                 {
@@ -466,12 +476,14 @@ BOOL USART_Driver::Flush( int ComPortNum )
         else
         {
 
+		hal_printf(" 478 USART USART_Driver::Flush in usart.cpp\n ");
             // all requisite interrupts on, just wait for the buffer to empty naturally
             while(State.TxQueue.IsEmpty() == false)
             {
                 // this could happen while we are spinning, if so drop everything and return
                 if(IS_POWERSAVE_ENABLED(State) || !CPU_USART_TxHandshakeEnabledState(ComPortNum))
                 {
+					hal_printf(" 485 USART USART_Driver::Flush in usart.cpp\n ");
                     return FALSE;
                 }
 
@@ -483,7 +495,8 @@ BOOL USART_Driver::Flush( int ComPortNum )
 
                 // critical section queue
                 irq.Acquire();
-            }
+				hal_printf(" 497 USART USART_Driver::Flush in usart.cpp\n ");
+			}
         }
     }
 
@@ -508,6 +521,7 @@ BOOL USART_Driver::AddCharToRxBuffer( int ComPortNum, char c )
 {
     ASSERT_IRQ_MUST_BE_OFF();
 
+	//hal_printf(" 523 USART USART_Driver::Flush in usart.cpp\n ");
     if((ComPortNum < 0) || (ComPortNum >= TOTAL_USART_PORT)) return FALSE;
 
     HAL_USART_STATE& State = Hal_Usart_State[ComPortNum];

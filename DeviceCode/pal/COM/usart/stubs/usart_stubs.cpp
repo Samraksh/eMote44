@@ -9,7 +9,8 @@
 
 BOOL USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBits, int StopBits, int FlowValue )
 {
-    return TRUE;
+		hal_printf(" 12 USART USART_Initialize in usart_stubs.cpp\n ");
+	return TRUE;
 }
 
 BOOL USART_Uninitialize( int ComPortNum )

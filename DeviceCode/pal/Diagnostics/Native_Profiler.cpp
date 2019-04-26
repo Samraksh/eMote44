@@ -170,7 +170,7 @@ void __section("SectionForFlashOperations")  Native_Profiler_WriteToCOM(void *bu
 {
     UINT64 time1, time2;
     time1 = Native_Profiler_TimeInMicroseconds();
-
+ 
     USART_Initialize( ConvertCOM_ComPort(USART_DEFAULT_PORT), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );
 
     // disable watchdog

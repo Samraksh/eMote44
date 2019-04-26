@@ -14,6 +14,7 @@ extern bool WaitForTinyBooterUpload( INT32 &timeout_ms );
 
 //--//
 
+
 Loader_Engine g_eng;
 
 //--//
@@ -55,15 +56,51 @@ void ApplicationEntryPoint()
 
     if(enterBootMode)
     {
-        LCD_Clear();
+       // LCD_Clear();
         
-        hal_fprintf( STREAM_LCD, "TinyBooter v%d.%d.%d.%d\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD, VERSION_REVISION);
-        hal_fprintf( STREAM_LCD, "%s Build Date:\r\n\t%s %s\r\n", HalName, __DATE__, __TIME__ );
+      //  hal_fprintf( STREAM_LCD, "TinyBooter v%d.%d.%d.%d\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD, VERSION_REVISION);
+       // hal_fprintf( STREAM_LCD, "%s Build Date:\r\n\t%s %s\r\n", HalName, __DATE__, __TIME__ );
 
         DebuggerPort_Initialize( HalSystemConfig.DebuggerPorts[ 0 ] );
+		//hal_printf(" 64 TinyBooter.cpp \n");
+		USART_Initialize( ConvertCOM_ComPort(USART_DEFAULT_PORT), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );
+	    //USART_Write(ConvertCOM_ComPort(USART_DEFAULT_PORT), "test\n", 10);
+		
+		//CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
+		//CPU_SPI_PortsCount();
+		//hal_printf(" 66 TinyBooter.cpp \n");
+        
+		SPI_CONFIGURATION testabc;
+		testabc.Clock_RateKHz      = 100;
+        testabc.CS_Active          = 0;
+        testabc.CS_Hold_uSecs      = 0;
+        testabc.CS_Setup_uSecs     = 0;
+        testabc.DeviceCS           = 0;
+        testabc.MD_16bits          = 0; 
+        testabc.MSK_SampleEdge     = 0;
+        testabc.SPI_mod            = 0;
 
-        TinyBooter_OnStateChange( State_EnterBooterMode, NULL );
+		hal_printf(" 82 TinyBooter.cpp \n");		
+		
+	    UINT8 toBuffer[4];
+		UINT8 fromBuffer[8];
+		toBuffer[0] = 1;
+		toBuffer[1] = 0;
+		toBuffer[2] = 0;
+		toBuffer[3] = 1;
+		
+		CPU_SPI_Xaction_Start(testabc);
+		hal_printf(" 93 TinyBooter.cpp \n");
+		//CPU_SPI_PortsCount();
+		CPU_SPI_nWrite8_nRead8(testabc, toBuffer, 4, fromBuffer, 0, 0);
+		hal_printf(" 88 TinyBooter.cpp \n");
+		CPU_SPI_Xaction_Stop(testabc);
+		
+		CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
+			
+		TinyBooter_OnStateChange( State_EnterBooterMode, NULL );
 
+	
         DebuggerPort_Flush( HalSystemConfig.DebugTextPort  );
         hal_printf( "TinyBooter v%d.%d.%d.%d\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD, VERSION_REVISION);
         hal_printf( "%s Build Date: %s %s\r\n", HalName, __DATE__, __TIME__ );
@@ -79,7 +116,7 @@ void ApplicationEntryPoint()
         hal_printf( "ARM Compiler version %d\r\n", __ARMCC_VERSION );
 #endif
         DebuggerPort_Flush( HalSystemConfig.DebugTextPort );
-
+		//hal_printf(" 87 TinyBooter.cpp \n");
         //
         // Send "presence" ping.
         //

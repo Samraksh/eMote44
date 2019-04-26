@@ -10,17 +10,26 @@ BOOL DebuggerPort_Initialize( COM_HANDLE ComPortNum )
     switch(ExtractTransport(ComPortNum))
     {
         case USART_TRANSPORT:
+			//hal_printf(" 13 USART DebuggerPort_Initialize in ComDirector.cpp\n ");
             return USART_Initialize( ConvertCOM_ComPort(ComPortNum), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );
 
-        case USB_TRANSPORT:
+        case USB_TRANSPORT:				
+			//CPU_USB_Initialize(1);
+			//return TRUE;
             if(USB_CONFIG_ERR_OK != USB_Configure( ConvertCOM_UsbController(ComPortNum), NULL ))
-                return FALSE;
+            {
+				//hal_printf(" 18 COM ");
+				return FALSE;
+			}
 
             if(!USB_Initialize( ConvertCOM_UsbController(ComPortNum) ))
-                return FALSE;
-
+			{		
+			//	hal_printf(" 23 COM ");
+				return FALSE;
+			}
+			//	hal_printf(" 26 COM ");			
             return USB_OpenStream( ConvertCOM_UsbStream(ComPortNum), USB_DEBUG_EP_WRITE, USB_DEBUG_EP_READ );
-        
+			
         case SOCKET_TRANSPORT:
             return SOCKETS_Initialize(ConvertCOM_SockPort(ComPortNum));
 
@@ -39,7 +48,8 @@ BOOL DebuggerPort_Uninitialize( COM_HANDLE ComPortNum )
         case USART_TRANSPORT:
             return USART_Uninitialize( ConvertCOM_ComPort(ComPortNum) );
 
-        case USB_TRANSPORT:
+        case USB_TRANSPORT:		
+			//hal_printf(" DebuggerPort_Uninitialize in ComDirector.cpp line 52\n ");
             USB_CloseStream( ConvertCOM_UsbStream(ComPortNum) );
             return USB_Uninitialize( ConvertCOM_UsbController(ComPortNum) );
 
@@ -72,6 +82,7 @@ int DebuggerPort_Write( COM_HANDLE ComPortNum, const char* Data, size_t size, in
             ret = USART_Write( ConvertCOM_ComPort( ComPortNum ), dataTmp, size );
             break;
         case USB_TRANSPORT:
+			//hal_printf(" DebuggerPort_Write in ComDirector.cpp line 83\n ");
             ret = USB_Write( ConvertCOM_UsbStream( ComPortNum ), dataTmp, size );
             break;
         case SOCKET_TRANSPORT:
@@ -122,6 +133,7 @@ int DebuggerPort_Read( COM_HANDLE ComPortNum, char* Data, size_t size )
         break;
 
     case USB_TRANSPORT:
+		//hal_printf(" DebuggerPort_Read in ComDirector.cpp line 134\n ");
         ret = USB_Read( ConvertCOM_UsbStream( ComPortNum ), Data, size );
         break;
 
@@ -145,7 +157,8 @@ BOOL DebuggerPort_Flush( COM_HANDLE ComPortNum )
     case USART_TRANSPORT:
         return USART_Flush( ConvertCOM_ComPort( ComPortNum ) );
 
-    case USB_TRANSPORT:
+    case USB_TRANSPORT:	
+       // hal_printf(" DebuggerPort_Flush in ComDirector.cpp line 157\n ");
         return USB_Flush( ConvertCOM_UsbStream( ComPortNum ) );
 
     case SOCKET_TRANSPORT:
@@ -230,13 +243,14 @@ void InitializePort( COM_HANDLE ComPortNum )
 {
     switch(ExtractTransport(ComPortNum))
     {
-    case USART_TRANSPORT:
+    case USART_TRANSPORT:		
         USART_Initialize( ConvertCOM_ComPort( ComPortNum ), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );
         break;
 
     case USB_TRANSPORT:
         USB_Initialize( ConvertCOM_UsbStream( ComPortNum ) );
-        break;
+        //hal_printf(" InitializePort in ComDirector.cpp line 247\n ");
+		break;
 
     case SOCKET_TRANSPORT:
         SOCKETS_Initialize( ConvertCOM_SockPort(ComPortNum) );
@@ -256,7 +270,8 @@ void UninitializePort( COM_HANDLE ComPortNum )
         USART_Uninitialize( ConvertCOM_ComPort( ComPortNum ) );
         break;
 
-    case USB_TRANSPORT:
+    case USB_TRANSPORT:		
+		//hal_printf(" UninitializePort in ComDirector.cpp line 272\n ");
         if(USB_CONFIG_ERR_OK == USB_Configure( ConvertCOM_UsbController(ComPortNum), NULL ))
         {
             USB_Initialize( ConvertCOM_UsbController(ComPortNum) );
@@ -322,6 +337,7 @@ void CPU_ProtectCommunicationGPIOs( BOOL On )
         return ;
 
     case USB_TRANSPORT:
+		//hal_printf(" CPU_ProtectCommunicationGPIOs in ComDirector.cpp line 337\n ");
         CPU_USB_ProtectPins( ConvertCOM_UsbController(HalSystemConfig.DebugTextPort), On );
         return;
 

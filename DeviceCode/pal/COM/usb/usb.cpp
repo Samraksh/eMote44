@@ -165,12 +165,14 @@ BOOL USB_Driver::Initialize( int Controller )
     //
     if(State->Initialized && COM_IsUsb(HalSystemConfig.DebuggerPorts[0]) && Controller == ConvertCOM_UsbController(HalSystemConfig.DebuggerPorts[0]))
     {
-        USB_Driver::Uninitialize( Controller );
+        //hal_printf(" USB 168 ");
+		USB_Driver::Uninitialize( Controller );
     }
 #endif
 
     if(State->Configuration == NULL)
     {
+		//hal_printf(" USB 175 ");	
         USB_Driver::Configure( Controller, NULL );
     }
 
@@ -253,6 +255,7 @@ BOOL USB_Driver::Initialize( int Controller )
 
         if( S_OK != CPU_USB_Initialize( Controller ) )
         {
+			//hal_printf(" USB 258 ");	
             return FALSE;       // If Hardware initialization fails
         }
 
@@ -262,6 +265,7 @@ BOOL USB_Driver::Initialize( int Controller )
         //
         if(COM_IsUsb(HalSystemConfig.DebuggerPorts[0]) && Controller == ConvertCOM_UsbController(HalSystemConfig.DebuggerPorts[0]))
         {
+			//hal_printf(" USB 268 ");
             USB_OpenStream( ConvertCOM_UsbStream(HalSystemConfig.DebuggerPorts[0]), USB_DEBUG_EP_WRITE, USB_DEBUG_EP_READ );    
         }
 #endif
@@ -434,6 +438,7 @@ BOOL USB_Driver::Uninitialize( int Controller )
 
         if(State->streams[stream].RxEP != USB_NULL_ENDPOINT || State->streams[stream].TxEP != USB_NULL_ENDPOINT)
         {
+			hal_printf(" USB 439 ");
             return FALSE;
         }
     }
@@ -506,7 +511,7 @@ BOOL USB_Driver::OpenStream( int UsbStream, int writeEP, int readEP )
         State->streams[StreamIndex].RxEP = readEP;
         State->streams[StreamIndex].TxEP = writeEP;
     }
-
+    //hal_printf(" USB 514 ");
     return TRUE;
 }
 

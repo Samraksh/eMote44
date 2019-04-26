@@ -353,18 +353,18 @@ void HAL_Initialize()
     HAL_CONTINUATION::InitializeList();
     HAL_COMPLETION  ::InitializeList();
 
+	__enable_irq();
+
     HAL_Init_Custom_Heap();
 
-    Time_Initialize();
-    Events_Initialize();
+    //Time_Initialize();
+    //Events_Initialize();
 
     CPU_GPIO_Initialize();
     CPU_SPI_Initialize();
 
-    // this is the place where interrupts are enabled after boot for the first time after boot
     ENABLE_INTERRUPTS();
-
-    // have to initialize the blockstorage first, as the USB device needs to update the configure block
+	// have to initialize the blockstorage first, as the USB device needs to update the configure block
 
     BlockStorageList::Initialize();
 
@@ -537,9 +537,9 @@ void BootEntry()
 #endif
 
 
-    CPU_Initialize();
+    //CPU_Initialize();
 
-    HAL_Time_Initialize();
+    //HAL_Time_Initialize();
 
     HAL_Initialize();
 
@@ -626,9 +626,9 @@ void debug_printf( const char* format, ... )
 
 void lcd_printf( const char* format, ... )
 {
-    va_list arg_ptr;
-
-    va_start( arg_ptr, format );
+   va_list arg_ptr;
+	
+	va_start( arg_ptr, format );
 
     hal_vfprintf( STREAM_LCD, format, arg_ptr );
 }
