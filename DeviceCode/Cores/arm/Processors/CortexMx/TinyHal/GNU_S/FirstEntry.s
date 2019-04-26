@@ -87,7 +87,7 @@ PowerOnReset:
 EntryPoint:
 Reset_Handler:
     bl  BootstrapCode
-    b   BootEntry
+    bl  BootEntry
 
     .pool
     .size    Reset_Handler, . - Reset_Handler

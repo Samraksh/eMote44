@@ -17,7 +17,7 @@
 
     <!-- Internal Data Tighly Coupled Memory (DTCM) -->
     <Set Name="DTCM_BaseAddress"        Value="0x20000000"/>
-    <Set Name="DTCM_Size"               Value="0x00020000"/><!-- 64KB -->
+    <Set Name="DTCM_Size"               Value="0x00020000"/><!-- 128KB -->
 
     <!-- Internal SRAM1 (128K) -->
     <Set Name="IRAM_BaseAddress"        Value="0x24000000"/>
@@ -39,8 +39,8 @@
 
     <!-- Internal DTCM  -->
     <!-- Put Stack in DTCM for high speed access, reducing overhead of stack usage -->
-    <Set Name="Stack_Bottom"            Value="0x20005000"/>
-	<Set Name="Stack_Size"              Value="0x10000" />
+    <Set Name="Stack_Bottom"            Value="0x2001F000"/>
+	<Set Name="Stack_Size"              Value="0x1000" />
     <!--<Set Name="Stack_Size"              Value="%DTCM_Size%" />-->
 
     <!-- Internal SRAM -->
@@ -147,8 +147,8 @@
 
         <!--8 for the two 32bit values in the SectionForStack* sections, This keeps the region
              limit from exceeding the size of physical memory. -->
-        <ExecRegion Name="ER_STACK_TOP" Base="%Stack_Bottom% + %Stack_Size% - 8" Options="&gt;D_CCM">
-            <FileMapping Name="*" Options="(SectionForStackTop +LAST)" />
+        <ExecRegion Name="ER_STACK_TOP" Base="%Stack_Bottom% + %Stack_Size%" Options="&gt;D_CCM">
+            <FileMapping Name="*" Options="(SectionForStackTop)" />
         </ExecRegion>
     </NamedGroup>
 
