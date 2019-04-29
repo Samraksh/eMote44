@@ -42,6 +42,11 @@
         <DriverLibs Include="STM32H7xx_HAL_Driver.$(LIB_EXT)"/>
 	</ItemGroup>
 	
+	<!--<ItemGroup>
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\radio\dotNetMF.proj" />
+        <DriverLibs Include="NETMF_Radio_Driver.$(LIB_EXT)"/>
+	</ItemGroup>-->
+	
     <ItemGroup>
         <PlatformIndependentLibs Include="TinybooterLib.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\Application\TinyBooter\TinyBooterLib.proj" />

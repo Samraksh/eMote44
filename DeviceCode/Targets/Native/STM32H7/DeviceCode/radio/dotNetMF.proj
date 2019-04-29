@@ -8,8 +8,8 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
 
   <ItemGroup>
-    <SubDirectories Include="RF231"/>
-	<SubDirectories Include="SI4468"/>
+    <!--<SubDirectories Include="RF231"/>-->
+	<!--<SubDirectories Include="SI4468"/>-->
 	<SubDirectories Include="SX1276"/>
   </ItemGroup>
 

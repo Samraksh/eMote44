@@ -90,12 +90,13 @@ void ApplicationEntryPoint()
 		toBuffer[3] = 1;
 		
 		CPU_SPI_Xaction_Start(testabc);
-		hal_printf(" 93 TinyBooter.cpp \n");
+		hal_printf(" 93 TinyBooter.cpp %d\n",HAL_Time_CurrentTicks());
 		//CPU_SPI_PortsCount();
 		CPU_SPI_nWrite8_nRead8(testabc, toBuffer, 4, fromBuffer, 0, 0);
 		hal_printf(" 88 TinyBooter.cpp \n");
 		CPU_SPI_Xaction_Stop(testabc);
-		
+		//HAL_Time_Sleep_MicroSeconds(10000000);
+		hal_printf(" 99 TinyBooter.cpp %d\n",HAL_Time_CurrentTicks());
 		CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
 			
 		TinyBooter_OnStateChange( State_EnterBooterMode, NULL );

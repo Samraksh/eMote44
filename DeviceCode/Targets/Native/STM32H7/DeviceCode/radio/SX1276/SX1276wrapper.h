@@ -11,8 +11,9 @@
 
 //#include "EmoteLoraHat.h"
 #include <tinyhal.h>
-#include <stm32f10x.h>
-#include <spi\netmf_spi.h>
+#include <stm32h7xx_hal.h>
+#include "..\..\stm32h7xx.h"
+//#include <spi\netmf_spi.h>
 
 //#include "sx1276driver/sx1276/sx1276.h"
 //#include "sx1276driver/radio/radio.h"
@@ -754,7 +755,7 @@ public:
 
 
     void SetTimeoutTimer(TimeoutName_t ton, float delay) ;
-    void CancelTimeoutTimer(TimeoutName_t ton);
+    //void CancelTimeoutTimer(TimeoutName_t ton);
 
 
 //private:

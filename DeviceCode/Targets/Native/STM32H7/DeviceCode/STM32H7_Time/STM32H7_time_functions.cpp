@@ -76,7 +76,35 @@
 
 
 static UINT64 g_nextEvent;   // tick time of next event to be scheduled
+TIM_HandleTypeDef    TimHandle2;
+TIM_HandleTypeDef    TimHandle3;
 
+
+uint32_t uwPrescalerValue = 0;
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  None
+  * @retval None
+  */
+static void Error_Handler(void)
+{
+  /* Turn LED_RED on */
+  //BSP_LED_On(LED_RED);
+	//hal_printf(" 153 Error_handler usart_functions.cpp \n");
+ 
+}
+
+void TIM3_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&TimHandle3);
+}
+  
+void TIM2_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&TimHandle2);
+}
+  
 
 UINT32 CPU_SystemClock()
 {
@@ -187,7 +215,7 @@ void Timer_Interrupt (void* param) // 32 bit timer compare event
 {
     INTERRUPT_START
 
-    TIM_32->SR = ~TIM_SR_CC1IF; // reset interrupt flag
+    TimHandle2.Instance->SR = ~TIM_SR_CC1IF; // reset interrupt flag
     
     if (HAL_Time_CurrentTicks() >= g_nextEvent) { // handle event
        HAL_COMPLETION::DequeueAndExec(); // this also schedules the next one, if there is one
@@ -203,9 +231,9 @@ UINT64 __section("SectionForFlashOperations") HAL_Time_CurrentTicks()
 {
     UINT32 t2, t3; // cascaded timers
     do {
-        t3 = TIM_16->CNT;
-        t2 = TIM_32->CNT;
-    } while (t3 != TIM_16->CNT); // asure consistent values
+        t3 = TimHandle3.Instance->CNT;
+        t2 = TimHandle2.Instance->CNT;
+    } while (t3 != TimHandle3.Instance->CNT); // asure consistent values
     return t2 | (UINT64)t3 << 32;
 }
 
@@ -215,18 +243,62 @@ void HAL_Time_SetCompare( UINT64 CompareValue )
 {
     GLOBAL_LOCK(irq);
     g_nextEvent = CompareValue;
-    TIM_32->CCR1 = (UINT32)CompareValue; // compare to low bits
+    TimHandle2.Instance->CCR1 = (UINT32)CompareValue; // compare to low bits
     
     if (HAL_Time_CurrentTicks() >= CompareValue) { // missed event
         // trigger immediate interrupt
-        TIM_32->EGR = TIM_EGR_CC1G; // trigger compare1 event
+        TimHandle2.Instance->EGR = TIM_EGR_CC1G; // trigger compare1 event
     }
 
 }
 
+void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
+{
+  /*##-1- Enable peripheral clock #################################*/
+  if (htim->Instance == TIM2) {
+	  /* TIMx Peripheral clock enable */
+	  __HAL_RCC_TIM2_CLK_ENABLE();
+	  
+	  /*##-2- Configure the NVIC for TIMx ########################################*/
+	  /* Set the TIMx priority */
+	  
+	  __NVIC_SetVector(TIM2_IRQn, (uint32_t)TIM2_IRQHandler);
+	  
+	  HAL_NVIC_SetPriority(TIM2_IRQn, 3, 0);
+
+	  /* Enable the TIMx global Interrupt */
+	  HAL_NVIC_EnableIRQ(TIM2_IRQn);
+  }
+  else if (htim->Instance == TIM3) {
+	  /* TIMx Peripheral clock enable */
+	  __HAL_RCC_TIM3_CLK_ENABLE();
+	  
+	  /*##-2- Configure the NVIC for TIMx ########################################*/
+	  /* Set the TIMx priority */
+	  
+	  __NVIC_SetVector(TIM3_IRQn, (uint32_t)TIM3_IRQHandler);
+	  
+	  HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
+
+	  /* Enable the TIMx global Interrupt */
+	  HAL_NVIC_EnableIRQ(TIM3_IRQn);
+  }
+  
+}
+
+void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
+{
+	if (htim->Instance == TIM2) {
+		HAL_NVIC_DisableIRQ(TIM2_IRQn);
+	}
+	else if (htim->Instance == TIM3) {
+		HAL_NVIC_DisableIRQ(TIM3_IRQn);
+	}
+}
+
 BOOL HAL_Time_Initialize()
 {
-    g_nextEvent = 0xFFFFFFFFFFFF; // never
+   /* g_nextEvent = 0xFFFFFFFFFFFF; // never
     
     // enable timer clocks
 #ifdef RCC_APB1ENR_TIM_16_EN
@@ -264,23 +336,110 @@ BOOL HAL_Time_Initialize()
     TIM_16->CR1 |= TIM_CR1_CEN; // enable timers
     TIM_32->CR1 |= TIM_CR1_CEN;
     
-    return CPU_INTC_ActivateInterrupt(TIM_32_IRQn, Timer_Interrupt, 0);
+    return CPU_INTC_ActivateInterrupt(TIM_32_IRQn, Timer_Interrupt, 0);*/
+	uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*10000)) - 1;
+
+	/* Set TIMx instance */
+	TimHandle3.Instance = TIM3;
+
+	/* Initialize TIMx peripheral as follows:
+	+ Period = 10000 - 1
+	+ Prescaler = (SystemCoreClock/10000) - 1
+	+ ClockDivision = 0
+	+ Counter direction = Up
+	*/
+
+	TimHandle3.Init.Period            = 10000 - 1;
+	TimHandle3.Init.Prescaler         = uwPrescalerValue;
+	TimHandle3.Init.ClockDivision     = 0;
+	TimHandle3.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	TimHandle3.Init.RepetitionCounter = 0;
+
+	if (HAL_TIM_Base_Init(&TimHandle3) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+	uwPrescalerValue = (uint32_t)(SystemCoreClock / (2*10000)) - 1;
+
+	/* Set TIMx instance */
+	TimHandle2.Instance = TIM2;
+
+	/* Initialize TIMx peripheral as follows:
+	+ Period = 10000 - 1
+	+ Prescaler = (SystemCoreClock/10000) - 1
+	+ ClockDivision = 0
+	+ Counter direction = Up
+	*/
+
+	TimHandle2.Init.Period            = 10000 - 1;
+	TimHandle2.Init.Prescaler         = uwPrescalerValue;
+	TimHandle2.Init.ClockDivision     = 0;
+	TimHandle2.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	TimHandle2.Init.RepetitionCounter = 0;
+
+	if (HAL_TIM_Base_Init(&TimHandle2) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+	/*##-2- Start the TIM Base generation in interrupt mode ####################*/
+	/* Start Channel1 */
+	if (HAL_TIM_Base_Start_IT(&TimHandle3) != HAL_OK)
+	{
+		/* Starting Error */
+		Error_Handler();
+	}
+
+	/*##-2- Start the TIM Base generation in interrupt mode ####################*/
+	/* Start Channel1 */
+	if (HAL_TIM_Base_Start_IT(&TimHandle2) != HAL_OK)
+	{
+		/* Starting Error */
+		Error_Handler();
+	}
+	
 }
 
 BOOL HAL_Time_Uninitialize()
 {
-    CPU_INTC_DeactivateInterrupt(TIM_32_IRQn);
+	
+	if (HAL_TIM_Base_Stop_IT(&TimHandle3) != HAL_OK)
+	{
+		/* Starting Error */
+		Error_Handler();
+	}
+	
+	if (HAL_TIM_Base_DeInit(&TimHandle3) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}  
+	if (HAL_TIM_Base_Stop_IT(&TimHandle2) != HAL_OK)
+	{
+		/* Starting Error */
+		Error_Handler();
+	}
+	
+	if (HAL_TIM_Base_DeInit(&TimHandle2) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	} 
+    //CPU_INTC_DeactivateInterrupt(TIM_32_IRQn);
     
-    TIM_16->CR1 &= ~TIM_CR1_CEN; // disable timers
-    TIM_32->CR1 &= ~TIM_CR1_CEN;
+    //TIM_16->CR1 &= ~TIM_CR1_CEN; // disable timers
+    //TIM_32->CR1 &= ~TIM_CR1_CEN;
     
     // disable timer clocks
-#ifdef RCC_APB1ENR_TIM_16_EN
-    RCC->APB1LENR &= ~(RCC_APB1ENR_TIM_32_EN | RCC_APB1ENR_TIM_16_EN);
-#else
-    RCC->APB1LENR &= ~RCC_APB1ENR_TIM_32_EN;
-    RCC->APB2ENR &= ~RCC_APB2ENR_TIM_16_EN;
-#endif
+//#ifdef RCC_APB1ENR_TIM_16_EN
+//    RCC->APB1LENR &= ~(RCC_APB1ENR_TIM_32_EN | RCC_APB1ENR_TIM_16_EN);
+//#else
+//    RCC->APB1LENR &= ~RCC_APB1ENR_TIM_32_EN;
+//    RCC->APB2ENR &= ~RCC_APB2ENR_TIM_16_EN;
+//#endif
     
     return TRUE;
 }
@@ -338,6 +497,7 @@ void HAL_Time_GetDriftParameters  ( INT32* a, INT32* b, INT64* c )
     *b = 1;
     *c = 0;
 }
+
 
 
 //******************** Profiler ********************

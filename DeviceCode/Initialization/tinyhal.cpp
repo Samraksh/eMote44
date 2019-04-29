@@ -539,7 +539,7 @@ void BootEntry()
 
     //CPU_Initialize();
 
-    //HAL_Time_Initialize();
+    HAL_Time_Initialize();
 
     HAL_Initialize();
 
