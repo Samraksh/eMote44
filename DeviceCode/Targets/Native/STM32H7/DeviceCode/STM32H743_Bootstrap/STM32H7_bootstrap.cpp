@@ -2,10 +2,6 @@
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
-///////////////////////////////////////////////////////////////////////////////
-
-#pragma arm section code = "SectionForBootstrapOperations"
-
 /**
   * @brief  CPU L1-Cache enable.
   * @param  None
@@ -106,7 +102,7 @@ extern "C" {
 void BootstrapCode()
 {
 	SystemInit();
-    PrepareImageRegions();
+	PrepareImageRegions();
 	//CPU_CACHE_Enable();
 	HAL_Init();
 	DefaultSystemClock_Config(); // 96 MHz
