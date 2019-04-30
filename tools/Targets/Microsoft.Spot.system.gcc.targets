@@ -85,7 +85,7 @@
   <PropertyGroup>
     <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"         >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=1</AS_TARGETTYPE_FLAGS>
     <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"     >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 </AS_TARGETTYPE_FLAGS>
-    <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"       >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 -g</AS_TARGETTYPE_FLAGS>
+    <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"       >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 -ggdb3</AS_TARGETTYPE_FLAGS>
     <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'">$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 -g</AS_TARGETTYPE_FLAGS>
 
     <!-- Adjust the compiler/assembler flags according to the settings -->
