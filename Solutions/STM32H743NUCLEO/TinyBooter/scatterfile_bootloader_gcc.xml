@@ -74,7 +74,6 @@
         <!-- ========= INTERNAL FLASH ============================================ -->
         <ExecRegion Name="ER_%TARGETLOCATION%" Options="&gt;LR_%TARGETLOCATION%">
             <FileMapping Name="KEEP" Options="(*(SectionForPowerOnReset))" />
-            <FileMapping Name="*" Options="(SectionForBootstrapOperations)" />
             <FileMapping Name="*" Options="(SectionForFlashOperations)"/>
             <FileMapping Name="*" Options="(.text*)" />
             <FileMapping Name="*" Options="(.rodata*)" />
@@ -141,7 +140,7 @@
         </ExecRegion>
 
         <!-- ========= Internal DTCM ============================================ -->
-        <ExecRegion Name="ER_STACK_BOTTOM" Options="&gt;D_CCM">
+        <ExecRegion Name="ER_STACK_BOTTOM" Base="%Stack_Bottom%" Options="&gt;D_CCM">
             <FileMapping Name="*" Options="(SectionForStackBottom)" />
         </ExecRegion>
 
