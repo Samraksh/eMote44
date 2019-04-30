@@ -102,9 +102,7 @@ void KEEP_THE_LINKER_HAPPY_SINCE_KEEP_IS_NOT_WORKING()
 
 //--//
 
-#pragma arm section code = "SectionForBootstrapOperations"
-
-static void __section("SectionForBootstrapOperations") Prepare_Copy( UINT32* src, UINT32* dst, UINT32 len )
+static void Prepare_Copy( UINT32* src, UINT32* dst, UINT32 len )
 {
     if(dst != src)
     {
@@ -131,7 +129,7 @@ static void __section("SectionForBootstrapOperations") Prepare_Copy( UINT32* src
     }
 }
 
-static void __section("SectionForBootstrapOperations") Prepare_Zero( UINT32* dst, UINT32 len )
+static void Prepare_Zero( UINT32* dst, UINT32 len )
 {
     INT32 extraLen = len & 0x00000003;
     len            = len & 0xFFFFFFFC;
@@ -155,7 +153,7 @@ static void __section("SectionForBootstrapOperations") Prepare_Zero( UINT32* dst
     }
 }
 
-void __section("SectionForBootstrapOperations") PrepareImageRegions()
+void PrepareImageRegions()
 {
     //
     // Copy RAM RO regions into proper location.
@@ -498,7 +496,7 @@ void BootEntry()
     *ptr = *ptr +4;
 #endif
 
-
+ 
 #if !defined(BUILD_RTM) && !defined(PLATFORM_ARM_OS_PORT)
     {
         int  marker;
@@ -537,7 +535,7 @@ void BootEntry()
 #endif
 
 
-    //CPU_Initialize();
+    CPU_Initialize();
 
     HAL_Time_Initialize();
 

@@ -20,7 +20,7 @@ extern GenericPortTableEntry const Itm0GenericPort;
 extern GenericPortTableEntry const* const g_GenericPorts[TOTAL_GENERIC_PORTS] = { &Itm0GenericPort };
 
 
-void __section("SectionForBootstrapOperations") BootstrapCode_GPIO()
+void BootstrapCode_GPIO()
 {
     // Enable GPIO clocks for ports A - G
     RCC->AHB4ENR |= RCC_AHB4ENR_GPIOAEN | RCC_AHB4ENR_GPIOBEN | RCC_AHB4ENR_GPIOCEN |
