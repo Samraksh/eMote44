@@ -99,12 +99,18 @@ void HAL_MspInit(void)
 }
 
 extern "C" {
-void BootstrapCode()
-{
+void HARD_Breakpoint() {
+	__asm__("BKPT");
+	// This is supposed to now call HARD_Breakpoint_Handler() or something...
+}
+
+void BootstrapCode() {
 	SystemInit();
-	PrepareImageRegions();
-	//CPU_CACHE_Enable();
-	HAL_Init();
+	//SCB->VTOR = FLASH_BANK1_BASE | VECT_TAB_OFFSET;       /* Vector Table Relocation in Internal FLASH */
+	SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
+	//PrepareImageRegions(); // startup asm now does this, I think
+	//CPU_CACHE_Enable(); // Turn on later after we get out of our debugging hole
+	HAL_Init(); // Later calls HAL_MspInit()
 	DefaultSystemClock_Config(); // 96 MHz
 }
 } // extern "C"

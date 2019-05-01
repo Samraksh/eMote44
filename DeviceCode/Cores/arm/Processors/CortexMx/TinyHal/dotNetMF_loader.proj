@@ -44,13 +44,8 @@
 
   <ItemGroup>
     <Compile Include="Aborts.cpp" />
-    <Compile Include="$(AS_SUBDIR)\FirstEntry.s" />
     <Compile Include="$(AS_SUBDIR)\IDelayLoop.s" />
     <Compile Include="$(AS_SUBDIR)\Interlocked.s" />
-  </ItemGroup>
-  
-  <ItemGroup Condition="'$(OS_PLATFORM)'!='true'">
-    <LIB_FIRSTENTRY_OBJ Include="$(OBJ_DIR)\FirstEntry.$(OBJ_EXT)"/>
   </ItemGroup>
 
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
