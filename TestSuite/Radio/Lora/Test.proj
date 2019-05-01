@@ -40,7 +40,7 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 
   <!-- Include all projects from TinyCLR -->
-  <Import Project="$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\emoteOS_Projects.proj" />
+  <Import Project="$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\TinyCLR_Projects.proj" />
 
 
   <ItemGroup>
