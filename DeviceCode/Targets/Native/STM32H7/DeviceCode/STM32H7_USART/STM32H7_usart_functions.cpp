@@ -16,24 +16,14 @@
 #include "..\stm32h7xx.h"
 #include "..\stm32h7xx_main.h"
 
-UART_HandleTypeDef UsartHandle;
-/* Buffer used for transmission */
-uint8_t aTxBuffer[] = " ABCDEF ";
+static UART_HandleTypeDef UsartHandle;
+static uint8_t aTxBuffer[] = " ABCDEF ";
+static uint8_t aRxBuffer[RXBUFFERSIZE];
 
-/* Buffer used for reception */
-uint8_t aRxBuffer[RXBUFFERSIZE];
+static void Error_Handler(void);
 
-static void Error_Handler(void);  
-
-void USART3_IRQHandler(void)
-{
-  /* USER CODE BEGIN OTG_FS_IRQn 0 */
-   //hal_printf(" 32 USART3_IRQHandler.cpp \n");
-  /* USER CODE END OTG_FS_IRQn 0 */
+extern "C" void USART3_IRQHandler(void) {
   HAL_UART_IRQHandler(&UsartHandle);
-  /* USER CODE BEGIN OTG_FS_IRQn 1 */
-   //hal_printf(" 35 USART3_IRQHandler.cpp \n");
-  /* USER CODE END OTG_FS_IRQn 1 */
 }
 
 void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
@@ -46,10 +36,6 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
 	if(huart->Instance==USART3)
 	{
-		/* USER CODE BEGIN USART3_MspInit 0 */
-
-		/* USER CODE END USART3_MspInit 0 */
-		/* Peripheral clock enable */
 		__HAL_RCC_USART3_CLK_ENABLE();
 
 		__HAL_RCC_GPIOD_CLK_ENABLE();
@@ -60,16 +46,11 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		GPIO_InitStruct.Pin = USARTx_RX_PIN | USARTx_TX_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 		GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
 		HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
-		//hal_printf(" 33 stm32h7xx_hal_msp.cpp \n");
-				
-		__NVIC_SetVector(USART3_IRQn, (uint32_t)USART3_IRQHandler);
-		HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART3_IRQn);
-  
 	}
 }
 void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
@@ -129,23 +110,17 @@ BOOL CPU_USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBit
 	else if (Parity == USART_PARITY_EVEN) UsartHandle.Init.Parity = UART_PARITY_EVEN;
 	
 	UsartHandle.Init.Mode = UART_MODE_TX_RX;
-	if (FlowValue & USART_FLOW_NONE) UsartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	if (FlowValue == 0 || FlowValue & USART_FLOW_NONE) UsartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	else if (FlowValue & USART_FLOW_HW_IN_EN && FlowValue & USART_FLOW_HW_OUT_EN) UsartHandle.Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
 	else if (FlowValue & USART_FLOW_HW_OUT_EN) UsartHandle.Init.HwFlowCtl = UART_HWCONTROL_CTS;
 	else if (FlowValue & USART_FLOW_HW_IN_EN) UsartHandle.Init.HwFlowCtl = UART_HWCONTROL_RTS;
 
-  //hal_printf("SystemCoreClock : %x\n", SystemCoreClock);
-  //hal_printf(" 1 tickstart : %x\n", HAL_GetTick());
-  //hal_printf(" uwTickFreq : %x\n", (uint32_t)HAL_GetTickFreq);
-  //hal_printf(" HAL_MAX_DELAY : %x\n", HAL_MAX_DELAY);
-  //hal_printf(" 2 tickstart : %x\n", HAL_GetTick());
-  //HAL_Delay(200);
 	UsartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-	//  UsartHandle.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-	//  UsartHandle.Init.Prescaler = UART_PRESCALER_DIV1;
-	//  UsartHandle.Init.FIFOMode = UART_FIFOMODE_DISABLE;
-	//  UsartHandle.Init.TXFIFOThreshold = UART_TXFIFO_THRESHOLD_1_8;
-	//  UsartHandle.Init.RXFIFOThreshold = UART_RXFIFO_THRESHOLD_1_8;
+	UsartHandle.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+	UsartHandle.Init.Prescaler = UART_PRESCALER_DIV1;
+	UsartHandle.Init.FIFOMode = UART_FIFOMODE_DISABLE;
+	UsartHandle.Init.TXFIFOThreshold = UART_TXFIFO_THRESHOLD_1_8;
+	UsartHandle.Init.RXFIFOThreshold = UART_RXFIFO_THRESHOLD_1_8;
 	UsartHandle.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 	
 	if(HAL_UART_DeInit(&UsartHandle) != HAL_OK)
@@ -186,8 +161,21 @@ void CPU_USART_WriteCharToTxBuffer( int ComPortNum, UINT8 c )
 	
 }
 
-void CPU_USART_TxBufferEmptyInterruptEnable( int ComPortNum, BOOL Enable )
-{
+// FIXME
+// Only working well enough for hal_printf() etc for now
+void CPU_USART_TxBufferEmptyInterruptEnable( int ComPortNum, BOOL Enable ) {
+	if ( !(ComPortNum == 2 && Enable == TRUE) ) { __BKPT(); return; }
+	UART_HandleTypeDef *huart = &UsartHandle;
+
+	// We are going to cheat and poll to send all the bytes
+	char c;
+	BOOL ret = USART_RemoveCharFromTxBuffer(ComPortNum, c);
+
+	while (ret == TRUE) {
+		while( __HAL_UART_GET_FLAG(huart, UART_FLAG_TXE) == RESET ); // Spin
+		huart->Instance->TDR = (uint8_t)c & (uint8_t)0xFFU;
+		ret = USART_RemoveCharFromTxBuffer(ComPortNum, c);
+	}
 }
 
 BOOL CPU_USART_TxBufferEmptyInterruptState( int ComPortNum )
@@ -251,10 +239,7 @@ BOOL CPU_USART_TxHandshakeEnabledState( int comPort )
   */
 static void Error_Handler(void)
 {
-  /* Turn LED_RED on */
-  //BSP_LED_On(LED_RED);
-	//hal_printf(" 153 Error_handler usart_functions.cpp \n");
- 
+	__BKPT();
 }
 
 void Debug_Print_in_HAL(const char* format){

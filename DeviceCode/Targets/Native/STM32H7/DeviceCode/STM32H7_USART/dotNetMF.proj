@@ -47,7 +47,6 @@
   <PropertyGroup />
   <ItemGroup>
     <HFiles Include="..\stm32h7xx.h" />
-	<!--<Compile Include="stm32h7xx_hal_msp.c" />-->
     <Compile Include="STM32H7_Usart_functions.cpp" />
   </ItemGroup>
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
