@@ -89,11 +89,10 @@ uint32_t uwPrescalerValue = 0;
   */
 static void Error_Handler(void)
 {
-  /* Turn LED_RED on */
-  //BSP_LED_On(LED_RED);
-	//hal_printf(" 153 Error_handler usart_functions.cpp \n");
- 
+	__asm__("BKPT");
 }
+
+extern "C" {
 
 void TIM3_IRQHandler(void)
 {
@@ -104,7 +103,7 @@ void TIM2_IRQHandler(void)
 {
   HAL_TIM_IRQHandler(&TimHandle2);
 }
-  
+} // extern "C"
 
 UINT32 CPU_SystemClock()
 {
@@ -400,7 +399,7 @@ BOOL HAL_Time_Initialize()
 		/* Starting Error */
 		Error_Handler();
 	}
-	
+	return TRUE;
 }
 
 BOOL HAL_Time_Uninitialize()
