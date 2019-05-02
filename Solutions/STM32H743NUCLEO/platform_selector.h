@@ -15,8 +15,7 @@
 //
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef _PLATFORM_STM32H743NUCLEO_SELECTOR_H_
-#define _PLATFORM_STM32H743NUCLEO_SELECTOR_H_
+#pragma once
 
 /////////////////////////////////////////////////////////
 //
@@ -101,12 +100,12 @@
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)
 #define USB_ALLOW_CONFIGURATION_OVERRIDE 1
 
-#define DEBUG_TEXT_PORT                 ITM0
-#define STDIO                           ITM0
-#define DEBUGGER_PORT                   USB1
-#define MESSAGING_PORT                  USB1
+#define DEBUG_TEXT_PORT                 COM3
+#define STDIO                           COM3
+#define DEBUGGER_PORT                   COM3
+#define MESSAGING_PORT                  COM3
 
-#define USART_DEFAULT_PORT              COM3
+#define USART_DEFAULT_PORT              2 // COM3
 #define USART_DEFAULT_BAUDRATE          115200
 
 // System Timer Configuration
@@ -166,5 +165,3 @@
 #include <processor_selector.h>
 
 #endif // PLATFORM_ARM_STM32H743NUCLEO
-
-#endif // _PLATFORM_STM32H743NUCLEO_SELECTOR_H_
