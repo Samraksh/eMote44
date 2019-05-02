@@ -2,6 +2,8 @@
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
+#define BREAKPOINT(x) __asm__("BKPT")
+
 /**
   * @brief  CPU L1-Cache enable.
   * @param  None
@@ -18,15 +20,7 @@ static void CPU_CACHE_Enable(void)
   SCB_EnableDCache();
 }
 
-void SysTick_Handler(void)
-{
-  HAL_IncTick();
-}
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @param  None
-  * @retval None
-  */
+// Note: Not an ISR
 static void Error_Handler(void)
 {
 #ifdef DEBUG
@@ -102,6 +96,59 @@ extern "C" {
 void HARD_Breakpoint() {
 	__asm__("BKPT");
 	// This is supposed to now call HARD_Breakpoint_Handler() or something...
+}
+
+void NMI_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void HardFault_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void MemManage_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void BusFault_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void UsageFault_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void SVC_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void DebugMon_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void PendSV_Handler(void) {
+	BREAKPOINT();
+	while(1);
+}
+
+void SysTick_Handler() {
+	HAL_IncTick();
+}
+
+// An exception or interrupt without a handler.
+// Check irq_num, note that negative values are exceptions
+void Unknown_Handler(void) {
+	volatile uint32_t ipsr = __get_IPSR();
+	volatile int irq_num = ipsr - 16;
+	BREAKPOINT();
+	while(1);
 }
 
 void BootstrapCode() {
