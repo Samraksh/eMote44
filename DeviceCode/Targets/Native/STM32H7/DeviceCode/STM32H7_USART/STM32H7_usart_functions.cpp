@@ -22,18 +22,13 @@ static void Error_Handler(void);
 
 extern "C" void USART3_IRQHandler(void)
 {
+ INTERRUPT_START;
  if (UsartHandle[2].Instance->ISR & USART_ISR_RXNE) {
-    INTERRUPT_START;
-
     char c = (char)READ_REG(UsartHandle[2].Instance->RDR); // read RX data
     USART_AddCharToRxBuffer(2, c);
-    Events_Set(SYSTEM_EVENT_FLAG_COM_IN);
-
-    INTERRUPT_END;
  }
 
  if (UsartHandle[2].Instance->ISR & USART_ISR_TXE) {
-	INTERRUPT_START;
 
     char c;
     if (USART_RemoveCharFromTxBuffer(2, c)) {
@@ -41,10 +36,8 @@ extern "C" void USART3_IRQHandler(void)
     } else {
         UsartHandle[2].Instance->CR1 &= ~USART_CR1_TXEIE; // TX int disable
     }
-    Events_Set(SYSTEM_EVENT_FLAG_COM_OUT);
-
-    INTERRUPT_END;
  }
+ INTERRUPT_END;
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
    //hal_printf(" 32 USART3_IRQHandler.cpp \n");
   /* USER CODE END OTG_FS_IRQn 0 */
@@ -80,7 +73,7 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		//hal_printf(" 33 stm32h7xx_hal_msp.cpp \n");
 				
 		//__NVIC_SetVector(USART3_IRQn, (uint32_t)USART3_IRQHandler);
-		HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
+		//HAL_NVIC_SetPriority(USART3_IRQn, 0, 0);
 		HAL_NVIC_EnableIRQ(USART3_IRQn);
   
 	}
@@ -143,7 +136,7 @@ BOOL CPU_USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBit
 	else if (Parity == USART_PARITY_EVEN) UsartHandle[ComPortNum].Init.Parity = UART_PARITY_EVEN;
 	
 	UsartHandle[ComPortNum].Init.Mode = UART_MODE_TX_RX;
-	if (FlowValue & USART_FLOW_NONE) UsartHandle[ComPortNum].Init.HwFlowCtl = UART_HWCONTROL_NONE;
+	if (FlowValue == 0 || FlowValue & USART_FLOW_NONE) UsartHandle[ComPortNum].Init.HwFlowCtl = UART_HWCONTROL_NONE;
 	else if (FlowValue & USART_FLOW_HW_IN_EN && FlowValue & USART_FLOW_HW_OUT_EN) UsartHandle[ComPortNum].Init.HwFlowCtl = UART_HWCONTROL_RTS_CTS;
 	else if (FlowValue & USART_FLOW_HW_OUT_EN) UsartHandle[ComPortNum].Init.HwFlowCtl = UART_HWCONTROL_CTS;
 	else if (FlowValue & USART_FLOW_HW_IN_EN) UsartHandle[ComPortNum].Init.HwFlowCtl = UART_HWCONTROL_RTS;
@@ -165,6 +158,8 @@ BOOL CPU_USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBit
 	{
 		Error_Handler();
     }
+	// Enable RX interrupt
+	SET_BIT(UsartHandle[ComPortNum].Instance->CR1, USART_CR1_RXNEIE);
     return TRUE;
 }
 
