@@ -219,7 +219,6 @@ public:
 	void radio_spi_sel_no_assert();
 
 //private:
-	void initSPI2(); //Initialize a SPI structure
 	void init_pins();
 	void reset();
 	void init_interrupts();

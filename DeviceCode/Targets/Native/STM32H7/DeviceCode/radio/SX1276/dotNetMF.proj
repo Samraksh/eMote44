@@ -1,14 +1,14 @@
 <Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <AssemblyName>STM32F10x_radio_sx1276x</AssemblyName>
+    <AssemblyName>NETMF_LoRa_Radio_Driver</AssemblyName>
     <ProjectGuid>{885b4313-3a4f-49fa-b255-6df6870fbec8}</ProjectGuid>
     <Size>
     </Size>
-    <Description>STM32F10x_radio_sx1276x</Description>
+    <Description>NETMF_LoRa_Radio_Driver</Description>
     <Level>HAL</Level>
-    <LibraryFile>STM32F10x_radio_sx1276x.$(LIB_EXT)</LibraryFile>
-    <ProjectPath>$(SPOCLIENT)\Solutions\STM32F10x\DeviceCode\drivers\radio\SX1276</ProjectPath>
-    <ManifestFile>STM32F10x_radio_sx1276x.$(LIB_EXT).manifest</ManifestFile>
+    <LibraryFile>NETMF_LoRa_Radio_Driver.$(LIB_EXT)</LibraryFile>
+    <ProjectPath>$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\radio\SX1276</ProjectPath>
+    <ManifestFile>NETMF_LoRa_Radio_Driver.$(LIB_EXT).manifest</ManifestFile>
     <Groups>STM32F10x\STM32F10x</Groups>
     <LibraryCategory>
       <MFComponent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="radio" Guid="{15AB3FEB-4D7A-40AD-B1A0-4BF663A6EF93}" ProjectPath="" Conditional="" xmlns="">
@@ -31,7 +31,7 @@
     <Required>False</Required>
     <IgnoreDefaultLibPath>False</IgnoreDefaultLibPath>
     <IsStub>False</IsStub>
-    <Directory>Solutions\STM32F10x\DeviceCode\drivers\radio</Directory>
+    <Directory>\DeviceCode\Targets\Native\STM32H7\DeviceCode\radio</Directory>
     <OutputType>Library</OutputType>
     <PlatformIndependentBuild>false</PlatformIndependentBuild>
     <Version>4.0.0.0</Version>
@@ -39,18 +39,18 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
   <PropertyGroup />
   <ItemGroup>		
-	<HFiles Include="SamrakshSX1276hal.h" />	
-	<HFiles Include="SamrakshSX1276halShim.h" />		
+	<!--<HFiles Include="SamrakshSX1276hal.h" />	-->
+	<!--<HFiles Include="SamrakshSX1276halShim.h" /> -->		
 	<HFiles Include="SX1276wrapper.h" />
-	<HFiles Include="EmoteLoraHat.h" />
+	<!--<HFiles Include="EmoteLoraHat.h" /> -->
 	<HFiles Include="sx1276driver/sx1276/sx1276.h" />
 	<HFiles Include="sx1276driver/radio/radio.h" />
 	<HFiles Include="sx1276driver/enums/enums.h" />
 	<HFiles Include="sx1276driver/typedefs/typedef.h" />
 	<Compile Include="SX1276wrapper.cpp" />
-	<Compile Include="EmoteLoraHat.cpp" />	
-	<Compile Include="SamrakshSX1276hal.cpp" />	
-	<Compile Include="SamrakshSX1276halShim.cpp" />	
+	<!--<Compile Include="EmoteLoraHat.cpp" />	-->
+	<!--<Compile Include="SamrakshSX1276hal.cpp" />	-->
+	<!--<Compile Include="SamrakshSX1276halShim.cpp" />	-->
 	<Compile Include="sx1276driver/sx1276/sx1276.cpp" />	
 	<Compile Include="sx1276driver/radio/radio.cpp" />	
   </ItemGroup>

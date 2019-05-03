@@ -63,7 +63,7 @@ void ApplicationEntryPoint()
 
         DebuggerPort_Initialize( HalSystemConfig.DebuggerPorts[ 0 ] );
 		//hal_printf(" 64 TinyBooter.cpp \n");
-		USART_Initialize( ConvertCOM_ComPort(USART_DEFAULT_PORT), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );
+		//USART_Initialize( ConvertCOM_ComPort(USART_DEFAULT_PORT), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );
 	    //USART_Write(ConvertCOM_ComPort(USART_DEFAULT_PORT), "test\n", 10);
 		
 		//CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
@@ -97,7 +97,7 @@ void ApplicationEntryPoint()
 		CPU_SPI_Xaction_Stop(testabc);
 		//HAL_Time_Sleep_MicroSeconds(10000000);
 		hal_printf(" 99 TinyBooter.cpp %d\n",HAL_Time_CurrentTicks());
-		CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
+		//CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
 			
 		TinyBooter_OnStateChange( State_EnterBooterMode, NULL );
 

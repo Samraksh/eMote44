@@ -5,7 +5,7 @@
 
 #include <radio/SX1276/SX1276wrapper.h>
 #include <radio/SX1276/SamrakshSX1276Parameters.h>
-#include <pwr/netmf_pwr_wakelock.h>
+//#include <pwr/netmf_pwr_wakelock.h>
 
 // MF normally doesn't allow us to use these functions
 // I don't know why and I assume for an obsolete or not good reason.

@@ -16,6 +16,13 @@
 // LoRa "wrapper" (lowest-level) driver layer
 extern SX1276M1BxASWrapper g_SX1276M1BxASWrapper;
 
+extern void HAL_CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents);
+
+void CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents)
+{
+    HAL_CPU_Sleep(level, wakeEvents);
+}
+
 static void valid_header(void) {
 	debug_printf("%s\r\n", __func__);
 }
@@ -80,10 +87,13 @@ static uint32_t get_cpu_id_hash(void) {
 	uint32_t *id = (uint32_t *) 0x1FFFF7E8;
 	uint32_t ret;
 
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
-	CRC_ResetDR();
-	ret = CRC_CalcBlockCRC(id, 3);
-	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, DISABLE);
+	//RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
+	__HAL_RCC_CRC_CLK_ENABLE();
+	//CRC_ResetDR();
+	//ret = CRC_CalcBlockCRC(id, 3);
+
+	//RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, DISABLE);
+	__HAL_RCC_CRC_CLK_DISABLE();
 	return ret;
 }
 
@@ -134,13 +144,13 @@ static void native_link_test(void) {
 		UINT32 now;
 		UINT32 last_now;
 		debug_printf("Packet Send Interval: %u ms\r\n", interval_ms);
-		next = CPU_Timer_GetCounter(RTC_32BIT);
+		//next = CPU_Timer_GetCounter(RTC_32BIT);
 		now = next;
 		while(1) {
 			// wait for now to zero-cross if overflow detected
 			while (overflow && now >= last_now) {
 				Events_WaitForEvents(0, POLL_INTERVAL_MS);
-				now = CPU_Timer_GetCounter(RTC_32BIT);
+			//	now = CPU_Timer_GetCounter(RTC_32BIT);
 			}
 			overflow = false;
 			// Do one big sleep for 95% the expected interval before busy polling.
@@ -148,7 +158,7 @@ static void native_link_test(void) {
 			// Wait for right moment
 			while (now < next) {
 				Events_WaitForEvents(0, POLL_INTERVAL_MS); // not super precise but good enough
-				now = CPU_Timer_GetCounter(RTC_32BIT);
+				//now = CPU_Timer_GetCounter(RTC_32BIT);
 			}
 			radio->Send( (uint8_t *)&pkt, sizeof(pkt) );
 			debug_printf("Sent: %u\r\n", pkt.count);

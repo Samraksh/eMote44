@@ -24,6 +24,18 @@
         <DriverLibs Include="CortexM7_ItmPort.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_ItmPort\dotNetMF.proj" />
     </ItemGroup>
+	
+	<ItemGroup>
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\dotNetMF.proj" />
+        <DriverLibs Include="STM32H7xx_HAL_Driver.$(LIB_EXT)"/>
+	</ItemGroup>
+	
+	<ItemGroup>
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\radio\dotNetMF.proj" />
+        <DriverLibs Include="NETMF_LoRa_Radio_Driver.$(LIB_EXT)"/>
+	</ItemGroup>
+	
+	
     <ItemGroup>
         <DriverLibs Include="LargeBuffer_hal_stubs.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\drivers\LargeBuffer\stubs\dotnetmf.proj" />
