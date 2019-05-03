@@ -159,6 +159,9 @@ void BootstrapCode() {
 	//CPU_CACHE_Enable(); // Turn on later after we get out of our debugging hole
 	HAL_Init(); // Later calls HAL_MspInit()
 	DefaultSystemClock_Config(); // 96 MHz
+#ifdef DEBUG
+	__HAL_DBGMCU_FREEZE_TIM2();
+#endif
 }
 } // extern "C"
 
