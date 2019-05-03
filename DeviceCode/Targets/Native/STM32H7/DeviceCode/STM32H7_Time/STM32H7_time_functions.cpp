@@ -261,7 +261,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 	  /*##-2- Configure the NVIC for TIMx ########################################*/
 	  /* Set the TIMx priority */
 	  
-	  __NVIC_SetVector(TIM2_IRQn, (uint32_t)TIM2_IRQHandler);
+	 // __NVIC_SetVector(TIM2_IRQn, (uint32_t)TIM2_IRQHandler);
 	  
 	  HAL_NVIC_SetPriority(TIM2_IRQn, 3, 0);
 
@@ -275,7 +275,7 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 	  /*##-2- Configure the NVIC for TIMx ########################################*/
 	  /* Set the TIMx priority */
 	  
-	  __NVIC_SetVector(TIM3_IRQn, (uint32_t)TIM3_IRQHandler);
+	  //__NVIC_SetVector(TIM3_IRQn, (uint32_t)TIM3_IRQHandler);
 	  
 	  HAL_NVIC_SetPriority(TIM3_IRQn, 3, 0);
 

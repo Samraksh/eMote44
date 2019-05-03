@@ -25,15 +25,15 @@ uint8_t aTxBuffer2[]=" abc";
 /* Buffer used for reception */
 uint8_t aRxBuffer2[BUFFERSIZE];
 
-void SPI1_IRQHandler(void)
+extern "C" void SPI1_IRQHandler(void)
 {
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
-  hal_printf(" 32 SPI1_IRQHandler \n");
+ // hal_printf(" 32 SPI1_IRQHandler \n");
   /* USER CODE END OTG_FS_IRQn 0 */
   HAL_SPI_IRQHandler(&SpiHandle[0]);
   //HAL_SPI_IRQHandler(&SpiHandle);
   /* USER CODE BEGIN OTG_FS_IRQn 1 */
-  hal_printf(" 35 SPI1_IRQHandler \n");
+ // hal_printf(" 35 SPI1_IRQHandler \n");
   /* USER CODE END OTG_FS_IRQn 1 */
 }
 
@@ -94,7 +94,7 @@ void HAL_SPI_MspInit(SPI_HandleTypeDef *hspi)
 
     /*##-3- Configure the NVIC for SPI #########################################*/
     /* NVIC for SPI */
-	__NVIC_SetVector(SPIx_IRQn, (uint32_t)SPI1_IRQHandler);
+	//__NVIC_SetVector(SPIx_IRQn, (uint32_t)SPI1_IRQHandler);
     HAL_NVIC_SetPriority(SPIx_IRQn, 1, 0);
     HAL_NVIC_EnableIRQ(SPIx_IRQn);
 	//hal_printf(" 78 IRQ_Handler value %x \n", (uint32_t)SPI1_IRQHandler); 
@@ -202,7 +202,7 @@ BOOL CPU_SPI_Xaction_Start( const SPI_CONFIGURATION& Configuration )
 	{
 	/* Initialization Error */
 		Error_Handler();
-		hal_printf(" 108 spi_functions.cpp \n"); 
+		//hal_printf(" 108 spi_functions.cpp \n"); 
 	}  
 	// SpiHandle.Instance               = SPIx;
 	// SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
@@ -269,7 +269,7 @@ BOOL CPU_SPI_Xaction_nWrite8_nRead8( SPI_XACTION_8& Transaction )
 	
 	//HAL_SPI_Transmit_IT(&SpiHandle, (uint8_t *)outBuf, 4);
     
-	hal_printf(" 85 SPI_mod:%d \n", Transaction.SPI_mod);	
+	//hal_printf(" 85 SPI_mod:%d \n", Transaction.SPI_mod);	
 	//HAL_SPI_TransmitReceive_IT(&SpiHandle, (uint8_t *)outBuf, (uint8_t *)inBuf , (uint16_t)Transaction.WriteCount);
 	//HAL_SPI_Transmit_IT(&SpiHandle[Transaction.SPI_mod], (uint8_t *)outBuf, (uint16_t)Transaction.WriteCount);
 	HAL_SPI_TransmitReceive_IT(&SpiHandle[Transaction.SPI_mod], (uint8_t *)outBuf, (uint8_t *)inBuf , (uint16_t)Transaction.WriteCount);
