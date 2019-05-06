@@ -12,6 +12,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////
 
 #include <tinyhal.h>
+#include <stm32h7xx_hal.h>
 #include "STM32H7_Power_functions.h"
 #include "..\stm32h7xx.h"
 

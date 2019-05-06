@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include <tinyhal.h>
+#include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
 #define STM32H7_Gpio_MaxPins (TOTAL_GPIO_PORT * 16)
@@ -19,6 +20,7 @@
 
 // indexed port configuration access
 #define Port(port) ((GPIO_TypeDef *) (GPIOA_BASE + (port << 10)))
+#define GPIO_NUMBER           (16U)
 
 struct STM32H7_Int_State
 {
@@ -241,10 +243,10 @@ void STM32H7_GPIO_Pin_Config( GPIO_PIN pin, UINT32 mode, GPIO_RESISTOR resistor,
     UINT32 mask = 0x3 << shift;
     UINT32 pull = 0;
     if( resistor == RESISTOR_PULLUP )
-        pull = GPIO_PUPDR_PUPDR0_0;
+        pull = GPIO_PUPDR_PUPD0_0;
 
     if( resistor == RESISTOR_PULLDOWN )
-        pull = GPIO_PUPDR_PUPDR0_1;
+        pull = GPIO_PUPDR_PUPD0_1;
 
     pull <<= shift;
     mode <<= shift;
@@ -411,9 +413,9 @@ void CPU_GPIO_SetPinState( GPIO_PIN pin, BOOL pinState )
         GPIO_TypeDef* port = Port( pin >> 4 ); // pointer to the actual port registers 
         UINT16 bit = 1 << ( pin & 0x0F );
         if( pinState )
-            port->BSRRL = bit; // set bit
+            port->BSRR = bit; // set bit
         else
-            port->BSRRH = bit;  // reset bit
+            port->BSRR = bit << GPIO_NUMBER; // reset bit
     }
 }
 

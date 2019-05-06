@@ -23,12 +23,12 @@ static void Error_Handler(void);
 extern "C" void USART3_IRQHandler(void)
 {
  INTERRUPT_START;
- if (UsartHandle[2].Instance->ISR & USART_ISR_RXNE) {
+ if (UsartHandle[2].Instance->ISR & USART_ISR_RXNE_RXFNE) {
     char c = (char)READ_REG(UsartHandle[2].Instance->RDR); // read RX data
     USART_AddCharToRxBuffer(2, c);
  }
 
- if (UsartHandle[2].Instance->ISR & USART_ISR_TXE) {
+ if (UsartHandle[2].Instance->ISR & USART_ISR_TXE_TXFNF) {
 
     char c;
     if (USART_RemoveCharFromTxBuffer(2, c)) {
@@ -177,7 +177,7 @@ BOOL CPU_USART_Uninitialize( int ComPortNum )
 
 BOOL CPU_USART_TxBufferEmpty( int ComPortNum )
 {
-	if (UsartHandle[ComPortNum].Instance->ISR & USART_ISR_TXE)
+	if (UsartHandle[ComPortNum].Instance->ISR & USART_ISR_TXE_TXFNF)
 		return TRUE;
     return FALSE;
 }
