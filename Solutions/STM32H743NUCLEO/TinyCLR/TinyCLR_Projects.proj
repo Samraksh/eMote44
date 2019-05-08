@@ -221,10 +221,10 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_Flash\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
-        <!--<DriverLibs Include="STM32H7_SPI.$(LIB_EXT)" />-->
-        <!--<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_spi\dotNetMF.proj" />-->
-        <DriverLibs Include="cpu_spi_stubs.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\Processor\stubs_SPI\dotNetMF.proj" />
+        <DriverLibs Include="STM32H7_SPI.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_spi\dotNetMF.proj" />
+        <!--<DriverLibs Include="cpu_spi_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\Processor\stubs_SPI\dotNetMF.proj" />-->
     </ItemGroup>
     <ItemGroup>
         <!--<DriverLibs Include="STM32H7_I2C.$(LIB_EXT)" />-->
@@ -233,10 +233,10 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\stubs\processor\stubs_I2C\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
-        <DriverLibs Include="cpu_usart_stubs.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\processor\stubs_USART\dotNetMF.proj" />
-        <!--<DriverLibs Include="STM32H7_USART.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_USART\dotNetMF.proj" />-->
+       <!-- <DriverLibs Include="cpu_usart_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\processor\stubs_USART\dotNetMF.proj" />-->
+        <DriverLibs Include="STM32H7_USART.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_USART\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
 	    <DriverLibs Include="cpu_usb_stubs.$(LIB_EXT)" />

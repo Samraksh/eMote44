@@ -36,7 +36,8 @@
     -->
     <!-- TinyBooter sits at power on Reset vector-->
     <Set Name="BooterCode_BaseAddress"  Value="%IFLASH_BaseAddress%"/>
-    <Set Name="BooterCode_Size"         Value="0x0000C1000"/><!-- 64KB -->
+    <!--<Set Name="BooterCode_Size"         Value="0x0000C1000"/>-->
+	<Set Name="BooterCode_Size"         Value="0x000020000"/>
 
     <Set Name="Code_BaseAddress"        Value="%BooterCode_BaseAddress%"/>
     <Set Name="Code_Size"               Value="%BooterCode_Size%"/>
@@ -136,14 +137,14 @@
 			<FileMapping Name="HeapEnd = .;" />
         </ExecRegion>
 
-        <ExecRegion Name="ER_CUSTOM_HEAP_BEGIN" Base="%Custom_Heap_Begin%" Options="&gt;IRAM" >
+        <ExecRegion Name="ER_CUSTOM_HEAP_BEGIN" Base="%Custom_Heap_Begin%" Options="&gt;D_CCM" >
             <FileMapping Name="*" Options="(SectionForCustomHeapBegin)" />
 			<FileMapping Name="CustomHeapBegin = .;" />
         </ExecRegion>
 
         <!-- everything between heapbegin and heapend will be allocated for the unmanaged SimpleHeap -->
 
-        <ExecRegion Name="ER_CUSTOM_HEAP_END" Base="%Custom_Heap_End%" Options="&gt;IRAM" >
+        <ExecRegion Name="ER_CUSTOM_HEAP_END" Base="%Custom_Heap_End%" Options="&gt;D_CCM" >
             <FileMapping Name="*" Options="(SectionForCustomHeapEnd)" />
 			<FileMapping Name="CustomHeapEnd = .;" />
         </ExecRegion>
