@@ -3,7 +3,15 @@
 #include "..\stm32h7xx.h"
 
 #define BREAKPOINT(x) __asm__("BKPT")
-#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
+//#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
+
+//#if defined(TARGETLOCATION_RAM)
+//extern UINT32 Load$$ER_RAM$$Base;
+//#elif defined(TARGETLOCATION_FLASH)
+extern UINT32 Load$$ER_FLASH$$Base;
+//#else
+//    !ERROR
+//#endif
 
 /**
   * @brief  CPU L1-Cache enable.
@@ -155,9 +163,8 @@ void Unknown_Handler(void) {
 void BootstrapCode() {
 	SystemInit();
 	//SCB->VTOR = FLASH_BANK1_BASE | VECT_TAB_OFFSET;       /* Vector Table Relocation in Internal FLASH */
-		
-	SCB->VTOR = FLASH_BANK1_BASE + TINY_CLR_VECTOR_TABLE_OFFSET;
-	
+	SCB->VTOR = (UINT32)&Load$$ER_FLASH$$Base;
+
 	//SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
 
 	//PrepareImageRegions(); // startup asm now does this, I think
