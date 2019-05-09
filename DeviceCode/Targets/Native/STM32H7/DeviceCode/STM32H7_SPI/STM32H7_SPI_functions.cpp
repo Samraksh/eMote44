@@ -25,6 +25,12 @@ uint8_t aTxBuffer2[]=" abc";
 /* Buffer used for reception */
 uint8_t aRxBuffer2[BUFFERSIZE];
 
+extern "C" void SPI1_IRQHandler(void)
+{
+  HAL_SPI_IRQHandler(&SpiHandle[0]);
+}
+
+
 //extern "C" void SPI1_IRQHandler(void)
 //{
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
@@ -261,6 +267,196 @@ UINT32 CPU_SPI_MaxClockFrequency( UINT32 spi_mod )
 UINT32 CPU_SPI_ChipSelectLineCount( UINT32 spi_mod )
 {
     return 0;
+}
+
+
+
+/*!
+ * @brief Initializes the SPI object and MCU peripheral
+ *
+ * @param [IN] none
+ */
+void CPU_SPI_Init(UINT8 SPI_TYPE)
+{  
+	/*##-1- Configure the SPI peripheral */
+	/* Set the SPI parameters */
+	if (SPI_TYPE == SPI_TYPE_RADIO) {
+		SpiHandle[SPI_TYPE].Instance = SPI1;
+
+		SpiHandle[SPI_TYPE].Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;//SpiFrequency( 10000000 );
+		SpiHandle[SPI_TYPE].Init.Direction      = SPI_DIRECTION_2LINES;
+		SpiHandle[SPI_TYPE].Init.Mode           = SPI_MODE_MASTER;
+		SpiHandle[SPI_TYPE].Init.CLKPolarity    = SPI_POLARITY_LOW;
+		SpiHandle[SPI_TYPE].Init.CLKPhase       = SPI_PHASE_1EDGE;
+		SpiHandle[SPI_TYPE].Init.DataSize       = SPI_DATASIZE_8BIT;
+		SpiHandle[SPI_TYPE].Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;  
+		SpiHandle[SPI_TYPE].Init.FirstBit       = SPI_FIRSTBIT_MSB;
+		SpiHandle[SPI_TYPE].Init.NSS            = SPI_NSS_SOFT;
+		SpiHandle[SPI_TYPE].Init.TIMode         = SPI_TIMODE_DISABLE;
+		
+		/*	LoRaSpiHandle.Init.CRCPolynomial = 7; */
+	
+	}
+	
+	__HAL_RCC_SPI1_CLK_ENABLE();//SPI_CLK_ENABLE(); 
+
+	if(HAL_SPI_Init(&SpiHandle[SPI_TYPE]) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+	/*##-2- Configure the SPI GPIOs */
+	CPU_SPI_IoInit(SPI_TYPE);
+}
+
+/*!
+ * @brief De-initializes the SPI object and MCU peripheral
+ *
+ * @param [IN] none
+ */
+void CPU_SPI_DeInit(UINT8 SPI_TYPE)
+{
+	HAL_SPI_DeInit(&SpiHandle[SPI_TYPE]);
+
+	if (SPI_TYPE == SPI_TYPE_RADIO) {
+		/*##-1- Reset peripherals ####*/
+		__HAL_RCC_SPI1_FORCE_RESET();
+		__HAL_RCC_SPI1_RELEASE_RESET();
+	}
+	/*##-2- Configure the SPI GPIOs */
+	CPU_SPI_IoDeInit(SPI_TYPE);
+}
+
+void CPU_SPI_IoInit(UINT8 SPI_TYPE)
+{
+	GPIO_InitTypeDef initStruct={0};
+
+	if (SPI_TYPE == SPI_TYPE_RADIO) { 
+		initStruct.Mode = GPIO_MODE_IT_RISING;
+		initStruct.Pull = GPIO_PULLDOWN;
+		initStruct.Speed = GPIO_SPEED_HIGH;
+
+		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
+		CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
+		CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
+		//CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
+
+		initStruct.Mode = GPIO_MODE_AF_PP;
+		initStruct.Pull = GPIO_NOPULL;
+		initStruct.Speed = GPIO_SPEED_HIGH;
+		initStruct.Alternate = GPIO_AF5_SPI1 ;
+
+		CPU_GPIO_Init( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct);		
+		CPU_GPIO_Init( RADIO_MISO_PORT, RADIO_MISO_PIN, &initStruct);
+		CPU_GPIO_Init( RADIO_MOSI_PORT, RADIO_MOSI_PIN, &initStruct);
+
+		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
+		initStruct.Pull = GPIO_NOPULL;
+
+		CPU_GPIO_Init(RADIO_NSS_PORT, RADIO_NSS_PIN, &initStruct );
+
+		CPU_GPIO_Write(RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );
+	}
+}
+
+void CPU_SPI_IoDeInit(UINT8 SPI_TYPE)
+{
+	GPIO_InitTypeDef initStruct={0};
+
+	if (SPI_TYPE == SPI_TYPE_RADIO) { 	
+		initStruct.Mode = GPIO_MODE_IT_RISING ;
+		initStruct.Pull = GPIO_PULLDOWN;
+
+		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
+		CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
+		CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
+		CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );	 
+		
+		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
+
+		initStruct.Pull = GPIO_NOPULL  ; 
+		CPU_GPIO_Init ( RADIO_MOSI_PORT, RADIO_MOSI_PIN, &initStruct ); 
+		CPU_GPIO_Write( RADIO_MOSI_PORT, RADIO_MOSI_PIN, 0 );
+
+		initStruct.Pull = GPIO_PULLDOWN; 
+		CPU_GPIO_Init ( RADIO_MISO_PORT, RADIO_MISO_PIN, &initStruct ); 
+		CPU_GPIO_Write( RADIO_MISO_PORT, RADIO_MISO_PIN, 0 );
+
+		initStruct.Pull = GPIO_NOPULL  ; 
+		CPU_GPIO_Init ( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct ); 
+		CPU_GPIO_Write( RADIO_SCLK_PORT, RADIO_SCLK_PIN, 0 );
+  
+		initStruct.Pull = GPIO_NOPULL  ; 
+		CPU_GPIO_Init ( RADIO_NSS_PORT, RADIO_NSS_PIN , &initStruct ); 
+		CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN , 1 );	
+
+	} 
+}
+
+/*!
+ * @brief Sends outData and receives inData
+ *
+ * @param [IN] outData Byte to be sent
+ * @retval inData      Received byte.
+ */
+UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData )
+{
+	UINT16 rxData ;
+	if (HAL_SPI_TransmitReceive( &SpiHandle[SPI_TYPE], ( UINT8 * ) &txData, ( UINT8* ) &rxData, 1, HAL_MAX_DELAY) != HAL_OK) {
+		hal_printf("SPI Wrong\n\r");
+		__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
+	}	
+	return rxData;
+}
+
+/* Exported functions ---------------------------------------------------------*/
+/*!
+ * @brief Initializes the given GPIO object
+ *
+ * @param  GPIOx: where x can be (A..E and H)
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @param [IN] initStruct  GPIO_InitTypeDef intit structure
+ * @retval none
+ */
+void CPU_GPIO_Init( GPIO_TypeDef* port, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct)
+{
+
+  RCC_GPIO_CLK_ENABLE((uint32_t) port);
+
+  initStruct->Pin = GPIO_Pin ;
+
+  HAL_GPIO_Init( port, initStruct );
+}
+
+/*!
+ * @brief Writes the given value to the GPIO output
+ *
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @param [IN] value New GPIO output value
+ * @retval none
+ */
+void CPU_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value )
+{
+  HAL_GPIO_WritePin( GPIOx, GPIO_Pin , (GPIO_PinState) value );
+}
+
+/*!
+ * @brief Reads the current GPIO input value
+ *
+ * @param  GPIOx: where x can be (A..E and H) 
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @retval value   Current GPIO input value
+ */
+uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin )
+{
+  return HAL_GPIO_ReadPin( GPIOx, GPIO_Pin);
 }
 
 

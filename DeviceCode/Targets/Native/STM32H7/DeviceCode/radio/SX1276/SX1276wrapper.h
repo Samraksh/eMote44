@@ -208,17 +208,12 @@ public:
 		UINT8 DIO5;
 	};
 
-//protected:
-	// Stores the configuration of the spi
-//	SPI_CONFIGURATION config;
 	SPI_CONFIGURATION m_spi_config;
 	SX1276_pin_setup_t SX1276_pin_setup;
 	static unsigned ctsWentHigh;
 
-	uint8_t radio_spi_go(uint8_t data);
-	void radio_spi_sel_no_assert();
 
-//private:
+
 	void init_pins();
 	void reset();
 	void init_interrupts();
@@ -226,69 +221,15 @@ public:
 public:
 	InterruptPins_t SX1276_interupt_pins;
 
-
-
-//	LoraHardwareConfig();
-
-	void LoraHardwareConfigInitialize();
-
-	void spi_write_bytes(unsigned count, const uint8_t *buf);
-
-	void spi_read_bytes(unsigned count, uint8_t *buf);
-
-	unsigned int radio_comm_PollCTS();
-
-	void radio_spi_sel_assert();
-
-	uint8_t radio_comm_GetResp(uint8_t byteCount, uint8_t* pData);
-
-	//check and read packet in lora modem
 	bool LoraRcvPkt();
 public:
-//	Emote_Lora_Hat();
-//	~Emote_Lora_Hat();
-////
-//	void write_tx_fifo(uint8_t numBytes, uint8_t* pTxData) {
-//	  radio_comm_WriteData( SX1276_CMD_ID_WRITE_TX_FIFO, 0, numBytes, pTxData );
-//	}
-//
-//	void read_rx_fifo(uint8_t numBytes, uint8_t* pRxData) {
-//	  radio_comm_ReadData( SX1276_CMD_ID_READ_RX_FIFO, 0, numBytes, pRxData );
-//	}
+
+	void WriteBuffer(uint8_t addr, uint8_t* buffer, uint8_t size);
+	void ReadBuffer(uint8_t addr, uint8_t* buffer, uint8_t size);
 
 
-
-	bool SpiInitialize();
-
-	void radio_comm_WriteData(uint8_t cmd, unsigned pollCts, uint8_t byteCount, uint8_t* pData);
-	void radio_comm_ReadData(uint8_t cmd, unsigned pollCts, uint8_t byteCount, uint8_t* pData);
-
-
-
-//protected:
     SX1276RadioEvents_t* RadioEvents;
 
-//protected:
-    /*!
-    * SPI Interface
-    */
-//    SPI spi; // mosi, miso, sclk
-//    DigitalOut nss;
-//
-//    /*!
-//     * SX1276 Reset pin
-//     */
-//    DigitalInOut reset;
-
-    /*!
-     * SX1276 DIO pins
-     */
-//    InterruptIn dio0;
-//    InterruptIn dio1;
-//    InterruptIn dio2;
-//    InterruptIn dio3;
-//    InterruptIn dio4;
-//    DigitalIn dio5;
 
     bool isRadioActive;
 

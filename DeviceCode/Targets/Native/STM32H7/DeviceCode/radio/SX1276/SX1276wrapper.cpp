@@ -9,6 +9,7 @@
 
 #include "SX1276wrapper.h"
 #include "sx1276wrapper_definitions.h"
+#include "..\..\stm32h7xx_main.h"
 
 #define SX1276M1BxASWrapper_debug_PIN (GPIO_PIN)120
 
@@ -19,13 +20,6 @@
 #define READ_OPMODE() (Read( REG_OPMODE ) & ~RFLR_OPMODE_MASK)
 
 SX1276M1BxASWrapper g_SX1276M1BxASWrapper;
-
-SPI_HandleTypeDef LoRaSpiHandle;
-
-extern "C" void SPI1_IRQHandler(void)
-{
-  HAL_SPI_IRQHandler(&LoRaSpiHandle);
-}
 
 #ifndef SX1276_NO_DEBUG_PRINT
 static void SX1276_debug_print(int priority, const char *fmt, ...) {
@@ -58,126 +52,6 @@ static unsigned get_APB2_clock() {
 }
 */
 
-bool SX1276M1BxASWrapper::SpiInitialize() {
-
-	return TRUE;
-}
-
-
-void SX1276M1BxASWrapper::radio_comm_WriteData(uint8_t cmd, unsigned pollCts,
-		uint8_t byteCount, uint8_t* pData) {
-
-	radio_spi_sel_assert(); //cs pin chip select
-	radio_spi_go(cmd);
-	spi_write_bytes(byteCount, pData);
-	radio_spi_sel_no_assert();
-}
-
-void SX1276M1BxASWrapper::radio_comm_ReadData(uint8_t cmd, unsigned pollCts,
-		uint8_t byteCount, uint8_t* pData) {
-	if (pollCts) { // Not sure of case where you wouldn't want to do this
-		radio_comm_PollCTS();
-	}
-	radio_spi_sel_assert();
-	radio_spi_go(cmd);
-	spi_read_bytes(byteCount, pData);
-	radio_spi_sel_no_assert();
-}
-
-
-
-void SX1276M1BxASWrapper::reset(){
-	HAL_GPIO_WritePin(SX1276_pin_setup.reset_port, SX1276_pin_setup.reset_pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(SX1276_pin_setup.reset_port, SX1276_pin_setup.reset_pin, GPIO_PIN_RESET);
-}
-
-
-void SX1276M1BxASWrapper::init_pins(){
-
-
-}
-
-void SX1276M1BxASWrapper::LoraHardwareConfigInitialize(){
-
-	
-}
-
-
-void SX1276M1BxASWrapper::spi_write_bytes(unsigned count,
-		const uint8_t* buf)  {
-	for(unsigned i=0; i<count; i++) {
-		radio_spi_go(buf[i]);
-	}
-}
-
-uint8_t SX1276M1BxASWrapper::radio_spi_go(uint8_t data)  {
-	//hal_printf("GetTick: %d \r\n", HAL_GetTick());
-	hal_printf("TxData: 0x%.8X \r\n", data);
-	while(!(LoRaSpiHandle.Instance->SR & SPI_FLAG_TXP)) ; // spin
-	//hal_printf("GetTick: %d \r\n", HAL_GetTick());
-	HAL_SPI_Transmit(&LoRaSpiHandle, &data, sizeof(&data)/sizeof((data)) - 1, 50);
-	//while(!(LoRaSpiHandle.Instance->SR & SPI_FLAG_RXP));
-	HAL_SPI_Receive(&LoRaSpiHandle, &data, sizeof(&data)/sizeof((data)) - 1, 50);
-	hal_printf("RxData: 0x%.8X \r\n", data);	
-	return data;
-}
-
-void SX1276M1BxASWrapper::radio_spi_sel_no_assert() {
-	HAL_GPIO_WritePin(SX1276_pin_setup.cs_port, SX1276_pin_setup.cs_pin, GPIO_PIN_SET); // chip select
-}
-
-void SX1276M1BxASWrapper::spi_read_bytes(unsigned count, uint8_t* buf)  {
-	for(unsigned i=0; i<count; i++) {
-		buf[i] = radio_spi_go(0);
-	}
-}
-
-unsigned int SX1276M1BxASWrapper::radio_comm_PollCTS(){
-	return 1;
-}
-
-void SX1276M1BxASWrapper::radio_spi_sel_assert() {
-	HAL_GPIO_WritePin(SX1276_pin_setup.cs_port, SX1276_pin_setup.cs_pin, GPIO_PIN_RESET); // chip select
-	__NOP();
-}
-
-uint8_t SX1276M1BxASWrapper::radio_comm_GetResp(uint8_t byteCount,
-		uint8_t* pData) {
-	unsigned ctsVal;
-	unsigned timeout=0;
-
-	radio_spi_sel_assert();
-	radio_spi_go(0x44); //read CMD buffer
-	ctsVal = radio_spi_go(0);
-
-	while(ctsVal != 0xFF && timeout++ <= CTS_TIMEOUT) {
-		radio_spi_sel_no_assert();
-		//for(unsigned i=0; i<CTS_WAIT; i++) ; // spin
-		// Looking for at least 150ns, or likely even half that would be enough.
-		__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-		__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-		__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-		radio_spi_sel_assert();
-		radio_spi_go(0x44); //read CMD buffer
-		ctsVal = radio_spi_go(0);
-	}
-
-	if (ctsVal != 0xFF) {
-		radio_spi_sel_no_assert();
-		LORA_ASSERT(0, "Fatal: CTS Timeout waiting for response\r\n");
-		return 0;
-	}
-
-	if (byteCount) {
-		spi_read_bytes(byteCount, pData);
-	}
-	radio_spi_sel_no_assert();
-
-	return ctsVal;
-}
-
-
-
 const FskBandwidth_t SX1276M1BxASWrapper::FskBandwidths[] =
 {
     { 2600  , 0x17 },
@@ -206,59 +80,97 @@ const FskBandwidth_t SX1276M1BxASWrapper::FskBandwidths[] =
 
 
 SX1276M1BxASWrapper::SX1276M1BxASWrapper() {
-
-	//IoIrqInit();
-
-	//InitializeTimers();
 }
 
 SX1276M1BxASWrapper::~SX1276M1BxASWrapper() {
 }
 
-bool SX1276M1BxASWrapper::CheckRfFrequency(
-		uint32_t frequency) {
+bool SX1276M1BxASWrapper::CheckRfFrequency(uint32_t frequency) {
 	return true;
 }
 
 void SX1276M1BxASWrapper::Write(uint8_t addr, uint8_t data) {
-	 Write( addr, &data, 1 );
+	 WriteBuffer( addr, &data, 1 );
 }
 
 uint8_t SX1276M1BxASWrapper::Read(uint8_t addr) {
     uint8_t data;
-    Read( addr, &data, 1 );
+    ReadBuffer( addr, &data, 1 );
     return data;
 }
 
-void SX1276M1BxASWrapper::Write(uint8_t addr,
-		uint8_t* buffer, uint8_t size) {
-	radio_comm_WriteData(addr | 0x80, 0, size, buffer);
+void SX1276M1BxASWrapper::WriteBuffer(uint8_t addr, uint8_t* buffer, uint8_t size) {
+	uint8_t i;
+
+    //NSS = 0;
+    CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN, 0 );
+
+    CPU_SPI_InOut(SPI_TYPE_RADIO, addr | 0x80 );
+    for( i = 0; i < size; i++ )
+    {
+        CPU_SPI_InOut(SPI_TYPE_RADIO, buffer[i] );
+    }
+	
+
+    //NSS = 1;
+    CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );
 }
 
+void SX1276M1BxASWrapper::ReadBuffer(uint8_t addr, uint8_t* buffer, uint8_t size) {
+	uint8_t i;
 
+    //NSS = 0;
+    CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN, 0 );
 
-void SX1276M1BxASWrapper::Read(uint8_t addr, uint8_t* buffer,
-		uint8_t size) {
-
-	radio_comm_ReadData(addr & 0x7F, 0, size, buffer);
+	//if (addr != 0) {	
+	//	hal_printf("Address: 0x%.8X \r\n", addr);
+	//}
+    //hal_printf("Value1: 0x%.8X \r\n", CPU_SPI_InOut(SPI_TYPE_RADIO, addr & 0x7F ));
+	CPU_SPI_InOut(SPI_TYPE_RADIO, addr & 0x7F );
+    for( i = 0; i < size; i++ )
+    {
+        buffer[i] = CPU_SPI_InOut(SPI_TYPE_RADIO, 0 );
+    }
+	//if (addr != 0) {	
+	//	hal_printf("Value2: 0x%.8X \r\n", buffer[0]);
+	//}
+    //NSS = 1;
+    CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );
 }
 
-void SX1276M1BxASWrapper::WriteFifo(uint8_t* buffer,
-		uint8_t size) {
-	Write( 0, buffer, size );
+void SX1276M1BxASWrapper::WriteFifo(uint8_t* buffer, uint8_t size) {
+	WriteBuffer( 0, buffer, size );
 }
 
-void SX1276M1BxASWrapper::ReadFifo(uint8_t* buffer,
-		uint8_t size) {
-	Read( 0, buffer, size );
+void SX1276M1BxASWrapper::ReadFifo(uint8_t* buffer, uint8_t size) {
+	ReadBuffer( 0, buffer, size );
 }
 
+void SX1276M1BxASWrapper::Reset() { 
+	GPIO_InitTypeDef initStruct = { 0 };
 
+    initStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    initStruct.Pull = GPIO_NOPULL;
+    initStruct.Speed = GPIO_SPEED_HIGH;
 
-void SX1276M1BxASWrapper::Reset() { //TODO: B
-	CPU_GPIO_EnableOutputPin(SX1276_pin_setup.reset_mf_pin, FALSE);
+    // Set RESET pin to 0
+    CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
+    CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 0 );
+
+	//hal_printf("Delay \r\n");
+    // Wait 1 ms
+    //CPU_RTC_DelayMs( 1 );
+	HAL_Delay(1);
 	//VirtTimer_SleepMicroseconds(VIRT_TIMER_SX1276_txTimeout, 10000 );
-	CPU_GPIO_SetPinState( SX1276_pin_setup.reset_mf_pin, TRUE );
+	
+    // Configure RESET as input
+    initStruct.Mode = GPIO_NOPULL;
+    CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
+
+//hal_printf("Delay \r\n");
+	HAL_Delay(6);
+    // Wait 6 ms
+    //CPU_RTC_DelayMs( 6 );
 	//VirtTimer_SleepMicroseconds(VIRT_TIMER_SX1276_txTimeout, 10000 );
 
 }
@@ -277,130 +189,6 @@ void SX1276M1BxASWrapper::RadioRegistersInit() {
         Write( RadioRegsInit[i].Addr, RadioRegsInit[i].Value );
     }
 }
-
-
-void SX1276M1BxASWrapper::SpiInit(void) {
-
-	__HAL_RCC_GPIOA_CLK_ENABLE();
-	__HAL_RCC_GPIOD_CLK_ENABLE();
-	__HAL_RCC_GPIOE_CLK_ENABLE();
-	__HAL_RCC_GPIOF_CLK_ENABLE();	
-	__HAL_RCC_GPIOG_CLK_ENABLE();
-
-	__HAL_RCC_SPI1_CLK_ENABLE();
-
-	
-	SX1276_pin_setup.nirq_port0			= GPIOG;
-	SX1276_pin_setup.nirq_pin0			= GPIO_PIN_14;//GPIO_Pin_14;
-	SX1276_pin_setup.nirq_mf_pin0		= (GPIO_PIN) 6*16+14;
-
-	SX1276_pin_setup.nirq_port1			= GPIOE;
-	SX1276_pin_setup.nirq_pin1			= GPIO_PIN_9;//GPIO_Pin_9;
-	SX1276_pin_setup.nirq_mf_pin1		= (GPIO_PIN) 4*16+9;
-
-	SX1276_pin_setup.nirq_port2			= GPIOF;
-	SX1276_pin_setup.nirq_pin2			= GPIO_PIN_13;//GPIO_Pin_13;
-	SX1276_pin_setup.nirq_mf_pin2		= (GPIO_PIN) 5*16+13;
-
-	SX1276_pin_setup.nirq_port3			= GPIOA;
-	SX1276_pin_setup.nirq_pin3			= GPIO_PIN_0;// GPIO_Pin_0;
-	SX1276_pin_setup.nirq_mf_pin3		= (GPIO_PIN) 8;
-
-
-	SX1276_pin_setup.nirq_port4			= GPIOA;
-	SX1276_pin_setup.nirq_pin4			= GPIO_PIN_0;// GPIO_Pin_0; //GPIO_Pin_22; // TODO:
-	SX1276_pin_setup.nirq_mf_pin4		= (GPIO_PIN) 22;
-
-	SX1276_pin_setup.nirq_port5			= GPIOF;
-	SX1276_pin_setup.nirq_pin5			= GPIO_PIN_12;// GPIO_Pin_12; //GPIO_Pin_23;
-	SX1276_pin_setup.nirq_mf_pin5		= (GPIO_PIN) 5*16+12;
-
-	SX1276_pin_setup.reset_port			= GPIOD; // ?
-	SX1276_pin_setup.reset_pin			= GPIO_PIN_15;// GPIO_Pin_15; // GPIO_Pin_24;
-	SX1276_pin_setup.reset_mf_pin		= (GPIO_PIN) 3*16+15;
-
-	SX1276_pin_setup.spi_base 			= SPI1;
-	SX1276_pin_setup.spi_port 			= GPIOA;
-	SX1276_pin_setup.cs_port			= GPIOD;
-	SX1276_pin_setup.cs_pin				= GPIO_PIN_14;// GPIO_Pin_14;  //MS changed this
-	SX1276_pin_setup.sclk_pin			= GPIO_PIN_5;// GPIO_Pin_5; //15 BK: I think the default values are as commented. But SI radio was using a different pin setup
-	SX1276_pin_setup.miso_pin			= GPIO_PIN_6;// GPIO_Pin_6; //14
-	SX1276_pin_setup.mosi_pin			= GPIO_PIN_7;// GPIO_Pin_7; //13
-
-	SX1276_interupt_pins.DIO0			= SX1276_pin_setup.nirq_mf_pin0;
-	SX1276_interupt_pins.DIO1			= SX1276_pin_setup.nirq_mf_pin1;
-	SX1276_interupt_pins.DIO2			= SX1276_pin_setup.nirq_mf_pin2;
-	SX1276_interupt_pins.DIO3			= SX1276_pin_setup.nirq_mf_pin3;
-	SX1276_interupt_pins.DIO4			= SX1276_pin_setup.nirq_mf_pin4;
-	SX1276_interupt_pins.DIO5			= SX1276_pin_setup.nirq_mf_pin5;
-
-	GPIO_InitTypeDef GPIO_InitStructure;
-	
-	GPIO_InitStructure.Mode = GPIO_MODE_AF_PP;//GPIO_Mode_AF_PP;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.sclk_pin | SX1276_pin_setup.mosi_pin;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_MEDIUM;//GPIO_Speed_10MHz;
-	HAL_GPIO_Init(SX1276_pin_setup.spi_port, &GPIO_InitStructure);
-	
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.miso_pin;
-	HAL_GPIO_Init(SX1276_pin_setup.spi_port, &GPIO_InitStructure);
-	
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_MEDIUM;//GPIO_Speed_10MHz;
-
-	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStructure.Pin =  SX1276_pin_setup.reset_pin;
-	HAL_GPIO_Init(SX1276_pin_setup.reset_port, &GPIO_InitStructure);
-
-	// NIRQ
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.nirq_pin0;
-	HAL_GPIO_Init(SX1276_pin_setup.nirq_port0, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.nirq_pin1;
-	HAL_GPIO_Init(SX1276_pin_setup.nirq_port1, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.nirq_pin2;
-	HAL_GPIO_Init(SX1276_pin_setup.nirq_port2, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.nirq_pin3;
-	HAL_GPIO_Init(SX1276_pin_setup.nirq_port3, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.nirq_pin4;
-	HAL_GPIO_Init(SX1276_pin_setup.nirq_port4, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;//GPIO_Mode_IN_FLOATING;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.nirq_pin5;
-	HAL_GPIO_Init(SX1276_pin_setup.nirq_port5, &GPIO_InitStructure);
-
-	// PA4 SPI chip select
-	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStructure.Pin = SX1276_pin_setup.cs_pin;
-	HAL_GPIO_WritePin(SX1276_pin_setup.cs_port, SX1276_pin_setup.cs_pin, GPIO_PIN_SET); // Set
-	HAL_GPIO_Init(SX1276_pin_setup.cs_port, &GPIO_InitStructure);
-	
-	LoRaSpiHandle.Instance = SX1276_pin_setup.spi_base;
-	LoRaSpiHandle.Init.Direction = SPI_DIRECTION_2LINES;//SPI_Direction_2Lines_FullDuplex;
-	LoRaSpiHandle.Init.Mode = SPI_MODE_MASTER;//SPI_Mode_Master;
-	LoRaSpiHandle.Init.DataSize = SPI_DATASIZE_8BIT;//SPI_DataSize_8b;
-	LoRaSpiHandle.Init.CLKPolarity = SPI_POLARITY_LOW;//SPI_CPOL_Low;
-	LoRaSpiHandle.Init.CLKPhase = SPI_PHASE_1EDGE;//SPI_CPHA_1Edge;
-	LoRaSpiHandle.Init.NSS = SPI_NSS_SOFT;//SPI_NSS_Soft;
-	LoRaSpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;//SPI_BaudRatePrescaler_32;
-	LoRaSpiHandle.Init.FirstBit = SPI_FIRSTBIT_MSB;//SPI_FirstBit_MSB;
-	LoRaSpiHandle.Init.CRCPolynomial = 7;
-
-	if(HAL_SPI_Init(&LoRaSpiHandle) != HAL_OK)
-	{
-		__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
-    	hal_printf("SX1276M1BxASWrapper::SPI Initialization error\n\r");
-	}
-	
-}
-
 
 void SX1276M1BxASWrapper::IoIrqInit() {
 	//EXTI_ClearITPendingBit(EXTI_Line1); // fix me, hard coded, also is this actually needed?
@@ -522,31 +310,22 @@ void SX1276M1BxASWrapper::Initialize(SX1276RadioEvents_t *events) {
 	rxtxBuffer = &(rxtxBufferstorage[0]);
 	//InitializeTimers();
 
-	//SX1276M1BxASWrapper::LoraHardwareConfigInitialize();
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , FALSE);
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , TRUE);
-
-	this->SX1276M1BxASWrapper::IoInit( );
-	
 	SX1276M1BxASWrapper::Reset();
 
 	RxChainCalibration();
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , FALSE);
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , TRUE);
 
 	SX1276M1BxASWrapper::SetOpMode( RF_OPMODE_SLEEP );
 	SX1276M1BxASWrapper::IoIrqInit();
 	SX1276M1BxASWrapper::RadioRegistersInit();
-
 
 	Init(events);
     SetModem( MODEM_FSK );
 
     //SanityCheck
     uint8_t ver;
-    Read(0x42, &ver, 1);
+    ReadBuffer(0x42, &ver, 1);
 	hal_printf("Version: 0x%.8X \r\n", ver);		
-    if (ver != 0x11) {
+    if (ver != 0x12) {
     	while(1){
     		__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
     		hal_printf("SX1276M1BxASWrapper::Initialize: Something went terribly wrong in SPI Initialization\n\r");
@@ -646,19 +425,12 @@ void SX1276M1BxASWrapper::RxChainCalibration( )
     uint8_t regPaConfigInitVal;
     uint32_t initialFreq;
 
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , FALSE);
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , TRUE);
-
 #if AMPED_RADIO
 	regPaConfigInitVal=0x44;
 	hal_printf("\n\r============RxChainCalibration: This is amped version of radio========\n\r");
 #else
 	regPaConfigInitVal = 0xF0; // HACK: Was not being set. 2 dBm on PA_BOOST pin.
 #endif
-
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , FALSE);
-	//CPU_GPIO_SetPinState( SX1276M1BxASWrapper_debug_PIN , TRUE);
-
 
     initialFreq = ( double )( ( ( uint32_t )this->Read( REG_FRFMSB ) << 16 ) |
                               ( ( uint32_t )this->Read( REG_FRFMID ) << 8 ) |
@@ -685,6 +457,7 @@ void SX1276M1BxASWrapper::RxChainCalibration( )
     // Restore context
     this->Write( REG_PACONFIG, regPaConfigInitVal );
     SetChannel( initialFreq );
+	hal_printf("Initial Frequency: %d \r\n", initialFreq);
 }
 
 /*!

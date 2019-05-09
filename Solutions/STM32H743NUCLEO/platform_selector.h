@@ -146,6 +146,8 @@
 #define STM32H7_SPI_MISO_PINS           { _P(A, 6), _P_NONE_,_P_NONE_, _P_NONE_, _P(F, 8), _P_NONE_ }
 #define STM32H7_SPI_MOSI_PINS           { _P(A, 7), _P_NONE_,_P_NONE_, _P_NONE_, _P(F, 9), _P_NONE_ }
 
+#define SPI_TYPE_RADIO				0
+
 
 // User & Wake-up Button
 #define USER_BUTTON                     _P(C,13)

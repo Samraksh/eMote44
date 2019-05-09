@@ -7,6 +7,10 @@
 
 #define SPI_CTRL_DEFAULT 0
 
+#ifdef STM32H743xx
+#include <stm32h7xx_hal.h>
+#endif
+
 struct SPI_CONFIGURATION
 {
     GPIO_PIN       DeviceCS;
@@ -57,6 +61,16 @@ void   CPU_SPI_GetPins         ( UINT32 spi_mod, GPIO_PIN& msk, GPIO_PIN& miso, 
 UINT32 CPU_SPI_MinClockFrequency( UINT32 spi_mod );
 UINT32 CPU_SPI_MaxClockFrequency( UINT32 spi_mod );
 UINT32 CPU_SPI_ChipSelectLineCount( UINT32 spi_mod );
+
+#ifdef STM32H743xx
+void CPU_SPI_Init(UINT8 SPI_TYPE);
+void CPU_SPI_IoInit(UINT8 SPI_TYPE);
+void CPU_SPI_IoDeInit(UINT8 SPI_TYPE);
+UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData ); //add simple function for SPI
+void CPU_GPIO_Init( GPIO_TypeDef* port, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct);
+void CPU_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value );
+uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin );
+#endif
 
 #endif // _DRIVERS_SPI_DECL_H_
 
