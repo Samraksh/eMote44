@@ -64,8 +64,9 @@
         <Error Message="Configuration not recognized"/>
     </If>
 
-    <EntryPoint Name="EntryPoint" />
-
+    <!--<EntryPoint Name="EntryPoint" />-->
+	<EntryPoint Name="Reset_Handler" />
+	
     <NamedGroup Name="MEMORY">
         <LoadRegion Name="D_CCM" Base="%DTCM_BaseAddress%" Size="%DTCM_Size%" />
         <LoadRegion Name="IRAM" Base="%IRAM_BaseAddress%" Size="%IRAM_Size%" />
@@ -75,10 +76,11 @@
 
     <NamedGroup Name="SECTIONS">
         <!-- ========= INTERNAL FLASH ============================================ -->
-        <ExecRegion Name="ER_%TARGETLOCATION%" Options="&gt;LR_%TARGETLOCATION%">
-            <FileMapping Name="KEEP" Options="(*(.isr_vector))" />
-			<FileMapping Name="*" Options="(i.EntryPoint)" />
-            <FileMapping Name="*" Options="(SectionForFlashOperations)"/>
+
+        <ExecRegion Name="ER_%TARGETLOCATION%" Options="&gt;LR_%TARGETLOCATION%"> 
+			<FileMapping Name="KEEP" Options="(*(.isr_vector))" />	
+			<FileMapping Name="*" Options="(i.Reset_Handler)" />			
+			<FileMapping Name="*" Options="(SectionForFlashOperations)"/>
             <FileMapping Name="*" Options="(.text*)" />
             <FileMapping Name="*" Options="(.rodata*)" />
             <FileMapping Name="*" Options="(rodata)" />
@@ -101,6 +103,7 @@
         -->
         <GlobalVariable Name="_sidata" Value="LOADADDR(ER_RAM_RW)"/>
 
+		
         <ExecRegion Name="ER_RAM_RW" Align="0x10" Options="&gt;D_CCM AT&gt;LR_FLASH ">
 			<FileMapping Name="_sdata = .;" />
             <FileMapping Name="*" Options="(rwdata)" />

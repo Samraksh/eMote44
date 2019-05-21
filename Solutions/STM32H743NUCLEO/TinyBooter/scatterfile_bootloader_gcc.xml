@@ -65,7 +65,8 @@
     </If>
 
     <EntryPoint Name="Reset_Handler" />
-
+	<!--<EntryPoint Name="EntryPoint" />-->
+	
     <NamedGroup Name="MEMORY">
         <LoadRegion Name="D_CCM" Base="%DTCM_BaseAddress%" Size="%DTCM_Size%" />
         <LoadRegion Name="IRAM" Base="%IRAM_BaseAddress%" Size="%IRAM_Size%" />

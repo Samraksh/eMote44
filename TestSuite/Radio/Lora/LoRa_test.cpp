@@ -85,7 +85,7 @@ static void radio_cad_done(bool channelActivityDetected) {
 static uint32_t get_cpu_id_hash(void) {
 	// 96-bit (3 word) global unique ID
 	uint32_t *id = (uint32_t *) 0x1FFFF7E8;
-	uint32_t ret = 0x333E6EFC;
+	uint32_t ret = TX_NODE;
 
 	//RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
 	//__HAL_RCC_CRC_CLK_ENABLE();

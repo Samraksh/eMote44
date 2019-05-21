@@ -275,6 +275,14 @@ void STM32H7_GPIO_Pin_Config( GPIO_PIN pin, UINT32 mode, GPIO_RESISTOR resistor,
 BOOL CPU_GPIO_Initialize( )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_GPIO( );
+	
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOH_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_GPIOG_CLK_ENABLE();
+  
 
     CPU_GPIO_SetDebounce( 20 ); // ???
 
@@ -401,22 +409,20 @@ BOOL CPU_GPIO_GetPinState( GPIO_PIN pin )
     if( pin >= STM32H7_Gpio_MaxPins )
         return FALSE;
 
-    GPIO_TypeDef* port = Port( pin >> 4 ); // pointer to the actual port registers 
-    return ( port->IDR >> ( pin & 0xF ) ) & 1;
+	if (HAL_GPIO_ReadPin(Port(pin >> 4), 1 << (pin & 0x0f)) == GPIO_PIN_SET) return TRUE;
+	else return FALSE;
 }
 
 void CPU_GPIO_SetPinState( GPIO_PIN pin, BOOL pinState )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_GPIO( );
-    if( pin < STM32H7_Gpio_MaxPins )
+	if( pin < STM32H7_Gpio_MaxPins )
     {
-        GPIO_TypeDef* port = Port( pin >> 4 ); // pointer to the actual port registers 
-        UINT16 bit = 1 << ( pin & 0x0F );
-        if( pinState )
-            port->BSRR = bit; // set bit
-        else
-            port->BSRR = bit << GPIO_NUMBER; // reset bit
-    }
+		if (pinState == TRUE) {
+			HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_SET);
+		}
+		else HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_RESET);
+	}
 }
 
 BOOL CPU_GPIO_PinIsBusy( GPIO_PIN pin )  // busy == reserved

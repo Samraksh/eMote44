@@ -14,13 +14,29 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2017 STMicroelectronics.
-  * All rights reserved.</center></h2>
+  * <h2><center>&copy; COPYRIGHT 2017 STMicroelectronics</center></h2>
   *
-  * This software component is licensed by ST under BSD 3-Clause license,
-  * the "License"; You may not use this file except in compliance with the
-  * License. You may obtain a copy of the License at:
-  *                        opensource.org/licenses/BSD-3-Clause
+  * Redistribution and use in source and binary forms, with or without modification,
+  * are permitted provided that the following conditions are met:
+  *   1. Redistributions of source code must retain the above copyright notice,
+  *      this list of conditions and the following disclaimer.
+  *   2. Redistributions in binary form must reproduce the above copyright notice,
+  *      this list of conditions and the following disclaimer in the documentation
+  *      and/or other materials provided with the distribution.
+  *   3. Neither the name of STMicroelectronics nor the names of its contributors
+  *      may be used to endorse or promote products derived from this software
+  *      without specific prior written permission.
+  *
+  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   *
   ******************************************************************************
   */
@@ -29,10 +45,11 @@
   .cpu cortex-m7
   .fpu softvfp
   .thumb
-  
+
 
 .global  g_pfnVectors
 .global  Default_Handler
+.extern  Unknown_Handler
 
 /* start address for the initialization values of the .data section. 
 defined in linker script */
@@ -55,10 +72,11 @@ defined in linker script */
  * @param  None
  * @retval : None
 */
-	
-    .section  i.Reset_Handler
+  .thumb_func
+  .section  .text.Reset_Handler
   .weak  Reset_Handler
-  .type  Reset_Handler, %function
+  .type  Reset_Handler, %function  
+ 
 Reset_Handler:  
   ldr   sp, =_estack      /* set stack pointer */
 
@@ -108,8 +126,12 @@ LoopFillZerobss:
  * @param  None     
  * @retval None       
 */
+	.thumb_func
     .section  .text.Default_Handler,"ax",%progbits
+	.weak  Default_Handler
 Default_Handler:
+  bl Unknown_Handler
+  bx lr
 Infinite_Loop:
   b  Infinite_Loop
   .size  Default_Handler, .-Default_Handler
@@ -120,12 +142,14 @@ Infinite_Loop:
 * 0x0000.0000.
 * 
 *******************************************************************************/
+   .thumb_func
    .section  .isr_vector,"a",%progbits
   .type  g_pfnVectors, %object
   .size  g_pfnVectors, .-g_pfnVectors
-  @.thumb_func
+   
+   
 g_pfnVectors:
-  .word  0x2000E00C  @.word  _estack
+  .word  _estack
   .word  Reset_Handler
 
   .word  NMI_Handler
@@ -289,12 +313,12 @@ g_pfnVectors:
   .word     LPUART1_IRQHandler                /* LP UART1 interrupt         */     
   .word     0                                 /* Reserved                   */     
   .word     CRS_IRQHandler                    /* Clock Recovery Global Interrupt */ 
-  .word     ECC_IRQHandler                    /* ECC diagnostic Global Interrupt */ 
+  .word     0                                 /* Reserved                   */     
   .word     SAI4_IRQHandler                   /* SAI4 global interrupt      */      
   .word     0                                 /* Reserved                   */      
   .word     0                                 /* Reserved                   */      
   .word     WAKEUP_PIN_IRQHandler             /* Interrupt for all 6 wake-up pins */
-  
+
 /*******************************************************************************
 *
 * Provide weak aliases for each Exception handler to the Default_Handler. 
@@ -736,9 +760,6 @@ g_pfnVectors:
 
    .weak      CRS_IRQHandler            
    .thumb_set CRS_IRQHandler,Default_Handler 
-
-   .weak      ECC_IRQHandler            
-   .thumb_set ECC_IRQHandler,Default_Handler
 
    .weak      SAI4_IRQHandler            
    .thumb_set SAI4_IRQHandler,Default_Handler 

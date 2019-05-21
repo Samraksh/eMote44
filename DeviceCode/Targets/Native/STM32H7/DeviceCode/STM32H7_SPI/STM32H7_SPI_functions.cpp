@@ -25,11 +25,16 @@ uint8_t aTxBuffer2[]=" abc";
 /* Buffer used for reception */
 uint8_t aRxBuffer2[BUFFERSIZE];
 
-extern "C" void SPI1_IRQHandler(void)
+extern "C" {
+void SPI1_IRQHandler(void)
 {
-  HAL_SPI_IRQHandler(&SpiHandle[0]);
+	INTERRUPT_START;
+	
+	HAL_SPI_IRQHandler(&SpiHandle[0]);
+	
+	INTERRUPT_END;
 }
-
+}
 
 //extern "C" void SPI1_IRQHandler(void)
 //{
@@ -43,15 +48,15 @@ extern "C" void SPI1_IRQHandler(void)
   /* USER CODE END OTG_FS_IRQn 1 */
 //}
 
-void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-	hal_printf(" 41 SPI complete callback \n");
-}
+//void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+//{
+//	hal_printf(" 41 SPI complete callback \n");
+//}
 
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
-{
-	//hal_printf(" 41 SPI error callback \n");
-}
+//void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
+//{
+//	//hal_printf(" 41 SPI error callback \n");
+//}
 /**
   * @brief  This function is executed in case of error occurrence.
   * @param  None
@@ -340,7 +345,7 @@ void CPU_SPI_IoInit(UINT8 SPI_TYPE)
 		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
 		CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
 		CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-		//CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
+		CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
 
 		initStruct.Mode = GPIO_MODE_AF_PP;
 		initStruct.Pull = GPIO_NOPULL;

@@ -29,7 +29,6 @@
   .cpu cortex-m7
   .fpu softvfp
   .thumb
-  
 
 .global  g_pfnVectors
 .global  Default_Handler
@@ -55,8 +54,8 @@ defined in linker script */
  * @param  None
  * @retval : None
 */
-	
-    .section  i.Reset_Handler
+
+    .section  .text.Reset_Handler
   .weak  Reset_Handler
   .type  Reset_Handler, %function
 Reset_Handler:  
@@ -123,9 +122,10 @@ Infinite_Loop:
    .section  .isr_vector,"a",%progbits
   .type  g_pfnVectors, %object
   .size  g_pfnVectors, .-g_pfnVectors
-  @.thumb_func
+   
+   
 g_pfnVectors:
-  .word  0x2000E00C  @.word  _estack
+  .word  _estack
   .word  Reset_Handler
 
   .word  NMI_Handler
@@ -294,7 +294,7 @@ g_pfnVectors:
   .word     0                                 /* Reserved                   */      
   .word     0                                 /* Reserved                   */      
   .word     WAKEUP_PIN_IRQHandler             /* Interrupt for all 6 wake-up pins */
-  
+
 /*******************************************************************************
 *
 * Provide weak aliases for each Exception handler to the Default_Handler. 

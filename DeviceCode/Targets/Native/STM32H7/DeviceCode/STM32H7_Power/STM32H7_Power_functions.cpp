@@ -114,10 +114,11 @@ void CPU_Halt()  // unrecoverable error
 
 void CPU_Reset()
 {
-    NATIVE_PROFILE_HAL_PROCESSOR_POWER();
+	HAL_NVIC_SystemReset();
+    /*NATIVE_PROFILE_HAL_PROCESSOR_POWER();
     SCB->AIRCR = (0x5FA << SCB_AIRCR_VECTKEY_Pos)  // unlock key
                | (1 << SCB_AIRCR_SYSRESETREQ_Pos); // reset request
-    while(1); // wait for reset
+    while(1); // wait for reset*/
 }
 
 BOOL CPU_IsSoftRebootSupported ()

@@ -74,17 +74,17 @@ do {                                                    \
 //#define RADIO_BUSY_PORT                           GPIOB
 //#define RADIO_BUSY_PIN                            GPIO_PIN_3
 
-#define RADIO_DIO_0_PORT                          GPIOF
-#define RADIO_DIO_0_PIN                           GPIO_PIN_15
+#define RADIO_DIO_0_PORT                          GPIOG
+#define RADIO_DIO_0_PIN                           GPIO_PIN_14
 
 #define RADIO_DIO_1_PORT                          GPIOE
-#define RADIO_DIO_1_PIN                           GPIO_PIN_9
+#define RADIO_DIO_1_PIN                           GPIO_PIN_14
 
-#define RADIO_DIO_2_PORT                          GPIOF
-#define RADIO_DIO_2_PIN                           GPIO_PIN_13
+#define RADIO_DIO_2_PORT                          GPIOG
+#define RADIO_DIO_2_PIN                           GPIO_PIN_12
 
 #define RADIO_DIO_3_PORT                          GPIOF
-#define RADIO_DIO_3_PIN                           GPIO_PIN_12
+#define RADIO_DIO_3_PIN                           GPIO_PIN_3
 
 #define RADIO_ANT_SWITCH_POWER_PORT               GPIOA
 #define RADIO_ANT_SWITCH_POWER_PIN                GPIO_PIN_9
