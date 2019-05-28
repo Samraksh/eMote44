@@ -39,20 +39,8 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
   <PropertyGroup />
   <ItemGroup>		
-	<!--<HFiles Include="SamrakshSX1276hal.h" />	-->
-	<!--<HFiles Include="SamrakshSX1276halShim.h" /> -->		
-	<HFiles Include="SX1276wrapper.h" />
-	<!--<HFiles Include="EmoteLoraHat.h" /> -->
-	<HFiles Include="sx1276driver/sx1276/sx1276.h" />
-	<HFiles Include="sx1276driver/radio/radio.h" />
-	<HFiles Include="sx1276driver/enums/enums.h" />
-	<HFiles Include="sx1276driver/typedefs/typedef.h" />
-	<Compile Include="SX1276wrapper.cpp" />
-	<!--<Compile Include="EmoteLoraHat.cpp" />	-->
-	<!--<Compile Include="SamrakshSX1276hal.cpp" />	-->
-	<!--<Compile Include="SamrakshSX1276halShim.cpp" />	-->
-	<Compile Include="sx1276driver/sx1276/sx1276.cpp" />	
-	<Compile Include="sx1276driver/radio/radio.cpp" />	
+	<HFiles Include="SX1276.h" />	
+	<Compile Include="SX1276.cpp" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />

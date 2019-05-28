@@ -67,9 +67,6 @@ void CPU_SPI_Init(UINT8 SPI_TYPE);
 void CPU_SPI_IoInit(UINT8 SPI_TYPE);
 void CPU_SPI_IoDeInit(UINT8 SPI_TYPE);
 UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData ); //add simple function for SPI
-void CPU_GPIO_Init( GPIO_TypeDef* port, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct);
-void CPU_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value );
-uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin );
 #endif
 
 #endif // _DRIVERS_SPI_DECL_H_

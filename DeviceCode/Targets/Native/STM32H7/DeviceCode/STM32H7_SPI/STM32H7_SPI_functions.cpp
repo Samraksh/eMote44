@@ -36,6 +36,7 @@ void SPI1_IRQHandler(void)
 }
 }
 
+
 //extern "C" void SPI1_IRQHandler(void)
 //{
   /* USER CODE BEGIN OTG_FS_IRQn 0 */
@@ -338,9 +339,18 @@ void CPU_SPI_IoInit(UINT8 SPI_TYPE)
 	GPIO_InitTypeDef initStruct={0};
 
 	if (SPI_TYPE == SPI_TYPE_RADIO) { 
+	
+		//initStruct.Mode = GPIO_MODE_IT_RISING;
+		//initStruct.Pull = GPIO_NOPULL;
+		//CPU_GPIO_Init( GPIOC, GPIO_PIN_13, &initStruct );
+    
+	    //HAL_NVIC_SetPriority(EXTI15_10_IRQn, 2, 0);
+		//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+  
 		initStruct.Mode = GPIO_MODE_IT_RISING;
-		initStruct.Pull = GPIO_PULLDOWN;
-		initStruct.Speed = GPIO_SPEED_HIGH;
+		//initStruct.Pull = GPIO_PULLDOWN;
+		initStruct.Pull = GPIO_NOPULL;
+		//initStruct.Speed = GPIO_SPEED_HIGH;
 
 		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
 		CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
@@ -415,53 +425,5 @@ UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData )
 	return rxData;
 }
 
-/* Exported functions ---------------------------------------------------------*/
-/*!
- * @brief Initializes the given GPIO object
- *
- * @param  GPIOx: where x can be (A..E and H)
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @param [IN] initStruct  GPIO_InitTypeDef intit structure
- * @retval none
- */
-void CPU_GPIO_Init( GPIO_TypeDef* port, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct)
-{
-
-  RCC_GPIO_CLK_ENABLE((uint32_t) port);
-
-  initStruct->Pin = GPIO_Pin ;
-
-  HAL_GPIO_Init( port, initStruct );
-}
-
-/*!
- * @brief Writes the given value to the GPIO output
- *
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @param [IN] value New GPIO output value
- * @retval none
- */
-void CPU_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value )
-{
-  HAL_GPIO_WritePin( GPIOx, GPIO_Pin , (GPIO_PinState) value );
-}
-
-/*!
- * @brief Reads the current GPIO input value
- *
- * @param  GPIOx: where x can be (A..E and H) 
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @retval value   Current GPIO input value
- */
-uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin )
-{
-  return HAL_GPIO_ReadPin( GPIOx, GPIO_Pin);
-}
 
 

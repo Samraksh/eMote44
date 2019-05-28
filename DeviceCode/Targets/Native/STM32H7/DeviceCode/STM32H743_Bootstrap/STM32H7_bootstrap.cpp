@@ -168,8 +168,9 @@ void BootstrapCode() {
 	//SCB->VTOR = FLASH_BANK1_BASE | VECT_TAB_OFFSET;       /* Vector Table Relocation in Internal FLASH */
 	//SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
 
+	__DSB();
 	SCB->VTOR = (UINT32)&Load$$ER_FLASH$$Base;
-
+	__ISB();
 	//PrepareImageRegions(); // startup asm now does this, I think
 	//CPU_CACHE_Enable(); // Turn on later after we get out of our debugging hole
 	HAL_Init(); // Later calls HAL_MspInit()
