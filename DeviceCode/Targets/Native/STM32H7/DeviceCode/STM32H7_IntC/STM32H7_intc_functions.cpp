@@ -76,7 +76,10 @@ BOOL CPU_INTC_ActivateInterrupt( UINT32 Irq_Index, HAL_CALLBACK_FPN ISR, void* I
     //NVIC->ICPR[Irq_Index >> 5] = 1 << (Irq_Index & 0x1F); // clear pending bit
 	//NVIC->ISER[(((uint32_t)(int32_t)Irq_Index) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)Irq_Index) & 0x1FUL));
     //NVIC->ISER[Irq_Index >> 5] = 1 << (Irq_Index & 0x1F); // set enable bit
-    __NVIC_SetVector((IRQn_Type)Irq_Index, (uint32_t)ISR);
+   // __NVIC_SetVector((IRQn_Type)Irq_Index, (uint32_t)ISR);
+    uint32_t prio = 2; // priority value 0 is highest
+	
+	HAL_NVIC_SetPriority((IRQn_Type)Irq_Index, prio, 0);
 	HAL_NVIC_EnableIRQ((IRQn_Type)Irq_Index);
 	return TRUE;
 }

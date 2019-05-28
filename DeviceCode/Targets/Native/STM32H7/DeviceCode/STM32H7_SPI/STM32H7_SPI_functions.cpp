@@ -418,10 +418,9 @@ void CPU_SPI_IoDeInit(UINT8 SPI_TYPE)
 UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData )
 {
 	UINT16 rxData ;
-	if (HAL_SPI_TransmitReceive( &SpiHandle[SPI_TYPE], ( UINT8 * ) &txData, ( UINT8* ) &rxData, 1, HAL_MAX_DELAY) != HAL_OK) {
-		hal_printf("SPI Wrong\n\r");
-		__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
-	}	
+	
+	HAL_SPI_TransmitReceive( &SpiHandle[SPI_TYPE], ( UINT8 * ) &txData, ( UINT8* ) &rxData, 1, HAL_MAX_DELAY);
+	
 	return rxData;
 }
 

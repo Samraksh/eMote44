@@ -159,7 +159,7 @@ extern SX1276_t SX1276;
 /*!
  * Hardware IO IRQ callback function definition
  */
-typedef void ( DioIrqHandler )( void* context );
+typedef void ( DioIrqHandler )( GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * SX1276 definitions
@@ -581,7 +581,7 @@ void SX1276BoardSetXO( uint8_t state );
 
 uint32_t SX1276BoardGetWakeTime( void );
 
-void SX1276BoardIoIrqInit( DioIrqHandler **irqHandlers );
+void SX1276BoardIoIrqInit( );
 
 void SX1276BoardSetRfTxPower( int8_t power );
 

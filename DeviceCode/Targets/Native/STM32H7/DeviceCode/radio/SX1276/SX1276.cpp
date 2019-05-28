@@ -110,32 +110,32 @@ void SX1276SetOpMode( uint8_t opMode );
 /*!
  * \brief DIO 0 IRQ callback
  */
-void SX1276OnDio0Irq( void* context );
+void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * \brief DIO 1 IRQ callback
  */
-void SX1276OnDio1Irq( void* context );
+void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * \brief DIO 2 IRQ callback
  */
-void SX1276OnDio2Irq( void* context );
+void SX1276OnDio2Irq(GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * \brief DIO 3 IRQ callback
  */
-void SX1276OnDio3Irq( void* context );
+void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * \brief DIO 4 IRQ callback
  */
-void SX1276OnDio4Irq( void* context );
+void SX1276OnDio4Irq(GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * \brief DIO 5 IRQ callback
  */
-void SX1276OnDio5Irq( void* context );
+void SX1276OnDio5Irq(GPIO_PIN Pin, BOOL PinState, void* context );
 
 /*!
  * \brief Tx & Rx timeout timer callback
@@ -262,7 +262,8 @@ uint32_t SX1276Init( RadioEvents_t *events )
 
     SX1276SetOpMode( RF_OPMODE_SLEEP );
 
-    SX1276BoardIoIrqInit( DioIrq );
+    //SX1276BoardIoIrqInit( DioIrq );
+	SX1276BoardIoIrqInit();
 
     for( i = 0; i < sizeof( RadioRegsInit ) / sizeof( RadioRegisters_t ); i++ )
     {
@@ -1468,7 +1469,7 @@ void SX1276OnTimeoutIrq( void* context )
     }
 }
 
-void SX1276OnDio0Irq( void* context )
+void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 {
     volatile uint8_t irqFlags = 0;
     switch( SX1276.Settings.State )
@@ -1659,7 +1660,7 @@ void SX1276OnDio0Irq( void* context )
     }
 }
 
-void SX1276OnDio1Irq( void* context )
+void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 {
 	switch( SX1276.Settings.State )
     {
@@ -1743,7 +1744,7 @@ void SX1276OnDio1Irq( void* context )
     }
 }
 
-void SX1276OnDio2Irq( void* context )
+void SX1276OnDio2Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 {
 	uint32_t afcChannel = 0;
 
@@ -1816,7 +1817,7 @@ void SX1276OnDio2Irq( void* context )
     }
 }
 
-void SX1276OnDio3Irq( void* context )
+void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 {
 	switch( SX1276.Settings.Modem )
     {
@@ -1847,7 +1848,7 @@ void SX1276OnDio3Irq( void* context )
     }
 }
 
-void SX1276OnDio4Irq( void* context )
+void SX1276OnDio4Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 {
     switch( SX1276.Settings.Modem )
     {
@@ -1866,7 +1867,7 @@ void SX1276OnDio4Irq( void* context )
     }
 }
 
-void SX1276OnDio5Irq( void* context )
+void SX1276OnDio5Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 {
     switch( SX1276.Settings.Modem )
     {
@@ -1909,13 +1910,19 @@ void SX1276BoardIoInit( void )
   CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
 }
 
-void SX1276BoardIoIrqInit( DioIrqHandler **irqHandlers )
+void SX1276BoardIoIrqInit( )
 {
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, IRQ_HIGH_PRIORITY, irqHandlers[0] );
-  CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 2, irqHandlers[0] );
-  CPU_GPIO_SetIrq( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, 2, irqHandlers[1] );
-  CPU_GPIO_SetIrq( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, 2, irqHandlers[2] );
-  CPU_GPIO_SetIrq( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, 2, irqHandlers[3] );
+  //CPU_GPIO_EnableInputPin( SI446X_pin_setup.nirq_mf_pin, FALSE, si446x_spi2_handle_interrupt, GPIO_INT_EDGE_LOW, RESISTOR_DISABLED);
+	CPU_GPIO_EnableInputPin(_P(F,15), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,14), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,13), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,12), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+
+  //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 2, SX1276OnDio0Irq );
+  //CPU_GPIO_SetIrq( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, 2, SX1276OnDio1Irq );
+  //CPU_GPIO_SetIrq( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, 2, SX1276OnDio2Irq );
+  //CPU_GPIO_SetIrq( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, 2, SX1276OnDio3Irq );
 }
 
 void SX1276BoardIoDeInit( void )

@@ -61,7 +61,7 @@ void EXTI3_IRQHandler( void )
 void EXTI4_IRQHandler( void )
 {
 	INTERRUPT_START;
-	//hal_printf(" 30 GPIO_EXTI_IRQHandler.cpp \r\n");	 
+	//hal_printf(" 64 GPIO_EXTI_IRQHandler.cpp \r\n");	 
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_4 );	
 	INTERRUPT_END;
 }
@@ -69,7 +69,7 @@ void EXTI4_IRQHandler( void )
 void EXTI9_5_IRQHandler( void )
 {
 	INTERRUPT_START;
-	//hal_printf(" 30 GPIO_EXTI_IRQHandler.cpp \n");	
+	//hal_printf(" 72 GPIO_EXTI_IRQHandler.cpp \n");	
 
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_5 );
 
@@ -87,7 +87,7 @@ void EXTI9_5_IRQHandler( void )
 void EXTI15_10_IRQHandler( void )
 {
 	INTERRUPT_START;
-	//hal_printf(" 30 GPIO_EXTI_IRQHandler.cpp \n");	
+	//hal_printf(" 90 GPIO_EXTI_IRQHandler.cpp \n");	
 
 	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_10 );
 
@@ -122,7 +122,7 @@ static STM32H7_Int_State g_int_state[ STM32H7_Gpio_MaxInt ]; // interrupt state
 static UINT32 g_debounceTicks;
 static UINT16 g_pinReserved[ TOTAL_GPIO_PORT ]; //  1 bit per pin
 
-static GpioIrqHandler *GpioIrq[16] = { NULL };
+static GPIO_INTERRUPT_SERVICE_ROUTINE GpioIrq[16] = { NULL };
 
 /*
  * Debounce Completion Handler
@@ -381,7 +381,7 @@ BOOL CPU_GPIO_Initialize( )
         g_int_state[ i ].completion.InitializeForISR( &STM32H7_GPIO_DebounceHandler );
     }
 
- /*   EXTI_D1->IMR1 = 0; // disable all external interrups;
+    EXTI_D1->IMR1 = 0; // disable all external interrups;
     CPU_INTC_ActivateInterrupt( EXTI0_IRQn, STM32H7_GPIO_Interrupt0, 0 );
     CPU_INTC_ActivateInterrupt( EXTI1_IRQn, STM32H7_GPIO_Interrupt1, 0 );
     CPU_INTC_ActivateInterrupt( EXTI2_IRQn, STM32H7_GPIO_Interrupt2, 0 );
@@ -389,7 +389,7 @@ BOOL CPU_GPIO_Initialize( )
     CPU_INTC_ActivateInterrupt( EXTI4_IRQn, STM32H7_GPIO_Interrupt4, 0 );
     CPU_INTC_ActivateInterrupt( EXTI9_5_IRQn, STM32H7_GPIO_Interrupt5, 0 );
     CPU_INTC_ActivateInterrupt( EXTI15_10_IRQn, STM32H7_GPIO_Interrupt10, 0 );
-*/
+
     return TRUE;
 }
 
@@ -401,7 +401,7 @@ BOOL CPU_GPIO_Uninitialize( )
     {
         g_int_state[ i ].completion.Abort( );
     }
-/*
+
     EXTI_D1->IMR1 = 0; // disable all external interrups;
     CPU_INTC_DeactivateInterrupt( EXTI0_IRQn );
     CPU_INTC_DeactivateInterrupt( EXTI1_IRQn );
@@ -410,7 +410,7 @@ BOOL CPU_GPIO_Uninitialize( )
     CPU_INTC_DeactivateInterrupt( EXTI4_IRQn );
     CPU_INTC_DeactivateInterrupt( EXTI9_5_IRQn );
     CPU_INTC_DeactivateInterrupt( EXTI15_10_IRQn );
-*/
+
     return TRUE;
 }
 
@@ -676,42 +676,6 @@ uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin )
 }
 
 /*!
- * @brief Records the interrupt handler for the GPIO  object
- *
- * @param  GPIOx: where x can be (A..E and H) 
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @param [IN] prio       NVIC priority (0 is highest)
- * @param [IN] irqHandler  points to the  function to execute
- * @retval none
- */
-void CPU_GPIO_SetIrq( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uint32_t prio,  GpioIrqHandler *irqHandler )
-{
-  IRQn_Type IRQnb;
-  
-  uint32_t BitPos = CPU_GPIO_GetBitPos( GPIO_Pin ) ;
-  
-  if ( irqHandler != NULL)
-  {
-	//hal_printf(" 659 NO GPIO_EXTI_IRQHandler.cpp \n");	
-    
-	GpioIrq[ BitPos ] = irqHandler;
-
-    IRQnb = MSP_GetIRQn( GPIO_Pin );
-
-    HAL_NVIC_SetPriority( IRQnb , prio, 0);
-    
-    HAL_NVIC_EnableIRQ( IRQnb );
-  }
-  else
-  {
-	//  hal_printf(" 671 Yes GPIO_EXTI_IRQHandler.cpp \n");	
-    GpioIrq[ BitPos ] = NULL;
-  }
-}
-
-/*!
  * @brief Execute the interrupt from the object
  *
  * @param  GPIO_Pin: specifies the port bit to be written.
@@ -721,58 +685,57 @@ void CPU_GPIO_SetIrq( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, uint32_t prio,  Gp
  */
 void CPU_GPIO_IrqHandler( uint16_t GPIO_Pin )
 {
-  uint32_t BitPos = CPU_GPIO_GetBitPos( GPIO_Pin );
- //hal_printf("GPIO_functions_IRQ:679\n\r");
-  if ( GpioIrq[ BitPos ]  != NULL)
-  {
-    GpioIrq[ BitPos ] ( NULL );
-  }
-}
-
-/*!
- * @brief Get the position of the bit set in the GPIO_Pin
- * @param  GPIO_Pin: specifies the port bit to be written.
- *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
- *                   All port bits are not necessarily available on all GPIOs.
- * @retval the position of the bit
- */
-static uint8_t CPU_GPIO_GetBitPos(uint16_t GPIO_Pin)
-{
-  uint8_t PinPos=0;
-  
-  if ( ( GPIO_Pin & 0xFF00 ) != 0) { PinPos |= 0x8; }
-  if ( ( GPIO_Pin & 0xF0F0 ) != 0) { PinPos |= 0x4; }
-  if ( ( GPIO_Pin & 0xCCCC ) != 0) { PinPos |= 0x2; }
-  if ( ( GPIO_Pin & 0xAAAA ) != 0) { PinPos |= 0x1; }
-  
-  return PinPos;
-}
-
-/**
-  * @brief  Gets IRQ number as a function of the GPIO_Pin.
-  * @param  GPIO_Pin: Specifies the pins connected to the EXTI line.
-  * @retval IRQ number
-  */
-IRQn_Type MSP_GetIRQn( uint16_t GPIO_Pin)
-{
   switch( GPIO_Pin )
   {
-    case GPIO_PIN_0:  return EXTI0_IRQn;
-    case GPIO_PIN_1:  return EXTI1_IRQn;
-    case GPIO_PIN_2:  return EXTI2_IRQn;
-    case GPIO_PIN_3:  return EXTI3_IRQn;
-    case GPIO_PIN_4:  return EXTI4_IRQn;
+    case GPIO_PIN_0: 
+		STM32H7_GPIO_ISR( 0 );
+		break;	
+    case GPIO_PIN_1: 
+		STM32H7_GPIO_ISR( 1 );
+		break;		
+    case GPIO_PIN_2:
+		STM32H7_GPIO_ISR( 2 );
+		break;		
+    case GPIO_PIN_3:  
+		STM32H7_GPIO_ISR( 3 );
+		break;		
+    case GPIO_PIN_4:  
+		STM32H7_GPIO_ISR( 4 );
+		break;		
     case GPIO_PIN_5:  
+		STM32H7_GPIO_ISR( 5 );
+		break;		
     case GPIO_PIN_6:
+		STM32H7_GPIO_ISR( 6 );
+		break;		
     case GPIO_PIN_7:
+		STM32H7_GPIO_ISR( 7 );
+		break;		
     case GPIO_PIN_8:
-    case GPIO_PIN_9:  return EXTI9_5_IRQn;
+		STM32H7_GPIO_ISR( 8 );
+		break;		
+    case GPIO_PIN_9:  
+		STM32H7_GPIO_ISR( 9 );
+		break;		
     case GPIO_PIN_10:
+		STM32H7_GPIO_ISR( 10 );
+		break;		
     case GPIO_PIN_11:
+		STM32H7_GPIO_ISR( 11 );
+		break;		
     case GPIO_PIN_12:
+		STM32H7_GPIO_ISR( 12 );
+		break;		
     case GPIO_PIN_13:
+		STM32H7_GPIO_ISR( 13 );
+		break;		
     case GPIO_PIN_14:
+		STM32H7_GPIO_ISR( 14 );
+		break;		
     case GPIO_PIN_15: 
-	default: return EXTI15_10_IRQn;
+		STM32H7_GPIO_ISR( 15 );
+		break;		
   }
+
 }
+
