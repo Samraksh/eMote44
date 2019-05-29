@@ -131,6 +131,9 @@ void TinyBooter_OnStateChange( TinyBooterState state, void* data, void ** retDat
 			//BSP_LED_On(LED_GREEN); 
             //CPU_GPIO_EnableOutputPin(LED2, TRUE);
             CPU_GPIO_EnableOutputPin(LED3, TRUE);
+			//I2S_Internal_Initialize();
+			//I2S_Test();
+	
             hal_fprintf( STREAM_LCD, "Waiting\r" );
             break;
 

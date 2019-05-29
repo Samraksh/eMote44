@@ -44,7 +44,7 @@
 
     <!-- Native Code section -->
     <Set Name="Code_BaseAddress"        Value="0x08040000"/>
-    <Set Name="Code_Size"               Value="0x00060000"/><!-- 384KB -->
+    <Set Name="Code_Size"               Value="0x00080000"/><!-- 384KB -->
 	
     <!-- Deployment fills the rest of flash... -->
 

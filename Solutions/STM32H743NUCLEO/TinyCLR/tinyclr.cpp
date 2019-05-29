@@ -24,6 +24,8 @@ void ApplicationEntryPoint()
     clrSettings.WaitForDebugger            = false;
     clrSettings.EnterDebuggerLoopAfterExit = true;
 
+	//I2S_Internal_Initialize();
+	//I2S_Test();
    // hal_printf(" CLR 28 ");
     ClrStartup( clrSettings );
 

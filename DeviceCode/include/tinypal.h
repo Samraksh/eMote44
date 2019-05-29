@@ -23,6 +23,7 @@
 #include <graphics_decl.h>
 
 #include <I2C_decl.h>
+#include <I2S_decl.h>
 #include <io_decl.h>
 #include <instrumentation_decl.h>
 

@@ -54,6 +54,7 @@
   <ItemGroup>   	
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_cortex.c" /> 
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_i2s.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_rcc.c" /> 
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_rcc_ex.c" /> 
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_gpio.c" /> 	
