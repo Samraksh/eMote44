@@ -157,11 +157,42 @@
 #define LED2                            _P(B, 7)  // Blue
 #define LED3                            _P(B,14)  // Red
 
+#define GPIO_0 _P(A,3)
+#define GPIO_1 _P(C,2)
+#define GPIO_2 _P(B,1)
+#define GPIO_3 _P(F,3)
+#define GPIO_4 _P(F,4)
+#define GPIO_5 _P(B,6)
+
 // TinyBooter entry using GPIO
 #define TINYBOOTER_ENTRY_GPIO_PIN       USER_BUTTON               // 'User' button
 #define TINYBOOTER_ENTRY_GPIO_STATE     TRUE                      // Active high
 #define TINYBOOTER_ENTRY_GPIO_RESISTOR  RESISTOR_DISABLED         // No internal resistor, there is external pull-down (R58,R59)
 
+const UINT8 SYSTEM_TIME = 0;
+const UINT8 ADVTIMER_32BIT = 1;
+const UINT8 DEFAULT_TIMER = ADVTIMER_32BIT;
+const UINT8 TIMER_32BIT = ADVTIMER_32BIT;
+const UINT8 RTC_32BIT = 4;
+const UINT8 LOW_DRIFT_TIMER = RTC_32BIT;
+const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
+
+const UINT8 g_CountOfHardwareTimers = 2;
+const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = {SYSTEM_TIME, DEFAULT_TIMER };
+const UINT8 g_VirtualTimerPerHardwareTimer = 16;
+const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 48000000};
+
+// timers that are run within interrupt context
+#define VIRT_TIMER_EVENTS 			1
+#define VIRT_TIMER_REALTIME 		2
+
+// The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
+// Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
+#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 5
+
+// timers that are run within continuations (all C# user timers are run outside an interrupt context also)
+#define VIRT_TIMER_LED_GREEN 		10
+#define VIRT_TIMER_LED_RED 			11
 //
 // Constants
 /////////////////////////////////////////////////////////

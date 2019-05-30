@@ -170,20 +170,59 @@ void    HAL_Time_Sleep_MicroSeconds_InterruptEnabled( UINT32 uSec );
     
 UINT32  CPU_SystemClock        (             );
 UINT32  CPU_TicksPerSecond     (             );
-UINT64  CPU_MillisecondsToTicks( UINT64 mSec );
-UINT64  CPU_MillisecondsToTicks( UINT32 mSec );
+UINT64  CPU_MillisecondsToTicks( UINT64 mSec, UINT16 Timer = 1 );
+UINT64  CPU_MillisecondsToTicks( UINT32 mSec, UINT16 Timer = 1 );
 
 // -- //
 // the following function are used in flash operations that they have to be located in the RAM. 
 // It has been included in the scatterfile_ram_functions.xml
-UINT32  CPU_MicrosecondsToTicks       ( UINT32 uSec    );
-UINT64  CPU_MicrosecondsToTicks       ( UINT64 uSec    );
-//--//
-UINT32  CPU_MicrosecondsToSystemClocks( UINT32 uSec    );
-UINT64  CPU_TicksToTime               ( UINT64 Ticks   );
-UINT64  CPU_TicksToTime               ( UINT32 Ticks32 );
+#if defined( WIN32 )
+UINT32  CPU_MicrosecondsToTicks       ( UINT32 uSec );
+UINT64  CPU_MicrosecondsToTicks       ( UINT64 uSec );
+#else
+UINT32  CPU_MicrosecondsToTicks       ( UINT32 uSec, UINT16 Timer = 1  );
+UINT64  CPU_MicrosecondsToTicks       ( UINT64 uSec, UINT16 Timer = 1  );
+#endif
+UINT32  CPU_TicksToMicroseconds		  ( UINT32 ticks, UINT16 Timer = 1 );
+UINT64  CPU_TicksToMicroseconds		  ( UINT64 ticks, UINT16 Timer = 1 );
 
 //--//
+UINT32  CPU_MicrosecondsToSystemClocks( UINT32 uSec    );
+UINT64  CPU_TicksToTime               ( UINT64 Ticks, UINT16 Timer = 1   );
+UINT64  CPU_TicksToTime               ( UINT32 Ticks32, UINT16 Timer = 1 );
+
+//--//
+
+//TODO: move the items below to a new header file. these are samraksh specific.
+
+BOOL CPU_Timer_Initialize(UINT16 Timer = 0, BOOL IsOneShot = FALSE, UINT32 Prescaler = 0, HAL_CALLBACK_FPN ISR = NULL);
+BOOL CPU_Timer_UnInitialize(UINT16 Timer);
+
+//TODO: AnanthAtSamraksh -- check if UINT64 is right
+////BOOL CPU_TIMER_SetCompare(UINT64 CompareValue);
+BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 CompareValue);
+
+UINT32 CPU_Timer_GetCounter(UINT16 Timer);
+UINT32 CPU_Timer_SetCounter(UINT16 Timer, UINT32 Count);
+
+////UINT64 CPU_Timer_CurrentTicks(UINT16 Timer);
+UINT64 CPU_Timer_CurrentTicks(UINT16 Timer);
+
+void CPU_Timer_Sleep_MicroSeconds( UINT32 uSec, UINT16 Timer = 1 );
+
+BOOL CPU_Timer_DidTimerOverflow(UINT8 Timer);
+void CPU_Timer_ClearTimerOverflow(UINT8 Timer);
+
+UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer);
+void CPU_GetDriftParameters  ( INT32* a, INT32* b, INT64* c );
+
+void CPU_AddClockTime(UINT16 Timer, UINT64 timeToAdd);
+
+extern const UINT8 TIMER_32BIT;
+extern const UINT8 DEFAULT_TIMER;
+extern const UINT8 TIMER1_16BIT;
+extern const UINT8 TIMER2_16BIT;
+extern const UINT8 LOW_DRIFT_TIMER;
 
 #endif // _DRIVERS_TIME_DECL_H_
 

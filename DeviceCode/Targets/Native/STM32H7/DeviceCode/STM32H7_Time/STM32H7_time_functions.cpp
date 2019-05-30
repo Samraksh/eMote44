@@ -15,18 +15,112 @@
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
-static UINT64 g_nextEvent;   // tick time of next event to be scheduled
-static TIM_HandleTypeDef    TimHandle2;
 
+#if STM32H7_32B_TIMER == 2
+    #define TIM_32 TIM2
+    #define RCC_APB1ENR_TIM_32_EN RCC_APB1LENR_TIM2EN
+    #define DBGMCU_APB1_FZ_DBG_TIM_32_STOP DBGMCU_APB1LFZ1_DBG_TIM2
+    #define TIM_32_IRQn TIM2_IRQn
+    #if STM32H7_16B_TIMER == 3
+        #define TIM_16 TIM5
+        #define RCC_APB1ENR_TIM_16_EN RCC_APB1LENR_TIM5EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 1) // TS = 001
+    #elif STM32H7_16B_TIMER == 4
+        #define TIM_16 TIM4
+        #define RCC_APB1ENR_TIM_16_EN RCC_APB1LENR_TIM4EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 1) // TS = 001
+    #elif STM32H7_16B_TIMER == 8
+        #define TIM_16 TIM8
+        #define RCC_APB2ENR_TIM_16_EN RCC_APB2ENR_TIM8EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 1) // TS = 001
+    #elif STM32H7_16B_TIMER == 9
+        #define TIM_16 TIM9
+        #define RCC_APB2ENR_TIM_16_EN RCC_APB2ENR_TIM9EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 0) // TS = 000
+    #else
+        #error wrong 16 bit timer (3, 4, 8 or 9)
+    #endif
+#elif STM32H7_32B_TIMER == 5
+    #define TIM_32 TIM5
+    #define RCC_APB1ENR_TIM_32_EN RCC_APB1LENR_TIM5EN
+    #define DBGMCU_APB1_FZ_DBG_TIM_32_STOP DBGMCU_APB1LFZ1_DBG_TIM5
+    #define TIM_32_IRQn TIM5_IRQn
+    #if STM32H7_16B_TIMER == 1
+        #define TIM_16 TIM1
+        #define RCC_APB2ENR_TIM_16_EN RCC_APB2ENR_TIM1EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 0) // TS = 000
+    #elif STM32H7_16B_TIMER == 3
+        #define TIM_16 TIM5
+        #define RCC_APB1ENR_TIM_16_EN RCC_APB1LENR_TIM5EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 2) // TS = 010
+    #elif STM32H7_16B_TIMER == 8
+        #define TIM_16 TIM8
+        #define RCC_APB2ENR_TIM_16_EN RCC_APB2ENR_TIM8EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 3) // TS = 011
+    #elif STM32H7_16B_TIMER == 12
+        #define TIM_16 TIM12
+        #define RCC_APB1ENR_TIM_16_EN RCC_APB1LENR_TIM12EN
+        #define TIM_SMCR_TS_BITS (TIM_SMCR_TS_0 * 1) // TS = 001
+    #else
+        #error wrong 16 bit timer (1, 3, 8 or 12)
+    #endif
+#else
+    #error wrong 32 bit timer (2 or 5)
+#endif 
+
+// 32 bit timer on APB1
+#if SYSTEM_APB1_CLOCK_HZ == SYSTEM_CYCLE_CLOCK_HZ
+#define TIM_CLK_HZ SYSTEM_APB1_CLOCK_HZ
+#else
+#define TIM_CLK_HZ (SYSTEM_APB1_CLOCK_HZ * 2)
+#endif
+
+TIM_HandleTypeDef    TimHandle2_SystemTime;
+TIM_HandleTypeDef    TimHandle5;
+
+HAL_CALLBACK_FPN callBackISR;
+UINT32 callBackISR_Param;
+
+UINT64 m_systemTime = 0;
+
+const UINT64 TIMER_5_TIME_CUSHION = 500;  // 15 us
+const UINT64 TIMER_5_MAX_ALLOWABLE_WAIT = 0xFFFEFFFF;
+
+static bool ignoreFirstInterrupt = FALSE;
+static bool timer5running = FALSE;
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  None
+  * @retval None
+  */
 static void Error_Handler(void)
 {
 	__asm__("BKPT");
 }
 
 extern "C" {
+
+// calls Virtual Timer callback
+void TIM5_IRQHandler(void)
+{
+  	HAL_TIM_IRQHandler(&TimHandle5);  
+
+	if (ignoreFirstInterrupt == TRUE){
+	 	ignoreFirstInterrupt = FALSE;
+  	} else {
+		HAL_TIM_Base_Stop_IT(&TimHandle5);
+		if (timer5running == TRUE) 
+	  		callBackISR(&callBackISR_Param);
+  	}
+}
+  
+// timer 2 keeps track of system time. Interrupt happens every 0xFFFF FFFF clocks (48MHz)
 void TIM2_IRQHandler(void)
 {
-  HAL_TIM_IRQHandler(&TimHandle2);
+  m_systemTime += (0x1ull <<32);
+  // Clear interrupt 
+  HAL_TIM_IRQHandler(&TimHandle2_SystemTime);	
 }
 } // extern "C"
 
@@ -40,60 +134,126 @@ UINT32 CPU_TicksPerSecond()
     return SLOW_CLOCKS_PER_SECOND;
 }
 
-UINT64 CPU_TicksToTime( UINT64 Ticks )
+UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 {
-    Ticks *= (TEN_MHZ               /SLOW_CLOCKS_TEN_MHZ_GCD);
-    Ticks /= (SLOW_CLOCKS_PER_SECOND/SLOW_CLOCKS_TEN_MHZ_GCD);
+	UINT32 maxTicks = 0;
 
-    return Ticks;
+	maxTicks = 0xFFFFFFFF;
+
+	return maxTicks;
 }
 
-UINT64 CPU_TicksToTime( UINT32 Ticks32 )
+//--//
+
+UINT64 CPU_TicksToTime( UINT64 Ticks, UINT16 Timer )
 {
-    UINT64 Ticks;
+    UINT8 i;
+	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
 
-    Ticks  = (UINT64)Ticks32 * (TEN_MHZ               /SLOW_CLOCKS_TEN_MHZ_GCD);
-    Ticks /=                   (SLOW_CLOCKS_PER_SECOND/SLOW_CLOCKS_TEN_MHZ_GCD);
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
 
-    return Ticks;
+
+		Ticks *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
+		Ticks /= (timerFrequency/CLOCK_COMMON_FACTOR);
+
+	return Ticks;
 }
 
-UINT64 CPU_MillisecondsToTicks( UINT64 Ticks )
+UINT64 CPU_TicksToTime( UINT32 Ticks32, UINT16 Timer )
 {
-    Ticks *= (SLOW_CLOCKS_PER_SECOND/SLOW_CLOCKS_MILLISECOND_GCD);
-    Ticks /= (1000                  /SLOW_CLOCKS_MILLISECOND_GCD);
+    UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
 
-    return Ticks;
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
+
+
+		// this reduces to multiplying by 1 if CLOCK_COMMON_FACTOR == 1000000
+		if (CLOCK_COMMON_FACTOR != 1000000){
+			Ticks32 *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);				 
+		}
+		if (timerFrequency == 8000000){
+			Ticks32 >> 3;
+		} else {
+			Ticks32 /= (timerFrequency/CLOCK_COMMON_FACTOR);
+		}
+		return Ticks32;
 }
 
-UINT64 CPU_MillisecondsToTicks( UINT32 Ticks32 )
+//--//
+
+UINT64 CPU_MillisecondsToTicks( UINT64 mSec, UINT16 Timer )
 {
-    UINT64 Ticks;
+    UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
 
-    Ticks  = (UINT64)Ticks32 * (SLOW_CLOCKS_PER_SECOND/SLOW_CLOCKS_MILLISECOND_GCD);
-    Ticks /=                   (1000                  /SLOW_CLOCKS_MILLISECOND_GCD);
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
 
-    return Ticks;
+
+	return ( mSec * (timerFrequency / 1000) );
 }
 
-
-UINT64 CPU_MicrosecondsToTicks( UINT64 uSec )
+UINT64 CPU_MillisecondsToTicks( UINT32 mSec, UINT16 Timer )
 {
-#if ONE_MHZ <= SLOW_CLOCKS_PER_SECOND
-    return uSec * (SLOW_CLOCKS_PER_SECOND / ONE_MHZ);
-#else
-    return uSec / (ONE_MHZ / SLOW_CLOCKS_PER_SECOND);
-#endif
+    UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
+
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
+
+
+	return ( mSec * (timerFrequency / 1000) );
 }
 
-UINT32 CPU_MicrosecondsToTicks( UINT32 uSec )
+//--//
+
+#pragma arm section code = "SectionForFlashOperations"
+
+UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uSec, UINT16 Timer )
 {
-#if ONE_MHZ <= SLOW_CLOCKS_PER_SECOND
-    return uSec * (SLOW_CLOCKS_PER_SECOND / ONE_MHZ);
-#else
-    return uSec / (ONE_MHZ / SLOW_CLOCKS_PER_SECOND);
-#endif
+	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
+
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
+
+		return ( uSec * (timerFrequency / CLOCK_COMMON_FACTOR) );
 }
+
+UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uSec, UINT16 Timer )
+{
+	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
+
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
+
+		return ( uSec * (timerFrequency / CLOCK_COMMON_FACTOR) );
+}
+
+#pragma arm section code
+
+//--//
 
 UINT32 CPU_MicrosecondsToSystemClocks( UINT32 uSec )
 {
@@ -111,6 +271,8 @@ int CPU_MicrosecondsToSystemClocks( int uSec )
     return uSec;
 }
 
+//--//
+
 int CPU_SystemClocksToMicroseconds( int Ticks )
 {
     Ticks *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
@@ -119,54 +281,138 @@ int CPU_SystemClocksToMicroseconds( int Ticks )
     return Ticks;
 }
 
-static void Timer_Interrupt (void* param) // 32 bit timer compare event
+UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 {
-    if (HAL_Time_CurrentTicks() >= g_nextEvent) { // handle event
-       HAL_COMPLETION::DequeueAndExec(); // this also schedules the next one, if there is one
-    }
+	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
+
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
+
+	return ((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
 }
 
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-	if (htim->Instance == TIM2) {
-		Timer_Interrupt(NULL);
+UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
+{
+	UINT32 ret;
+	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT8 i;
+
+	for (i=0; i<g_CountOfHardwareTimers; i++){
+		if (Timer == g_HardwareTimerIDs[i]){
+			timerFrequency = g_HardwareTimerFrequency[i];
+		}
+	}
+
+	ret = ((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
+
+	return ret;
+}
+
+UINT64 CPU_Timer_CurrentTicks(UINT16 Timer)
+{
+	static UINT64 prevRead = 0;
+	UINT64 retVal = 0;
+	if (Timer == ADVTIMER_32BIT){
+		retVal = (UINT64)(TimHandle5.Instance->CNT);
+	} else {
+		GLOBAL_LOCK(irq);
+		// SYSTEM_TIME
+		volatile UINT64 current_systemTime =  m_systemTime;
+		volatile UINT64 currentValue = (UINT64)(TimHandle2_SystemTime.Instance->CNT);
+		
+		current_systemTime &= (0xFFFFFFFF00000000ull);
+		current_systemTime |= currentValue;
+		if (current_systemTime < prevRead){
+			// lower 32-bit timer wrapped, so we'll bump our return value's bit 32nd bit (the real system time will do this in the interrupt routine after we exit)
+  			current_systemTime += (0x1ull <<32);
+		}
+		retVal = current_systemTime;
+	}
+	prevRead = retVal;
+	return retVal;
+}
+
+
+// CompareValue is based on the *System time* regardless of what clock is used.
+// The difference between the compareValue and the current time must then be translated into the appropriate compare value for the clock that will be used to generate the interrupt
+BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
+{
+	volatile UINT64 now = CPU_Timer_CurrentTicks(SYSTEM_TIME);
+
+	if (Timer == ADVTIMER_32BIT){
+		// making sure we have enough time before the timer fires to exit SetCompare, the VT callback and the timer interrupt
+		if (compareValue < (now + TIMER_5_TIME_CUSHION)){
+			compareValue = (now + TIMER_5_TIME_CUSHION);
+		}  
+		
+		UINT64 totalCompareTime = compareValue - now;
+		if ( totalCompareTime > TIMER_5_MAX_ALLOWABLE_WAIT ){ 
+			compareValue = TIMER_5_MAX_ALLOWABLE_WAIT; 
+		} 
+
+		timer5running = TRUE;
+
+		UINT64 timer5ticks = CPU_MicrosecondsToTicks(CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME), ADVTIMER_32BIT);
+
+		TimHandle5.Init.Period = timer5ticks;
+
+		ignoreFirstInterrupt = TRUE;
+		if (HAL_TIM_Base_Init(&TimHandle5) != HAL_OK){
+			hal_printf("error init\r\n");
+		}
+		if (HAL_TIM_Base_Start_IT(&TimHandle5) != HAL_OK){
+			hal_printf("error start\r\n");
+		}
+
 	}
 }
+//--//
 
-UINT64 HAL_Time_CurrentTicks()
+#pragma arm section code = "SectionForFlashOperations"
+
+UINT64 __section("SectionForFlashOperations") HAL_Time_CurrentTicks()
 {
-	return TimHandle2.Instance->CNT;
-    // UINT32 t2, t5; // cascaded timers
-    // do {
-        // t5 = TimHandle5.Instance->CNT;
-        // t2 = TimHandle2.Instance->CNT;
-    // } while (t5 != TimHandle5.Instance->CNT); // asure consistent values
-    // return t2 | (UINT64)t5 << 32;
+	return CPU_Timer_CurrentTicks(SYSTEM_TIME);    
 }
 
-void HAL_Time_SetCompare( UINT64 CompareValue )
-{
-    GLOBAL_LOCK(irq);
-    g_nextEvent = CompareValue;
-    TimHandle2.Instance->CCR1 = (UINT32)CompareValue; // compare to low bits
-
-    if (HAL_Time_CurrentTicks() >= CompareValue) { // missed event
-        // trigger immediate interrupt
-        TimHandle2.Instance->EGR = TIM_EGR_CC1G; // trigger compare1 event
-    }
-
-}
+#pragma arm section code
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
+  /*##-1- Enable peripheral clock #################################*/
   if (htim->Instance == TIM2) {
+	  /* TIMx Peripheral clock enable */
 	  __HAL_RCC_TIM2_CLK_ENABLE();
+	  
+	  /*##-2- Configure the NVIC for TIMx ########################################*/
+	  /* Set the TIMx priority */
+	  
+	 // __NVIC_SetVector(TIM2_IRQn, (uint32_t)TIM2_IRQHandler);
+	  
+	  HAL_NVIC_SetPriority(TIM2_IRQn, 3, 0);
+
+	  /* Enable the TIMx global Interrupt */
 	  HAL_NVIC_EnableIRQ(TIM2_IRQn);
   }
-  // else if (htim->Instance == TIM5) {
-	  // __HAL_RCC_TIM5_CLK_ENABLE();
-	  // HAL_NVIC_EnableIRQ(TIM5_IRQn);
-  // }
+  else if (htim->Instance == TIM5) {
+	  /* TIMx Peripheral clock enable */
+	  __HAL_RCC_TIM5_CLK_ENABLE();
+	  
+	  /*##-2- Configure the NVIC for TIMx ########################################*/
+	  /* Set the TIMx priority */
+	  
+	  //__NVIC_SetVector(TIM5_IRQn, (uint32_t)TIM5_IRQHandler);
+	  
+	  HAL_NVIC_SetPriority(TIM5_IRQn, 3, 0);
 
+	  /* Enable the TIMx global Interrupt */
+	  HAL_NVIC_EnableIRQ(TIM5_IRQn);
+  }
+  
 }
 
 void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
@@ -174,95 +420,130 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef *htim)
 	if (htim->Instance == TIM2) {
 		HAL_NVIC_DisableIRQ(TIM2_IRQn);
 	}
-	// else if (htim->Instance == TIM5) {
-		// HAL_NVIC_DisableIRQ(TIM5_IRQn);
-	// }
+	else if (htim->Instance == TIM5) {
+		HAL_NVIC_DisableIRQ(TIM5_IRQn);
+	}
 }
 
-BOOL HAL_Time_Initialize()
+BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CALLBACK_FPN ISR)
 {
-	uint32_t uwPrescalerValue = (SystemCoreClock / 1000000) -1;
+	callBackISR_Param = ADVTIMER_32BIT;
+	callBackISR = ISR;
 
-	// TimHandle5.Instance = TIM5;
-	// TimHandle5.Init.Period            = 0xFFFFFFFF;
-	// TimHandle5.Init.Prescaler         = uwPrescalerValue;
-	// TimHandle5.Init.ClockDivision     = 0;
-	// TimHandle5.Init.CounterMode       = TIM_COUNTERMODE_UP;
-	// TimHandle5.Init.RepetitionCounter = 0;
+	// Set TIM2 instance keeps track of system time
+	TimHandle2_SystemTime.Instance = TIM2;
 
-	// if (HAL_TIM_Base_Init(&TimHandle5) != HAL_OK)
-	// {
-		// Error_Handler();
-	// }
+	TimHandle2_SystemTime.Init.Period            = 0xFFFFFFFF;
+	TimHandle2_SystemTime.Init.Prescaler         = 1;
+	TimHandle2_SystemTime.Init.ClockDivision     = 0;
+	TimHandle2_SystemTime.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	TimHandle2_SystemTime.Init.RepetitionCounter = 0;
 
-	TimHandle2.Instance = TIM2;
-	TimHandle2.Init.Period            = 0xFFFFFFFF;
-	TimHandle2.Init.Prescaler         = uwPrescalerValue;
-	TimHandle2.Init.ClockDivision     = 0;
-	TimHandle2.Init.CounterMode       = TIM_COUNTERMODE_UP;
-	TimHandle2.Init.RepetitionCounter = 0;
-
-	if (HAL_TIM_Base_Init(&TimHandle2) != HAL_OK)
+	if (HAL_TIM_Base_Init(&TimHandle2_SystemTime) != HAL_OK)
 	{
+		// Initialization Error 
 		Error_Handler();
 	}
 
-	//if (HAL_TIM_Base_Start_IT(&TimHandle5) != HAL_OK) // We don't want TIM_IT_UPDATE I think?
-	// if (HAL_TIM_Base_Start(&TimHandle5) != HAL_OK)
-	// {
-		// Error_Handler();
-	// }
-
-	// FIXME: Needs TIM_IT_UPDATE and CC or whatever
-	//if (HAL_TIM_Base_Start_IT(&TimHandle2) != HAL_OK)
-	if (HAL_TIM_Base_Start(&TimHandle2) != HAL_OK)
+	//##-2- Start the TIM Base generation in interrupt mode ####################
+	// Start Channel1 
+	if (HAL_TIM_Base_Start_IT(&TimHandle2_SystemTime) != HAL_OK)
 	{
+		// Starting Error 
 		Error_Handler();
 	}
+
+	// Set TIM2 instance keeps track of system time
+	TimHandle5.Instance = TIM5;
+
+	TimHandle5.Init.Period            = 10000000;
+	TimHandle5.Init.Prescaler         = 1;
+	TimHandle5.Init.ClockDivision     = 0;
+	TimHandle5.Init.CounterMode       = TIM_COUNTERMODE_UP;
+	TimHandle5.Init.RepetitionCounter = 0;
+
+	if (HAL_TIM_Base_Init(&TimHandle5) != HAL_OK)
+	{
+		// Starting Error 
+		Error_Handler();
+	}
+
+	/*if (HAL_TIM_OC_Init(&TimHandle5) != HAL_OK)
+	{
+		// Initialization Error 
+		Error_Handler();
+	}
+
+	TIM_OC_InitTypeDef sConfigOC;
+	sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+  	sConfigOC.Pulse = 1000; //0.0001[s] * 20000 = 2 [s] DELAY
+	sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
+  	//sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  	HAL_TIM_OC_ConfigChannel(&TimHandle5, &sConfigOC, TIM_CHANNEL_1);
+	
+	HAL_TIM_OC_Start_IT(&TimHandle5, TIM_CHANNEL_1);
+	*/
+
 	return TRUE;
 }
 
-BOOL HAL_Time_Uninitialize()
+BOOL CPU_Timer_UnInitialize(UINT16 Timer)
 {
-
-	// if (HAL_TIM_Base_Stop_IT(&TimHandle5) != HAL_OK)
-	// {
-		// /* Starting Error */
-		// Error_Handler();
-	// }
-
-	// if (HAL_TIM_Base_DeInit(&TimHandle5) != HAL_OK)
-	// {
-		// /* Initialization Error */
-		// Error_Handler();
-	// }
-	if (HAL_TIM_Base_Stop_IT(&TimHandle2) != HAL_OK)
+	
+	if (HAL_TIM_Base_Stop_IT(&TimHandle5) != HAL_OK)
 	{
 		/* Starting Error */
 		Error_Handler();
 	}
-
-	if (HAL_TIM_Base_DeInit(&TimHandle2) != HAL_OK)
+	
+	if (HAL_TIM_Base_DeInit(&TimHandle5) != HAL_OK)
 	{
 		/* Initialization Error */
 		Error_Handler();
+	}  
+	if (HAL_TIM_Base_Stop_IT(&TimHandle2_SystemTime) != HAL_OK)
+	{
+		/* Starting Error */
+		Error_Handler();
 	}
+	
+	if (HAL_TIM_Base_DeInit(&TimHandle2_SystemTime) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	} 
+    //CPU_INTC_DeactivateInterrupt(TIM_32_IRQn);
+    
+    //TIM_16->CR1 &= ~TIM_CR1_CEN; // disable timers
+    //TIM_32->CR1 &= ~TIM_CR1_CEN;
+    
+    // disable timer clocks
+//#ifdef RCC_APB1ENR_TIM_16_EN
+//    RCC->APB1LENR &= ~(RCC_APB1ENR_TIM_32_EN | RCC_APB1ENR_TIM_16_EN);
+//#else
+//    RCC->APB1LENR &= ~RCC_APB1ENR_TIM_32_EN;
+//    RCC->APB2ENR &= ~RCC_APB2ENR_TIM_16_EN;
+//#endif
+    
     return TRUE;
 }
+
+
+#pragma arm section code = "SectionForFlashOperations"
 
 //
 // To calibrate this constant, uncomment #define CALIBRATE_SLEEP_USEC in TinyHAL.c
 //
 #define STM32H7_SLEEP_USEC_FIXED_OVERHEAD_CLOCKS 3
 
-void HAL_Time_Sleep_MicroSeconds( UINT32 uSec )
+void __section("SectionForFlashOperations") HAL_Time_Sleep_MicroSeconds( UINT32 uSec )
 {
     GLOBAL_LOCK(irq);
 
     UINT32 current   = HAL_Time_CurrentTicks();
     UINT32 maxDiff = CPU_MicrosecondsToTicks( uSec );
 
-    if(maxDiff <= STM32H7_SLEEP_USEC_FIXED_OVERHEAD_CLOCKS) maxDiff  = 0;
+    if(maxDiff <= STM32H7_SLEEP_USEC_FIXED_OVERHEAD_CLOCKS) maxDiff  = 0; 
     else maxDiff -= STM32H7_SLEEP_USEC_FIXED_OVERHEAD_CLOCKS;
 
     while(((INT32)(HAL_Time_CurrentTicks() - current)) <= maxDiff);
@@ -282,6 +563,8 @@ void HAL_Time_Sleep_MicroSeconds_InterruptEnabled( UINT32 uSec )
     CYCLE_DELAY_LOOP(iterations);
 }
 
+#pragma arm section code
+
 INT64 HAL_Time_TicksToTime( UINT64 Ticks )
 {
     return CPU_TicksToTime( Ticks );
@@ -292,18 +575,9 @@ INT64 HAL_Time_CurrentTime()
     return CPU_TicksToTime( HAL_Time_CurrentTicks() );
 }
 
-void HAL_Time_GetDriftParameters  ( INT32* a, INT32* b, INT64* c )
+void CPU_GetDriftParameters  ( INT32* a, INT32* b, INT64* c )
 {
     *a = 1;
     *b = 1;
     *c = 0;
-}
-
-
-
-//******************** Profiler ********************
-
-UINT64 Time_CurrentTicks()
-{
-    return HAL_Time_CurrentTicks();
 }

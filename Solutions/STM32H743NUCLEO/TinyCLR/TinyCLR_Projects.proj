@@ -108,6 +108,14 @@
         <DriverLibs Include="STM32H7_time.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_time\dotNetMF.proj" />
     </ItemGroup>
+	<ItemGroup>
+		<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\Samraksh\eMote_Time\dotNetMF.proj" />
+		<DriverLibs Include="eMote_time.$(LIB_EXT)" />
+	</ItemGroup>
+	<ItemGroup>
+    	<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\Samraksh\VirtualTimer\dotNetMF.proj" />
+    	<DriverLibs Include="VirtualTimer.$(LIB_EXT)" />
+  	</ItemGroup>
 	<!--<ItemGroup>
         <DriverLibs Include="STM32H7_RTC.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_RTC\dotNetMF.proj" />

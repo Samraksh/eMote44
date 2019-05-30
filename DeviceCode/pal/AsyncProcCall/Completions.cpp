@@ -172,6 +172,7 @@ void HAL_COMPLETION::WaitForInterrupts( UINT64 Expire, UINT32 sleepLevel, UINT64
     const int c_SetCompare   = 1;
     const int c_ResetCompare = 2;
     const int c_NilCompare   = 4;
+	static UINT64 prevTime = 0;
 
     ASSERT_IRQ_MUST_BE_OFF();
 
@@ -193,7 +194,7 @@ void HAL_COMPLETION::WaitForInterrupts( UINT64 Expire, UINT32 sleepLevel, UINT64
 
     if(state & c_SetCompare) HAL_Time_SetCompare( Expire );
 
-    CPU_Sleep( (SLEEP_LEVEL)sleepLevel, wakeEvents );
+    //CPU_Sleep( (SLEEP_LEVEL)sleepLevel, wakeEvents );
 
     if(state & (c_ResetCompare | c_NilCompare))
     {   
