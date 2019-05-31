@@ -44,6 +44,7 @@
 
   <ItemGroup>
     <Compile Include="Aborts.cpp" />
+	<Compile Include="$(AS_SUBDIR)\startup_stm32h753xx.s" />
     <Compile Include="$(AS_SUBDIR)\IDelayLoop.s" />
     <Compile Include="$(AS_SUBDIR)\Interlocked.s" />
   </ItemGroup>

@@ -41,8 +41,10 @@
 //
 
 // System Clock
-#define SYSTEM_CLOCK_HZ                  400000000  // 400 MHz
-#define SYSTEM_CYCLE_CLOCK_HZ            400000000  // 400 MHz
+//#define SYSTEM_CLOCK_HZ                  400000000  // 400 MHz
+//#define SYSTEM_CYCLE_CLOCK_HZ            400000000  // 400 MHz
+#define SYSTEM_CLOCK_HZ                  96000000  // 96 MHz
+#define SYSTEM_CYCLE_CLOCK_HZ            96000000  // 96 MHz
 #define SYSTEM_APB1_CLOCK_HZ             100000000  // 100 MHz
 #define SYSTEM_APB2_CLOCK_HZ             100000000  // `00 MHz
 
@@ -143,6 +145,8 @@
 #define STM32H7_SPI_SCLK_PINS           { _P(A, 5), _P_NONE_,_P_NONE_, _P_NONE_, _P(F, 7), _P_NONE_ }
 #define STM32H7_SPI_MISO_PINS           { _P(A, 6), _P_NONE_,_P_NONE_, _P_NONE_, _P(F, 8), _P_NONE_ }
 #define STM32H7_SPI_MOSI_PINS           { _P(A, 7), _P_NONE_,_P_NONE_, _P_NONE_, _P(F, 9), _P_NONE_ }
+
+#define SPI_TYPE_RADIO				0
 
 
 // User & Wake-up Button

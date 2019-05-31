@@ -3,6 +3,17 @@
 #include "..\stm32h7xx.h"
 
 #define BREAKPOINT(x) __asm__("BKPT")
+//#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
+#define VECT_TAB_OFFSET 0x00000070
+//#if defined(TARGETLOCATION_RAM)
+//extern UINT32 Load$$ER_RAM$$Base;
+//#elif defined(TARGETLOCATION_FLASH)
+//	extern const uint32_t _vectors_start_;
+//	#define ROM_START ((uint32_t *)&_vectors_start_)
+extern UINT32 Load$$ER_FLASH$$Base;
+//#else
+//    !ERROR
+//#endif
 
 /**
   * @brief  CPU L1-Cache enable.
@@ -147,6 +158,7 @@ void SysTick_Handler() {
 void Unknown_Handler(void) {
 	volatile uint32_t ipsr = __get_IPSR();
 	volatile int irq_num = ipsr - 16;
+
 	BREAKPOINT();
 	while(1);
 }
@@ -154,11 +166,18 @@ void Unknown_Handler(void) {
 void BootstrapCode() {
 	SystemInit();
 	//SCB->VTOR = FLASH_BANK1_BASE | VECT_TAB_OFFSET;       /* Vector Table Relocation in Internal FLASH */
-	SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
+	//SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
+
+	__DSB();
+	SCB->VTOR = (UINT32)&Load$$ER_FLASH$$Base;
+	__ISB();
 	//PrepareImageRegions(); // startup asm now does this, I think
 	//CPU_CACHE_Enable(); // Turn on later after we get out of our debugging hole
 	HAL_Init(); // Later calls HAL_MspInit()
 	DefaultSystemClock_Config(); // 96 MHz
+	#ifdef DEBUG
+	__HAL_DBGMCU_FREEZE_TIM2();
+	#endif
 }
 } // extern "C"
 

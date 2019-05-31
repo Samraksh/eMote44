@@ -63,8 +63,8 @@ const BlockRange g_STM32H7_BlockRange2[] =
 
 const BlockRange g_STM32H7_BlockRange3[] =
 {
-    { BlockRange::BLOCKTYPE_CODE      ,   0, 2 },  // 08040000 CLR         384k
-    { BlockRange::BLOCKTYPE_DEPLOYMENT,   3, 5 },  // 08080000 deployment  384k
+    { BlockRange::BLOCKTYPE_CODE      ,   0, 3 },  // 08040000 CLR         384k
+    { BlockRange::BLOCKTYPE_DEPLOYMENT,   4, 5 },  // 080C0000 deployment  384k
 };
 
 const BlockRegionInfo  g_STM32H7_BlkRegion[STM32H7__NUM_REGIONS] = 

@@ -51,6 +51,10 @@
 // Power API
 #include <Power_decl.h>
 
+#ifdef STM32H743xx
+// RTC API
+#include <CPU_RTC_decl.h>
+#endif
 //
 // Chipset
 //

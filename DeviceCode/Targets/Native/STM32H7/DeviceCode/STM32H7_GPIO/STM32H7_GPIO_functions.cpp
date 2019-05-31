@@ -14,6 +14,7 @@
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
+#include "..\stm32h7xx_main.h"
 
 #define STM32H7_Gpio_MaxPins (TOTAL_GPIO_PORT * 16)
 #define STM32H7_Gpio_MaxInt 16
@@ -21,6 +22,88 @@
 // indexed port configuration access
 #define Port(port) ((GPIO_TypeDef *) (GPIOA_BASE + (port << 10)))
 #define GPIO_NUMBER           (16U)
+
+
+
+extern "C" {
+void EXTI0_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 32 GPIO_EXTI_IRQHandler.cpp \r\n");	 
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_0 );
+	INTERRUPT_END;
+}
+
+void EXTI1_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 40 GPIO_EXTI_IRQHandler.cpp \r\n");	 
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_1 );	
+	INTERRUPT_END;
+}
+
+void EXTI2_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 48 GPIO_EXTI_IRQHandler.cpp \r\n");	 
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_2 );	
+	INTERRUPT_END;
+}
+
+void EXTI3_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 56 GPIO_EXTI_IRQHandler.cpp \r\n");	 
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_3 );	
+	INTERRUPT_END;
+}
+
+void EXTI4_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 64 GPIO_EXTI_IRQHandler.cpp \r\n");	 
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_4 );	
+	INTERRUPT_END;
+}
+	
+void EXTI9_5_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 72 GPIO_EXTI_IRQHandler.cpp \n");	
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_5 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_6 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_7 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_8 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_9 );
+
+	INTERRUPT_END;
+}	
+
+void EXTI15_10_IRQHandler( void )
+{
+	INTERRUPT_START;
+	//hal_printf(" 90 GPIO_EXTI_IRQHandler.cpp \n");	
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_10 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_11 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_12 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_13 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_14 );
+
+	HAL_GPIO_EXTI_IRQHandler( GPIO_PIN_15 );
+	INTERRUPT_END;
+}
+}
+
 
 struct STM32H7_Int_State
 {
@@ -38,6 +121,8 @@ static STM32H7_Int_State g_int_state[ STM32H7_Gpio_MaxInt ]; // interrupt state
 
 static UINT32 g_debounceTicks;
 static UINT16 g_pinReserved[ TOTAL_GPIO_PORT ]; //  1 bit per pin
+
+static GPIO_INTERRUPT_SERVICE_ROUTINE GpioIrq[16] = { NULL };
 
 /*
  * Debounce Completion Handler
@@ -275,6 +360,14 @@ void STM32H7_GPIO_Pin_Config( GPIO_PIN pin, UINT32 mode, GPIO_RESISTOR resistor,
 BOOL CPU_GPIO_Initialize( )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_GPIO( );
+	
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+	__HAL_RCC_GPIOH_CLK_ENABLE();
+	__HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOD_CLK_ENABLE();
+	__HAL_RCC_GPIOG_CLK_ENABLE();
+  
 
     CPU_GPIO_SetDebounce( 20 ); // ???
 
@@ -401,22 +494,20 @@ BOOL CPU_GPIO_GetPinState( GPIO_PIN pin )
     if( pin >= STM32H7_Gpio_MaxPins )
         return FALSE;
 
-    GPIO_TypeDef* port = Port( pin >> 4 ); // pointer to the actual port registers 
-    return ( port->IDR >> ( pin & 0xF ) ) & 1;
+	if (HAL_GPIO_ReadPin(Port(pin >> 4), 1 << (pin & 0x0f)) == GPIO_PIN_SET) return TRUE;
+	else return FALSE;
 }
 
 void CPU_GPIO_SetPinState( GPIO_PIN pin, BOOL pinState )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_GPIO( );
-    if( pin < STM32H7_Gpio_MaxPins )
+	if( pin < STM32H7_Gpio_MaxPins )
     {
-        GPIO_TypeDef* port = Port( pin >> 4 ); // pointer to the actual port registers 
-        UINT16 bit = 1 << ( pin & 0x0F );
-        if( pinState )
-            port->BSRR = bit; // set bit
-        else
-            port->BSRR = bit << GPIO_NUMBER; // reset bit
-    }
+		if (pinState == TRUE) {
+			HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_SET);
+		}
+		else HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_RESET);
+	}
 }
 
 BOOL CPU_GPIO_PinIsBusy( GPIO_PIN pin )  // busy == reserved
@@ -518,3 +609,133 @@ BOOL CPU_GPIO_SetPinDebounce( GPIO_PIN pin, INT64 debounceTimeMilliseconds )
     }
     return FALSE;
 }
+
+
+/**
+  * @brief  EXTI line detection callbacks.
+  * @param  GPIO_Pin: Specifies the pins connected to the EXTI line.
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  //if (GPIO_Pin == GPIO_PIN_13)
+  //{
+    /* Toggle LED1 */
+  //   CPU_GPIO_EnableOutputPin(LED2, TRUE);
+  //}
+  CPU_GPIO_IrqHandler( GPIO_Pin );
+}
+
+/* Exported functions ---------------------------------------------------------*/
+/*!
+ * @brief Initializes the given GPIO object
+ *
+ * @param  GPIOx: where x can be (A..E and H)
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @param [IN] initStruct  GPIO_InitTypeDef intit structure
+ * @retval none
+ */
+void CPU_GPIO_Init( GPIO_TypeDef* port, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct)
+{
+
+  RCC_GPIO_CLK_ENABLE((uint32_t) port);
+
+  initStruct->Pin = GPIO_Pin ;
+
+  HAL_GPIO_Init( port, initStruct );
+}
+
+/*!
+ * @brief Writes the given value to the GPIO output
+ *
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @param [IN] value New GPIO output value
+ * @retval none
+ */
+void CPU_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value )
+{
+  HAL_GPIO_WritePin( GPIOx, GPIO_Pin , (GPIO_PinState) value );
+}
+
+/*!
+ * @brief Reads the current GPIO input value
+ *
+ * @param  GPIOx: where x can be (A..E and H) 
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @retval value   Current GPIO input value
+ */
+uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin )
+{
+  return HAL_GPIO_ReadPin( GPIOx, GPIO_Pin);
+}
+
+/*!
+ * @brief Execute the interrupt from the object
+ *
+ * @param  GPIO_Pin: specifies the port bit to be written.
+ *                   This parameter can be one of GPIO_PIN_x where x can be (0..15).
+ *                   All port bits are not necessarily available on all GPIOs.
+ * @retval none
+ */
+void CPU_GPIO_IrqHandler( uint16_t GPIO_Pin )
+{
+  switch( GPIO_Pin )
+  {
+    case GPIO_PIN_0: 
+		STM32H7_GPIO_ISR( 0 );
+		break;	
+    case GPIO_PIN_1: 
+		STM32H7_GPIO_ISR( 1 );
+		break;		
+    case GPIO_PIN_2:
+		STM32H7_GPIO_ISR( 2 );
+		break;		
+    case GPIO_PIN_3:  
+		STM32H7_GPIO_ISR( 3 );
+		break;		
+    case GPIO_PIN_4:  
+		STM32H7_GPIO_ISR( 4 );
+		break;		
+    case GPIO_PIN_5:  
+		STM32H7_GPIO_ISR( 5 );
+		break;		
+    case GPIO_PIN_6:
+		STM32H7_GPIO_ISR( 6 );
+		break;		
+    case GPIO_PIN_7:
+		STM32H7_GPIO_ISR( 7 );
+		break;		
+    case GPIO_PIN_8:
+		STM32H7_GPIO_ISR( 8 );
+		break;		
+    case GPIO_PIN_9:  
+		STM32H7_GPIO_ISR( 9 );
+		break;		
+    case GPIO_PIN_10:
+		STM32H7_GPIO_ISR( 10 );
+		break;		
+    case GPIO_PIN_11:
+		STM32H7_GPIO_ISR( 11 );
+		break;		
+    case GPIO_PIN_12:
+		STM32H7_GPIO_ISR( 12 );
+		break;		
+    case GPIO_PIN_13:
+		STM32H7_GPIO_ISR( 13 );
+		break;		
+    case GPIO_PIN_14:
+		STM32H7_GPIO_ISR( 14 );
+		break;		
+    case GPIO_PIN_15: 
+		STM32H7_GPIO_ISR( 15 );
+		break;		
+  }
+
+}
+

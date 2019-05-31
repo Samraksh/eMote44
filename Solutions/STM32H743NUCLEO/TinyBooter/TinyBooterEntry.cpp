@@ -98,13 +98,15 @@ bool WaitForTinyBooterUpload( INT32 &timeout_ms )
     if(!CPU_GPIO_EnableInputPin(TINYBOOTER_ENTRY_GPIO_PIN, FALSE, NULL, GPIO_INT_NONE, TINYBOOTER_ENTRY_GPIO_RESISTOR))
     {
         ASSERT(FALSE);
-    }
-    if(CPU_GPIO_GetPinState(TINYBOOTER_ENTRY_GPIO_PIN) == TINYBOOTER_ENTRY_GPIO_STATE)
+    }	   		
+
+	if(CPU_GPIO_GetPinState(TINYBOOTER_ENTRY_GPIO_PIN) == TINYBOOTER_ENTRY_GPIO_STATE)
     {
+		//hal_printf(" Reset on \r\n");
         // User override, so let's stay forever
         enterBooterMode = true;
         timeout_ms = -1;
-    }
+    } //else hal_printf(" Reset off \r\n");
 
 #endif
     return enterBooterMode;
@@ -129,6 +131,9 @@ void TinyBooter_OnStateChange( TinyBooterState state, void* data, void ** retDat
 			//BSP_LED_On(LED_GREEN); 
             //CPU_GPIO_EnableOutputPin(LED2, TRUE);
             CPU_GPIO_EnableOutputPin(LED3, TRUE);
+			//I2S_Internal_Initialize();
+			//I2S_Test();
+	
             hal_fprintf( STREAM_LCD, "Waiting\r" );
             break;
 
@@ -206,12 +211,17 @@ void TinyBooter_OnStateChange( TinyBooterState state, void* data, void ** retDat
         case State_Launch:
             if(NULL != data)
             {
-				//hal_printf("Starting application at 0x%08x\r\n", (UINT32)data );
-			    hal_fprintf( STREAM_LCD, "Starting application at 0x%08x\r\n", (UINT32)data );
+				hal_printf("Starting application at 0x%08x\r\n", (UINT32)data );
+			    //hal_fprintf( STREAM_LCD, "Starting application at 0x%08x\r\n", (UINT32)data );
                 // copy the native code from the Load area to execute area.
                 // set the *retAddres to real execute address after loading the data
-                // *retData =  exeAddress 
-               *retData =(void*) ((UINT32)data | 1); // set Thumb bit!
+				// *retData =  exeAddress 
+				
+				DebuggerPort_Uninitialize(HalSystemConfig.DebugTextPort);
+				
+				data = data+4;
+				UINT32 **location_reset = (UINT32 **) data;
+			    *retData =(void*) ((UINT32)*location_reset | 1); // set Thumb bit!
             }
             break;
     }

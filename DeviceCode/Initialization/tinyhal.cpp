@@ -562,6 +562,8 @@ void BootEntry()
     lcd_printf("%-15s\r\n", "Build Date:");
     lcd_printf("  %-13s\r\n", __DATE__);
     lcd_printf("  %-13s\r\n", __TIME__);
+	
+	
 
 #endif  // !defined(BUILD_RTM)
 

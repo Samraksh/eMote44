@@ -13,6 +13,10 @@
 #define GPIO_ATTRIBUTE_ALTERNATE_A  0x04
 #define GPIO_ATTRIBUTE_ALTERNATE_B  0x08
 
+#ifdef STM32H743xx
+#include <stm32h7xx_hal.h>
+#endif
+
 enum GPIO_RESISTOR
 {
     RESISTOR_DISABLED = 0,
@@ -52,6 +56,10 @@ enum GPIO_ALT_MODE
     GPIO_ALT_MODE_8     = 8,
 };
 
+#ifdef STM32H743xx
+typedef void( *GpioIrqHandler )( void* context );
+#endif
+
 typedef void (*GPIO_INTERRUPT_SERVICE_ROUTINE)( GPIO_PIN Pin, BOOL PinState, void* Param );
 
 BOOL   CPU_GPIO_Initialize     ();
@@ -74,6 +82,13 @@ UINT8  CPU_GPIO_GetSupportedInterruptModes(GPIO_PIN pin );
 
 UINT32 CPU_GPIO_GetPinDebounce( GPIO_PIN Pin );
 BOOL   CPU_GPIO_SetPinDebounce( GPIO_PIN Pin, INT64 debounceTimeMilliseconds );
+
+#ifdef STM32H743xx
+void CPU_GPIO_Init( GPIO_TypeDef* port, uint16_t GPIO_Pin, GPIO_InitTypeDef* initStruct);
+void CPU_GPIO_Write( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin,  uint32_t value );
+uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin );
+void CPU_GPIO_IrqHandler( uint16_t GPIO_Pin );
+#endif
 
 #endif // _DRIVERS_GPIO_DECL_H_
 

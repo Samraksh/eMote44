@@ -69,7 +69,7 @@ void ApplicationEntryPoint()
 		//CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
 		//CPU_SPI_PortsCount();
 		//hal_printf(" 66 TinyBooter.cpp \n");
-        
+     /*   
 		SPI_CONFIGURATION testabc;
 		testabc.Clock_RateKHz      = 100;
         testabc.CS_Active          = 0;
@@ -98,7 +98,7 @@ void ApplicationEntryPoint()
 		//HAL_Time_Sleep_MicroSeconds(10000000);
 		hal_printf(" 99 TinyBooter.cpp %d\n",HAL_Time_CurrentTicks());
 		//CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
-			
+		*/	
 		TinyBooter_OnStateChange( State_EnterBooterMode, NULL );
 
 	

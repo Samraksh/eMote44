@@ -1027,16 +1027,19 @@ bool Loader_Engine::EnumerateAndLaunch()
     FLASH_WORD ProgramWordCheck = 0;
     FLASH_WORD *pWord = &ProgramWordCheck;
 
-    if(!codeStream.Initialize( BlockUsage::CODE )) return false;
-
+    if(!codeStream.Initialize( BlockUsage::CODE )) {		
+		hal_printf("No Initialize Block\r\n");	
+		return false;
+	}
+	
     do
     {
         do
         {
             UINT32 addr = codeStream.CurrentAddress();
-
+			hal_printf("Code Stream Addrs 0x%08x\r\n", addr);	
             codeStream.Read( (BYTE**)&pWord, sizeof(FLASH_WORD) );
-
+			
             if(*pWord == Tinybooter_ProgramWordCheck())
             {
                 hal_printf("*** nXIP Program found at 0x%08x\r\n", addr );
@@ -1055,13 +1058,16 @@ bool Loader_Engine::EnumerateAndLaunch()
 
     //--//
 
-    if( programCount == 0 ) return false;
-    
+    if( programCount == 0 ) {
+		hal_printf("No program count \r\n");
+		return false;
+    }
+	
     ApplicationStartAddress startAddress = (ApplicationStartAddress)programs[ 0 ];
-
-    Launch( startAddress );
-
-    return true;
+	
+	Launch( startAddress );
+    
+	return true;
 }
 
 void Loader_Engine::Launch( ApplicationStartAddress startAddress )

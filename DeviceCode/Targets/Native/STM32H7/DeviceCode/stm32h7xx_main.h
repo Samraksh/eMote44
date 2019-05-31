@@ -20,8 +20,85 @@
 #define USARTx_CK_GPIO_PORT         GPIOD
 #define USARTx_CK_AF                GPIO_AF7_USART3
 
+/*!
+ * \brief GPIOs Macro
+ */
 
+#define RCC_GPIO_CLK_ENABLE( __GPIO_PORT__ )              \
+do {                                                    \
+    switch( __GPIO_PORT__)                                \
+    {                                                     \
+      case GPIOA_BASE: __HAL_RCC_GPIOA_CLK_ENABLE(); break;    \
+      case GPIOB_BASE: __HAL_RCC_GPIOB_CLK_ENABLE(); break;    \
+      case GPIOC_BASE: __HAL_RCC_GPIOC_CLK_ENABLE(); break;    \
+	  case GPIOD_BASE: __HAL_RCC_GPIOD_CLK_ENABLE(); break;    \
+	  case GPIOE_BASE: __HAL_RCC_GPIOE_CLK_ENABLE(); break;    \
+	  case GPIOF_BASE: __HAL_RCC_GPIOF_CLK_ENABLE(); break;    \
+	  case GPIOG_BASE: __HAL_RCC_GPIOG_CLK_ENABLE(); break;    \
+      case GPIOH_BASE: default:  __HAL_RCC_GPIOH_CLK_ENABLE(); \
+    }                                                    \
+  } while(0)  
+
+#define RCC_GPIO_CLK_DISABLE( __GPIO_PORT__ )              \
+do {                                                    \
+    switch( __GPIO_PORT__)                                \
+    {                                                     \
+      case GPIOA_BASE: __HAL_RCC_GPIOA_CLK_DISABLE(); break;    \
+      case GPIOB_BASE: __HAL_RCC_GPIOB_CLK_DISABLE(); break;    \
+	  case GPIOC_BASE: __HAL_RCC_GPIOC_CLK_DISABLE(); break;    \
+      case GPIOD_BASE: __HAL_RCC_GPIOD_CLK_DISABLE(); break;    \
+	  case GPIOE_BASE: __HAL_RCC_GPIOE_CLK_DISABLE(); break;    \
+	  case GPIOF_BASE: __HAL_RCC_GPIOF_CLK_DISABLE(); break;    \
+	  case GPIOG_BASE: __HAL_RCC_GPIOG_CLK_DISABLE(); break;    \
+      case GPIOH_BASE: default:  __HAL_RCC_GPIOH_CLK_DISABLE(); \
+    }                                                    \
+  } while(0) 
+
+
+/* Definition for LoRa I/O */
+#define RADIO_RESET_PORT                          GPIOD
+#define RADIO_RESET_PIN                           GPIO_PIN_15
+
+#define RADIO_MOSI_PORT                           GPIOA
+#define RADIO_MOSI_PIN                            GPIO_PIN_7
+
+#define RADIO_MISO_PORT                           GPIOA
+#define RADIO_MISO_PIN                            GPIO_PIN_6
+
+#define RADIO_SCLK_PORT                           GPIOA
+#define RADIO_SCLK_PIN                            GPIO_PIN_5
+
+#define RADIO_NSS_PORT                            GPIOD
+#define RADIO_NSS_PIN                             GPIO_PIN_14
+
+//#define RADIO_BUSY_PORT                           GPIOB
+//#define RADIO_BUSY_PIN                            GPIO_PIN_3
+
+#define RADIO_DIO_0_PORT                          GPIOF
+#define RADIO_DIO_0_PIN                           GPIO_PIN_15
+
+#define RADIO_DIO_1_PORT                          GPIOF
+#define RADIO_DIO_1_PIN                           GPIO_PIN_14
+
+#define RADIO_DIO_2_PORT                          GPIOF
+#define RADIO_DIO_2_PIN                           GPIO_PIN_13
+
+#define RADIO_DIO_3_PORT                          GPIOF
+#define RADIO_DIO_3_PIN                           GPIO_PIN_12
+
+#define RADIO_ANT_SWITCH_PORT              		  GPIOA
+#define RADIO_ANT_SWITCH_PIN              		  GPIO_PIN_9
+
+//#define DEVICE_SEL_PORT                           GPIOA
+//#define DEVICE_SEL_PIN                            GPIO_PIN_4
+
+//#define RADIO_LEDTX_PORT                           GPIOC
+//#define RADIO_LEDTX_PIN                            GPIO_PIN_1
+
+//#define RADIO_LEDRX_PORT                           GPIOC
+//#define RADIO_LEDRX_PIN                            GPIO_PIN_0
 /* Definition for SPIx clock resources */
+
 #define SPIx                        SPI1
 #define SPIx_CLK_ENABLE()           __HAL_RCC_SPI1_CLK_ENABLE()
 #define DMAx_CLK_ENABLE()           __HAL_RCC_DMA2_CLK_ENABLE()

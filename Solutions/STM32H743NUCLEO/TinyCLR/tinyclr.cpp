@@ -1,7 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 #include <tinyclr_application.h>
 #include <tinyhal.h>
 
@@ -17,7 +16,7 @@ void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
 
-	hal_printf(" CLR 20 ");
+	//hal_printf(" CLR 20 ");
     
 	memset(&clrSettings, 0, sizeof(CLR_SETTINGS));
 
@@ -25,7 +24,9 @@ void ApplicationEntryPoint()
     clrSettings.WaitForDebugger            = false;
     clrSettings.EnterDebuggerLoopAfterExit = true;
 
-    hal_printf(" CLR 28 ");
+	//I2S_Internal_Initialize();
+	//I2S_Test();
+   // hal_printf(" CLR 28 ");
     ClrStartup( clrSettings );
 
 #if !defined(BUILD_RTM)

@@ -24,6 +24,7 @@
     <MultipleOutputSections>false</MultipleOutputSections>
     <ADD_LOAD_IMAGE_CRC>false</ADD_LOAD_IMAGE_CRC>
     <ExtraTargets>BuildSigFiles</ExtraTargets>
+	<LINK_FLAGS Condition="'$(COMPILER_TOOL)'!='GCC'">$(LINK_FLAGS) --verbose $(SWTC)keep *(.init_array)</LINK_FLAGS>
     <!--<EXEScatterFileDefinition>$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\scatterfile_emoteOS_$(COMPILER_TOOL).xml</EXEScatterFileDefinition> -->
     <EXEScatterFileDefinition>$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\scatterfile_tinyclr_$(COMPILER_TOOL).xml</EXEScatterFileDefinition>
   </PropertyGroup>
