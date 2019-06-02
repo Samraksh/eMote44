@@ -193,6 +193,11 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 // timers that are run within continuations (all C# user timers are run outside an interrupt context also)
 #define VIRT_TIMER_LED_GREEN 		10
 #define VIRT_TIMER_LED_RED 			11
+
+#define VIRT_TX_TIMEOUT_TIMER 12
+#define VIRT_RX_TIMEOUT_TIMER 13
+#define VIRT_RX_TIMEOUT_SYNC_WORD 14
+
 //
 // Constants
 /////////////////////////////////////////////////////////

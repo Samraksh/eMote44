@@ -53,7 +53,7 @@ static void rx_done(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
 
 	if ( strncmp("Samraksh", pkt->name, sizeof(pkt->name)) != 0) {
 		spur++;
-		debug_printf("%s(): Spurious packet size:%d rssi:%d spur:%u\r\n", __func__, size, rssi, spur);
+		debug_printf("%s(): Spurious packet size:%d rssi:%d spur:%u named:%s\r\n", __func__, size, rssi, spur, pkt->name);
 		return;
 	}
 

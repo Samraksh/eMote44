@@ -41,7 +41,7 @@
   ******************************************************************************
   */
   
-//#include <Samraksh/VirtualTimer.h>
+#include <Samraksh/VirtualTimer.h>
 #include "SX1276.h"
 #include "..\..\stm32h7xx_main.h"
 
@@ -223,9 +223,9 @@ DioIrqHandler *DioIrq[] = { SX1276OnDio0Irq, SX1276OnDio1Irq,
 /*!
  * Tx and Rx timers
  */
-///TimerEvent_t TxTimeoutTimer;
-///TimerEvent_t RxTimeoutTimer;
-///TimerEvent_t RxTimeoutSyncWord;
+///TimerEvent_t VIRT_TX_TIMEOUT_TIMER;
+///TimerEvent_t VIRT_RX_TIMEOUT_TIMER;
+///TimerEvent_t VIRT_RX_TIMEOUT_SYNC_WORD;
 
 void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size )
 {
@@ -250,9 +250,12 @@ uint32_t SX1276Init( RadioEvents_t *events )
     RadioEvents = events;
 
     // Initialize driver timeout timers
-    ///TimerInit( &TxTimeoutTimer, SX1276OnTimeoutIrq );
-    ///TimerInit( &RxTimeoutTimer, SX1276OnTimeoutIrq );
-    ///TimerInit( &RxTimeoutSyncWord, SX1276OnTimeoutIrq );
+	VirtTimer_SetTimer(VIRT_TX_TIMEOUT_TIMER, 0, 10, TRUE, FALSE, SX1276OnTimeoutIrq);
+	VirtTimer_SetTimer(VIRT_RX_TIMEOUT_TIMER, 0, 10, FALSE, FALSE, SX1276OnTimeoutIrq);
+	VirtTimer_SetTimer(VIRT_RX_TIMEOUT_SYNC_WORD, 0, 10, TRUE, FALSE, SX1276OnTimeoutIrq);
+    ///TimerInit( &VIRT_TX_TIMEOUT_TIMER, SX1276OnTimeoutIrq );
+    ///TimerInit( &VIRT_RX_TIMEOUT_TIMER, SX1276OnTimeoutIrq );
+    ///TimerInit( &VIRT_RX_TIMEOUT_SYNC_WORD, SX1276OnTimeoutIrq );
 
     ///LoRaBoardCallbacks->SX1276BoardSetXO( SET );
 
@@ -891,18 +894,23 @@ void SX1276Send( uint8_t *buffer, uint8_t size )
 
 void SX1276SetSleep( void )
 {
-    ///TimerStop( &RxTimeoutTimer );
-    ///TimerStop( &TxTimeoutTimer );
-
+    ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+    ///TimerStop( &VIRT_TX_TIMEOUT_TIMER );
+	VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
+	VirtTimer_Stop(VIRT_TX_TIMEOUT_TIMER);
+	
     SX1276SetOpMode( RF_OPMODE_SLEEP );
     SX1276.Settings.State = RF_IDLE;
 }
 
 void SX1276SetStby( void )
 {
-    ///TimerStop( &RxTimeoutTimer );
-    ///TimerStop( &TxTimeoutTimer );
+    ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+    ///TimerStop( &VIRT_TX_TIMEOUT_TIMER );
 
+	VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
+	VirtTimer_Stop(VIRT_TX_TIMEOUT_TIMER);
+	
     SX1276SetOpMode( RF_OPMODE_STANDBY );
     SX1276.Settings.State = RF_IDLE;
 }
@@ -1046,8 +1054,11 @@ void SX1276SetRx( uint32_t timeout )
     SX1276.Settings.State = RF_RX_RUNNING;
     if( timeout != 0 )
     {
-    ///    TimerSetValue( &RxTimeoutTimer, timeout );
-    ///    TimerStart( &RxTimeoutTimer );
+    ///    TimerSetValue( &VIRT_RX_TIMEOUT_TIMER, timeout );
+    ///    TimerStart( &VIRT_RX_TIMEOUT_TIMER );
+		VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
+		VirtTimer_Change(VIRT_RX_TIMEOUT_TIMER, 0, timeout*1e3, TRUE);
+		VirtTimer_Start(VIRT_RX_TIMEOUT_TIMER);		
     }
 
     if( SX1276.Settings.Modem == MODEM_FSK )
@@ -1056,9 +1067,12 @@ void SX1276SetRx( uint32_t timeout )
 
         if( rxContinuous == false )
         {
-            ///TimerSetValue( &RxTimeoutSyncWord, SX1276.Settings.Fsk.RxSingleTimeout );
-            ///TimerStart( &RxTimeoutSyncWord );
-        }
+            ///TimerSetValue( &VIRT_RX_TIMEOUT_SYNC_WORD, SX1276.Settings.Fsk.RxSingleTimeout );
+            ///TimerStart( &VIRT_RX_TIMEOUT_SYNC_WORD );
+			VirtTimer_Stop(VIRT_RX_TIMEOUT_SYNC_WORD);
+			VirtTimer_Change(VIRT_RX_TIMEOUT_SYNC_WORD, 0, SX1276.Settings.Fsk.RxSingleTimeout*1e3, TRUE);
+			VirtTimer_Start(VIRT_RX_TIMEOUT_SYNC_WORD);			
+		}
     }
     else
     {
@@ -1075,9 +1089,11 @@ void SX1276SetRx( uint32_t timeout )
 
 void SX1276SetTx( uint32_t timeout )
 {
-    ///TimerSetValue( &TxTimeoutTimer, timeout );
-
-    switch( SX1276.Settings.Modem )
+    ///TimerSetValue( &VIRT_TX_TIMEOUT_TIMER, timeout );
+	VirtTimer_Stop(VIRT_TX_TIMEOUT_TIMER);
+	VirtTimer_Change(VIRT_TX_TIMEOUT_TIMER, 0, timeout*1e3, TRUE);
+    
+	switch( SX1276.Settings.Modem )
     {
     case MODEM_FSK:
         {
@@ -1132,7 +1148,8 @@ void SX1276SetTx( uint32_t timeout )
     }
 
     SX1276.Settings.State = RF_TX_RUNNING;
-    ///TimerStart( &TxTimeoutTimer );
+    ///TimerStart( &VIRT_TX_TIMEOUT_TIMER );
+	VirtTimer_Start(VIRT_TX_TIMEOUT_TIMER);	
     SX1276SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
@@ -1182,10 +1199,13 @@ void SX1276SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time )
     SX1276Write( REG_DIOMAPPING1, RF_DIOMAPPING1_DIO0_11 | RF_DIOMAPPING1_DIO1_11 );
     SX1276Write( REG_DIOMAPPING2, RF_DIOMAPPING2_DIO4_10 | RF_DIOMAPPING2_DIO5_10 );
 
-    ///TimerSetValue( &TxTimeoutTimer, timeout );
-
+    ///TimerSetValue( &VIRT_TX_TIMEOUT_TIMER, timeout );
+	VirtTimer_Stop(VIRT_TX_TIMEOUT_TIMER);
+	VirtTimer_Change(VIRT_TX_TIMEOUT_TIMER, 0, timeout, TRUE);
+			
     SX1276.Settings.State = RF_TX_RUNNING;
-    ///TimerStart( &TxTimeoutTimer );
+    ///TimerStart( &VIRT_TX_TIMEOUT_TIMER );
+	VirtTimer_Start(VIRT_TX_TIMEOUT_TIMER);	
     SX1276SetOpMode( RF_OPMODE_TRANSMITTER );
 }
 
@@ -1416,12 +1436,15 @@ void SX1276OnTimeoutIrq( void* context )
             {
                 // Continuous mode restart Rx chain
                 SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                ///TimerStart( &RxTimeoutSyncWord );
+                ///TimerStart( &VIRT_RX_TIMEOUT_SYNC_WORD );
+				VirtTimer_Start(VIRT_RX_TIMEOUT_SYNC_WORD);
+				
             }
             else
             {
                 SX1276.Settings.State = RF_IDLE;
-                ///TimerStop( &RxTimeoutSyncWord );
+                ///TimerStop( &VIRT_RX_TIMEOUT_SYNC_WORD );
+				VirtTimer_Stop(VIRT_RX_TIMEOUT_SYNC_WORD);
             }
         }
         if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
@@ -1475,8 +1498,10 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
     switch( SX1276.Settings.State )
     {
         case RF_RX_RUNNING:
-            //TimerStop( &RxTimeoutTimer );
-            // RxDone interrupt
+            ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+			VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
+            
+			// RxDone interrupt
             switch( SX1276.Settings.Modem )
             {
             case MODEM_FSK:
@@ -1491,18 +1516,22 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                                                     RF_IRQFLAGS1_SYNCADDRESSMATCH );
                         SX1276Write( REG_IRQFLAGS2, RF_IRQFLAGS2_FIFOOVERRUN );
 
-                        ///TimerStop( &RxTimeoutTimer );
+                        ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+						
+						VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
 
                         if( SX1276.Settings.Fsk.RxContinuous == false )
                         {
-                            ///TimerStop( &RxTimeoutSyncWord );
+                            ///TimerStop( &VIRT_RX_TIMEOUT_SYNC_WORD );
+							VirtTimer_Stop(VIRT_RX_TIMEOUT_SYNC_WORD);
                             SX1276.Settings.State = RF_IDLE;
                         }
                         else
                         {
                             // Continuous mode restart Rx chain
                             SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                            ///TimerStart( &RxTimeoutSyncWord );
+                            ///TimerStart( &VIRT_RX_TIMEOUT_SYNC_WORD );
+							VirtTimer_Start(VIRT_RX_TIMEOUT_SYNC_WORD);
                         }
 
                         if( ( RadioEvents != NULL ) && ( RadioEvents->RxError != NULL ) )
@@ -1537,19 +1566,22 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                     SX1276.Settings.FskPacketHandler.NbBytes += ( SX1276.Settings.FskPacketHandler.Size - SX1276.Settings.FskPacketHandler.NbBytes );
                 }
 
-                ///TimerStop( &RxTimeoutTimer );
+                ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+				VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
 
                 if( SX1276.Settings.Fsk.RxContinuous == false )
                 {
                     SX1276.Settings.State = RF_IDLE;
-                    ///TimerStop( &RxTimeoutSyncWord );
+                    ///TimerStop( &VIRT_RX_TIMEOUT_SYNC_WORD );
+					VirtTimer_Stop(VIRT_RX_TIMEOUT_SYNC_WORD);
                 }
                 else
                 {
                     // Continuous mode restart Rx chain
                     SX1276Write( REG_RXCONFIG, SX1276Read( REG_RXCONFIG ) | RF_RXCONFIG_RESTARTRXWITHOUTPLLLOCK );
-                    ///TimerStart( &RxTimeoutSyncWord );
-                }
+                    ///TimerStart( &VIRT_RX_TIMEOUT_SYNC_WORD );
+					VirtTimer_Start(VIRT_RX_TIMEOUT_SYNC_WORD);
+			   }
 
                 if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
                 {
@@ -1575,7 +1607,8 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                         {
 							SX1276.Settings.State = RF_IDLE;
                         }
-                        ///TimerStop( &RxTimeoutTimer );
+                        ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+						VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
 
                         if( ( RadioEvents != NULL ) && ( RadioEvents->RxError != NULL ) )
                         {
@@ -1623,7 +1656,8 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                     
                         SX1276.Settings.State = RF_IDLE;
                     }
-                    ///TimerStop( &RxTimeoutTimer );
+                    ///TimerStop( &VIRT_RX_TIMEOUT_TIMER );
+					VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
 
                     if( ( RadioEvents != NULL ) && ( RadioEvents->RxDone != NULL ) )
                     {
@@ -1636,7 +1670,8 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
             }
             break;
         case RF_TX_RUNNING:
-            ///TimerStop( &TxTimeoutTimer );
+            ///TimerStop( &VIRT_TX_TIMEOUT_TIMER );
+			VirtTimer_Stop(VIRT_TX_TIMEOUT_TIMER);
             // TxDone interrupt
             switch( SX1276.Settings.Modem )
             {
@@ -1702,7 +1737,8 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 break;
             case MODEM_LORA:
                 // Sync time out
-				///TimerStop( &RxTimeoutTimer );
+				///TimerStop( &VIRT_RX_TIMEOUT_TIMER );			
+				VirtTimer_Stop(VIRT_RX_TIMEOUT_TIMER);
                 // Clear Irq
                 SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_RXTIMEOUT );
 
@@ -1761,8 +1797,9 @@ void SX1276OnDio2Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 
                 if( ( SX1276.Settings.FskPacketHandler.PreambleDetected == true ) && ( SX1276.Settings.FskPacketHandler.SyncWordDetected == false ) )
                 {
-                    ///TimerStop( &RxTimeoutSyncWord );
-
+                    ///TimerStop( &VIRT_RX_TIMEOUT_SYNC_WORD );
+					VirtTimer_Stop(VIRT_RX_TIMEOUT_SYNC_WORD);
+					
                     SX1276.Settings.FskPacketHandler.SyncWordDetected = true;
 
                     SX1276.Settings.FskPacketHandler.RssiValue = -( SX1276Read( REG_RSSIVALUE ) >> 1 );

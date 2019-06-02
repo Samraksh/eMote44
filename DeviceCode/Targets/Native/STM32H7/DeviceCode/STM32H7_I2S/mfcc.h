@@ -24,8 +24,8 @@
 #include <errno.h>
 
 #define SAMP_FREQ 8000
-#define NUM_FBANK_BINS 128
-//#define NUM_FBANK_BINS 8
+//#define NUM_FBANK_BINS 128
+#define NUM_FBANK_BINS 64
 //#define MEL_LOW_FREQ 20
 #define MEL_LOW_FREQ 0
 #define MEL_HIGH_FREQ 4000

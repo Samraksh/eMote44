@@ -870,6 +870,10 @@ HAL_StatusTypeDef HAL_I2S_Transmit(I2S_HandleTypeDef *hi2s, uint16_t *pData, uin
   */
 HAL_StatusTypeDef HAL_I2S_Receive(I2S_HandleTypeDef *hi2s, uint16_t *pData, uint16_t Size, uint32_t Timeout)
 {
+	
+  static unsigned even=0;
+  
+  
   if ((pData == NULL) || (Size == 0UL))
   {
     return  HAL_ERROR;
@@ -921,10 +925,17 @@ HAL_StatusTypeDef HAL_I2S_Receive(I2S_HandleTypeDef *hi2s, uint16_t *pData, uint
 
     if ((hi2s->Init.DataFormat == I2S_DATAFORMAT_24B) || (hi2s->Init.DataFormat == I2S_DATAFORMAT_32B))
     {
+	  uint32_t data = *((__IO uint32_t *)&hi2s->Instance->RXDR);
       /* Receive data in 32 Bit mode */
-      *((uint32_t *)hi2s->pRxBuffPtr) = hi2s->Instance->RXDR;
-      hi2s->pRxBuffPtr += 2;
-      hi2s->RxXferCount--;
+      //*((uint32_t *)hi2s->pRxBuffPtr) = hi2s->Instance->RXDR;
+	  if ( (even++ & 1) == 0) {
+		  *((uint32_t *)hi2s->pRxBuffPtr) = data;
+		  //hi2s->pRxBuffPtr += sizeof(uint32_t);
+		  hi2s->pRxBuffPtr += sizeof(uint16_t);
+		  hi2s->RxXferCount--;
+	  }
+     // hi2s->pRxBuffPtr += 2;
+      //hi2s->RxXferCount--;
     }
     else
     {

@@ -80,16 +80,33 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
 	
 	/**I2S3 GPIO Configuration    
     PA15 (JTDI)     ------> I2S3_WS
-    PB3      ------> I2S3_CK
-    PB5     ------> I2S3_SDO 
+    PC10      ------> I2S3_CK
+	PC11      ------> I2S3_SDI
+	PC12     ------> I2S3_SDO 
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_15;
+	/*
+	GPIO_InitStruct.Pin = GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_7;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+	*/
+	
+    GPIO_InitStruct.Pin = GPIO_PIN_4;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
- 
+ /*
     GPIO_InitStruct.Pin = GPIO_PIN_3|GPIO_PIN_4;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -97,6 +114,20 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
+    GPIO_InitStruct.Pin = GPIO_PIN_5;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF7_SPI3;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	*/
+	GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+	
   /* USER CODE BEGIN SPI1_MspInit 1 */
 
   /* USER CODE END SPI1_MspInit 1 */
@@ -106,22 +137,28 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
 void HAL_I2S_MspDeInit(I2S_HandleTypeDef* i2sHandle)
 {
 
-  if(i2sHandle->Instance==SPI1)
+  if(i2sHandle->Instance==SPI3)
   {
   /* USER CODE BEGIN SPI1_MspDeInit 0 */
 
   /* USER CODE END SPI1_MspDeInit 0 */
     /* Peripheral clock disable */
-    __HAL_RCC_SPI3_CLK_DISABLE();
+    __HAL_RCC_SPI1_CLK_DISABLE();
   
 	/**I2S3 GPIO Configuration    
     PA15 (JTDI)     ------> I2S3_WS
     PB3      ------> I2S3_CK
     PD22     ------> I2S3_SDO 
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_15);
+	
+	//HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_6);
 
-    HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3|GPIO_PIN_5);
+    //HAL_GPIO_DeInit(GPIOD, GPIO_PIN_7);
+	
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4);
+
+    //HAL_GPIO_DeInit(GPIOB, GPIO_PIN_3|GPIO_PIN_4|GPIO_PIN_5);
+	HAL_GPIO_DeInit(GPIOC, GPIO_PIN_10|GPIO_PIN_11|GPIO_PIN_12);
 
   /* USER CODE BEGIN SPI1_MspDeInit 1 */
 

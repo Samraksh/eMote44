@@ -26,7 +26,7 @@
 #include "mfcc.h"
 #include "float.h"
 
-//#define SERIAL_PORT_LOGGER_OUTPUT
+#define SERIAL_PORT_LOGGER_OUTPUT
 
 #define start_timer()    *((volatile uint32_t*)0xE0001000) = 0x40000001  // Enable CYCCNT register
 #define stop_timer()   *((volatile uint32_t*)0xE0001000) = 0x40000000  // Disable CYCCNT register
@@ -74,9 +74,9 @@ void mfcc_test(const int16_t *data) {
 	//stop_timer();
 	//usb_printf("Compute Took %u us\r\n", (now2-now1)/CPU_MHZ);
 	//while(1) { __asm__("BKPT"); }
-	 usb_printf("$%d ", (uint8_t)mfcc_out[0]);
-	 for(int i=1; i<MY_MFCC_SIZE-1; i++) usb_printf("%d ", (uint8_t)mfcc_out[i]);
-	 usb_printf("%d;\r\n", (uint8_t)mfcc_out[MY_MFCC_SIZE-1]);
+	// usb_printf("$%d ", (uint8_t)mfcc_out[0]);
+	// for(int i=1; i<MY_MFCC_SIZE-1; i++) usb_printf("%d ", (uint8_t)mfcc_out[i]);
+	// usb_printf("%d;\r\n", (uint8_t)mfcc_out[MY_MFCC_SIZE-1]);
 }
 
 MFCC::MFCC(int num_mfcc_features, int frame_len, int mfcc_dec_bits) 
@@ -262,10 +262,10 @@ void MFCC::mfcc_compute(const int16_t * audio_data, q7_t* mfcc_out) {
     mel_energies[bin] = logf(mel_energies[bin]);
 
 #ifdef SERIAL_PORT_LOGGER_OUTPUT
-  hal_printf("$%.5f ", mel_energies[0]);
-  for (bin = 1; bin < NUM_FBANK_BINS-4; bin+=4) hal_printf("%.5f %.5f %.5f %.5f ", mel_energies[bin], mel_energies[bin+1], mel_energies[bin+2], mel_energies[bin+3]);
-  for (; bin < NUM_FBANK_BINS-1; bin++) hal_printf("%.5f ", mel_energies[bin]);
-  hal_printf("%.5f;", mel_energies[NUM_FBANK_BINS-1]);
+  hal_printf("$%d ", (int)mel_energies[0]);
+  for (bin = 1; bin < NUM_FBANK_BINS-4; bin+=4) hal_printf("%d %d %d %d ",  (int)mel_energies[bin],  (int)mel_energies[bin+1],  (int)mel_energies[bin+2],  (int)mel_energies[bin+3]);
+  for (bin = 1; bin < NUM_FBANK_BINS-1; bin++) hal_printf("%d ", (int)mel_energies[bin]);
+  hal_printf("%d; ",  (int)mel_energies[NUM_FBANK_BINS-1]);
 #endif
 /*
   //Take DCT. Uses matrix mul.
