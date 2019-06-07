@@ -11,7 +11,7 @@ Get-CMSIS
 Import-Module .\tools\scripts\Build-netmf.psm1
 
 # current officially supported version
-$packVersion = "4.3.0"
+$packVersion = "4.5.0"
 
 # FUll versioned pack file name to download
 $packFileName = "ARM.CMSIS.$packVersion.pack"
@@ -39,4 +39,8 @@ if( Test-Path -PathType Leaf $packDescriptionPath )
     return
 }
 
+#Write-Host "Invoking $packSourceURLBase/$packFileName"
+
+#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12;
 Invoke-WebRequest -UseBasicParsing -Uri "$packSourceURLBase/$packFileName" | Expand-Stream -Destination $dstPath
