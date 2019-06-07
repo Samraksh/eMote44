@@ -37,7 +37,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
-#include "..\stm32h7xx_main.h"
+//#include "..\stm32h7xx_main.h"
 
 
 /* Private typedef -----------------------------------------------------------*/

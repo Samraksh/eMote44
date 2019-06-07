@@ -14,7 +14,7 @@
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
-#include "..\stm32h7xx_main.h"
+//#include "..\stm32h7xx_main.h"
 
 #define STM32H7_Gpio_MaxPins (TOTAL_GPIO_PORT * 16)
 #define STM32H7_Gpio_MaxInt 16

@@ -89,9 +89,8 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 		case SX1276:
 			currentRadioName = SX1276;
 			currentRadioAckType = SOFTWARE_ACK;
-			SamrakshRadio_I::RadioEvents_t radio_events;
 
-			status = gsx1276radio_netmf_adapter.CPU_Radio_Initialize(eventHandlers);
+			status = SX1276_HAL_Initialize(eventHandlers);
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -184,7 +183,7 @@ UINT16 CPU_Radio_GetAddress(UINT8 radioName)
 		address = si446x_hal_get_address(radioName);
 		break;
 	case SX1276:
-		address = gsx1276radio_netmf_adapter.GetAddress();
+		//address = gsx1276radio_netmf_adapter.GetAddress();
 		//address = grf231Radio.GetAddress();
 		break;
 	default:
@@ -213,7 +212,7 @@ BOOL CPU_Radio_SetAddress(UINT8 radioName, UINT16 address)
 			status = si446x_hal_set_address(radioName, address);
 			break;
 		case SX1276:
-			status = gsx1276radio_netmf_adapter.SetAddress(address);
+			//status = gsx1276radio_netmf_adapter.SetAddress(address);
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -245,7 +244,7 @@ INT8 CPU_Radio_GetRadioName()
 			radioType = si446x_hal_get_RadioType();
 			break;
 		case SX1276:
-			radioType = gsx1276radio_netmf_adapter.GetRadioName();
+			//radioType = gsx1276radio_netmf_adapter.GetRadioName();
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -274,7 +273,7 @@ DeviceStatus CPU_Radio_SetRadioName(INT8 radioName)
 			status = DS_Success;
 			break;
 		case SX1276:
-			gsx1276radio_netmf_adapter.SetRadioName(radioName);
+			//gsx1276radio_netmf_adapter.SetRadioName(radioName);
 			status = DS_Success;
 			break;
 		default:
@@ -453,8 +452,7 @@ void* CPU_Radio_Send(UINT8 radioName, void* msg, UINT16 size)
 			ptr_temp = si446x_hal_send(radioName, msg, size);
 			break;
 		case SX1276:
-			//ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
-			ptr_temp = gsx1276radio_netmf_adapter.Send(msg, size);
+			ptr_temp = SX1276_HAL_Send(msg, size, 0);
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -483,8 +481,7 @@ void* CPU_Radio_Send_TimeStamped(UINT8 radioName, void* msg, UINT16 size, UINT32
 			ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
 			break;
 		case SX1276:
-			//ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
-			ptr_temp = gsx1276radio_netmf_adapter.SendTS(msg, size, eventTime);
+			ptr_temp = SX1276_HAL_Send(msg, size, eventTime);
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -577,7 +574,7 @@ DeviceStatus CPU_Radio_TurnOnRx(UINT8 radioName)
 			break;
 		case SX1276:
 			//ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
-			status = gsx1276radio_netmf_adapter.TurnOnRx();
+			status = SX1276_HAL_TurnOnRx();
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -662,7 +659,7 @@ DeviceStatus CPU_Radio_Sleep(UINT8 radioName, UINT8 level)
 			break;
 		case SX1276:
 			//ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
-			status = gsx1276radio_netmf_adapter.Sleep();
+			status = SX1276_HAL_Sleep();
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -691,7 +688,7 @@ DeviceStatus CPU_Radio_ClearChannelAssesment (UINT8 radioName)
 			status = si446x_hal_cca_ms(radioName, 200);
 			break;
 		case SX1276:
-			status = gsx1276radio_netmf_adapter.CPU_Radio_ClearChannelAssesment();
+			status = SX1276_HAL_ChannelActivityDetection();
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();

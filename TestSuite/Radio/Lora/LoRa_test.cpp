@@ -58,7 +58,7 @@ static void rx_done(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
 	}
 
 	debug_printf("%s(): size: %d rssi:%d spur:%u crc:%u local:%u remote:%u\r\n", __func__, size, rssi, spur, crc_error, local_count, pkt->count);
-	local_count++;
+	local_count++;			
 }
 
 static void rx_error(void) {
@@ -82,7 +82,7 @@ static void radio_cad_done(bool channelActivityDetected) {
 static uint32_t get_cpu_id_hash(void) {
 	// 96-bit (3 word) global unique ID
 	uint32_t *id = (uint32_t *) 0x1FFFF7E8;
-	uint32_t ret = RX_NODE;
+	uint32_t ret = TX_NODE;
 
 	//RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
 	//__HAL_RCC_CRC_CLK_ENABLE();
@@ -92,6 +92,10 @@ static uint32_t get_cpu_id_hash(void) {
 	//RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, DISABLE);
 	//__HAL_RCC_CRC_CLK_DISABLE();
 	return ret;
+}
+
+static void valid_header_detected() {
+	debug_printf("%s\r\n", __func__);
 }
 
 static void native_link_test(void) {
@@ -118,6 +122,7 @@ static void native_link_test(void) {
 	events.RxError 				= rx_error;
 	events.FhssChangeChannel 	= radio_change_channel;
 	events.CadDone 				= radio_cad_done;
+	events.ValidHeaderDetected	= valid_header_detected;
 
 	SX1276Init(&events);
 
@@ -166,7 +171,7 @@ static void native_link_test(void) {
 				now = HAL_GetTick();
 				//now = CPU_Timer_GetCounter(RTC_32BIT);
 			}
-			SX1276Send( (uint8_t *)&pkt, sizeof(pkt) );
+			SX1276Send( (uint8_t *)&pkt, sizeof(pkt), 0 );
 			debug_printf("Sent: %u\r\n", pkt.count);
 			pkt.count++;
 			next = now+interval;

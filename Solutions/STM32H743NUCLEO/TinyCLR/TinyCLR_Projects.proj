@@ -31,7 +31,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\radio\dotNetMF.proj" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\radio\SX1276\dotNetMF.proj" />
         <DriverLibs Include="NETMF_LoRa_Radio_Driver.$(LIB_EXT)"/>
 	</ItemGroup>
 	

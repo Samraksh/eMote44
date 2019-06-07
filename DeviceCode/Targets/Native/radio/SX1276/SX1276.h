@@ -270,6 +270,7 @@ void SX1276Reset( void );
  */
 uint32_t SX1276Init( RadioEvents_t *events );
 
+void SX1276SetRadioRegistersInit();
 /*!
  * \brief Sets the SX1276 operating mode
  *

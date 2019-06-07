@@ -34,6 +34,7 @@
         <IncludePaths Include="Devicecode\Targets\Native\STM32H7" />
         <IncludePaths Include="DeviceCode\Targets\Native\STM32H7\DeviceCode" />		
         <IncludePaths Include="DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Inc" />  
+		<IncludePaths Include="DeviceCode\Targets\Native\radio" />
         <IncludePaths Include="CMSIS\CMSIS\Include" />
     </ItemGroup>
 	

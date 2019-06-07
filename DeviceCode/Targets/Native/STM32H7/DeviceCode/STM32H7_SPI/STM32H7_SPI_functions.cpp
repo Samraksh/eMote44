@@ -14,7 +14,7 @@
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
-#include "..\stm32h7xx_main.h"
+//#include "..\stm32h7xx_main.h"
 
 //--//
 
@@ -348,8 +348,8 @@ void CPU_SPI_IoInit(UINT8 SPI_TYPE)
 		//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
   
 		initStruct.Mode = GPIO_MODE_IT_RISING;
-		//initStruct.Pull = GPIO_PULLDOWN;
-		initStruct.Pull = GPIO_NOPULL;
+		initStruct.Pull = GPIO_PULLDOWN;
+		//initStruct.Pull = GPIO_NOPULL;
 		//initStruct.Speed = GPIO_SPEED_HIGH;
 
 		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
