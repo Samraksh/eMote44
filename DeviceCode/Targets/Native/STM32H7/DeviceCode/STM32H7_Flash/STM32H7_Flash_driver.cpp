@@ -12,6 +12,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #include "STM32H7_Flash.h"
+#include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
 #ifndef FLASH
@@ -140,25 +141,52 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Write(void* con
 {
     NATIVE_PROFILE_PAL_FLASH();
 
+	UINT32 *ChipAddress = (UINT32 *)Address;
+	UINT32 *EndAddress = (UINT32 *)(Address + NumBytes);
+	UINT32 *pBuf        = (UINT32 *)pSectorBuff;
     // Read-modify-write is used for FAT filesystems only
     if (ReadModifyWrite) return FALSE;
 
-    if (FLASH->CR1 & FLASH_CR_LOCK) { // unlock
+    HAL_FLASH_Unlock();
+	
+	while (ChipAddress < EndAddress)
+	{
+		if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_FLASHWORD, (UINT32)ChipAddress, (UINT32)pBuf) == HAL_OK)
+		{
+		  ChipAddress+=8; /* increment for the next Flash word*/
+		  pBuf+=8;
+		  //debug_printf( "end 0x%08x, 0x%08x\r\n",(UINT32)ChipAddress, (UINT32)pBuf);
+		  
+		}
+		else 
+		{
+			debug_printf( "wrong 0x%08x, 0x%08x\r\n",(UINT32)ChipAddress, (UINT32)pBuf);
+			break;			
+		}
+	}
+	
+	HAL_FLASH_Lock();
+	  
+	/*if (FLASH->CR1 & FLASH_CR_LOCK) { // unlock
         FLASH->KEYR1 = STM32H7_FLASH_KEY1;
         FLASH->KEYR1 = STM32H7_FLASH_KEY2;
     }
-
-    CHIP_WORD* ChipAddress = (CHIP_WORD *)Address;
+    
+	CHIP_WORD* ChipAddress = (CHIP_WORD *)Address;
     CHIP_WORD* EndAddress  = (CHIP_WORD *)(Address + NumBytes);
     CHIP_WORD *pBuf        = (CHIP_WORD *)pSectorBuff;
 
     // enable programming
     FLASH->CR1 = FLASH_CR_PG | FLASH_CR_PSIZE_BITS;
 
-    while(ChipAddress < EndAddress) {
+	debug_printf( "end 0x%08x, 0x%08x\r\n",(UINT32)EndAddress, (UINT32)pBuf);
+    
+	while(ChipAddress < EndAddress) {
         if (*ChipAddress != *pBuf) {
             // write data
-            *ChipAddress = *pBuf;
+            //*ChipAddress = *pBuf;
+			*ChipAddress = 0x01020304;
+			__ISB();
             __DSB();
             // wait for completion
             while (FLASH->SR1 & FLASH_SR_BSY);
@@ -174,7 +202,8 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Write(void* con
 
     // reset & lock the controller
     FLASH->CR1 = FLASH_CR_LOCK;
-
+   */
+   
     return TRUE;
 }
 
