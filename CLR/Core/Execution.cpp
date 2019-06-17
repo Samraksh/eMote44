@@ -1272,6 +1272,7 @@ HRESULT CLR_RT_ExecutionEngine::ScheduleThreads( int maxContextSwitch )
 			// This variable will be set to false upon reboot or continuation of debugging (usually by getting a PING debug message)
 			if (CLR_DBG_Debugger::debuggerErasedFlash == false){
 				hr = th->Execute();
+			}
         }
 
         if(FAILED(hr))
