@@ -128,6 +128,10 @@
         <DriverLibs Include="STM32H7_I2S.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\dotNetMF.proj" />
     </ItemGroup>
+	<ItemGroup>
+        <DriverLibs Include="H7_driver_control.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Shutdown\dotNetMF.proj" />
+    </ItemGroup>
     <ItemGroup>
         <DriverLibs Include="cpu_watchdog_stubs.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\stubs\Processor\stubs_watchdog\dotNetMF.proj" />

@@ -103,6 +103,7 @@ HRESULT CLR_DBG_Debugger::CreateInstance()
     TINYCLR_HEADER();
 
     int iDebugger = 0;
+	debuggerErasedFlash = false;
 
     g_CLR_DBG_Debuggers = (CLR_DBG_Debugger*)&g_scratchDebugger[ 0 ];
 
@@ -146,6 +147,8 @@ HRESULT CLR_DBG_Debugger::Debugger_Initialize( COM_HANDLE port )
 {
     NATIVE_PROFILE_CLR_DEBUGGER();
     TINYCLR_HEADER();
+
+	debuggerErasedFlash = false;
 
     m_messaging->Initialize( port, c_Debugger_Lookup_Request, c_Debugger_Lookup_Request_count, c_Debugger_Lookup_Reply, c_Debugger_Lookup_Reply_count, (void*)this );
 
@@ -352,6 +355,7 @@ bool CLR_DBG_Debugger::Monitor_Ping( WP_Message* msg, void* owner )
 {
     NATIVE_PROFILE_CLR_DEBUGGER();
     bool fStopOnBoot = true;
+	debuggerErasedFlash = false;
 
     CLR_DBG_Debugger* dbg = (CLR_DBG_Debugger*)owner;
 
@@ -814,6 +818,11 @@ bool CLR_DBG_Debugger::Monitor_EraseMemory( WP_Message* msg, void* owner )
     NATIVE_PROFILE_CLR_DEBUGGER();
     bool                fRet;
 
+	// At this point we set a variable that will be used  elsewhere to keep managed code from executing.
+	// and user created threads from being marked by the garbage collector
+	// This variable will be set to true on reboot or if we get a PING.
+	debuggerErasedFlash = true;
+
     CLR_DBG_Debugger* dbg = (CLR_DBG_Debugger*)owner;
 
     CLR_DBG_Commands::Monitor_EraseMemory* cmd = (CLR_DBG_Commands::Monitor_EraseMemory*)msg->m_payload;
@@ -821,6 +830,8 @@ bool CLR_DBG_Debugger::Monitor_EraseMemory( WP_Message* msg, void* owner )
     if (m_deploymentStorageDevice == NULL) return false;
 
     fRet = dbg->AccessMemory( cmd->m_address, cmd->m_length, NULL, AccessMemory_Erase );
+
+	ShutdownDrivers();
 
     dbg->m_messaging->ReplyToCommand( msg, fRet, false );
 

@@ -5,7 +5,7 @@
 #include "Core.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+bool CLR_DBG_Debugger::debuggerErasedFlash = false;
 CLR_RT_ProtectFromGC* CLR_RT_ProtectFromGC::s_first = NULL;
 
 void CLR_RT_ProtectFromGC::Initialize( CLR_RT_HeapBlock& ref )
@@ -371,8 +371,12 @@ void CLR_RT_GarbageCollector::Mark()
         //
         // Walk through all the stack frames, marking the objects as we dig down.
         //
-        Thread_Mark( g_CLR_RT_ExecutionEngine.m_threadsReady   );
-        Thread_Mark( g_CLR_RT_ExecutionEngine.m_threadsWaiting );
+        // This variable will be set to false upon reboot or continuation of debugging (usually by getting a PING debug message)
+		if (CLR_DBG_Debugger::debuggerErasedFlash == false)
+		{
+        	Thread_Mark( g_CLR_RT_ExecutionEngine.m_threadsReady   );
+        	Thread_Mark( g_CLR_RT_ExecutionEngine.m_threadsWaiting );
+		}
 
 #if !defined(TINYCLR_APPDOMAINS)
         CheckSingleBlock_Force( g_CLR_RT_ExecutionEngine.m_globalLock );

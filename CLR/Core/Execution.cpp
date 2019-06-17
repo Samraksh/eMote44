@@ -1266,7 +1266,12 @@ HRESULT CLR_RT_ExecutionEngine::ScheduleThreads( int maxContextSwitch )
 
         {
             // Runs the tread until expiration of its quantum or until thread is blocked.
-            hr = th->Execute();
+            // We should not be running managed code if we have erased  the  FLASH during deployment,
+			// but we check a variable that is set when we erase the FLASH for deployment and make
+			// sure we don't run any managed code if we have erased the FLASH.
+			// This variable will be set to false upon reboot or continuation of debugging (usually by getting a PING debug message)
+			if (CLR_DBG_Debugger::debuggerErasedFlash == false){
+				hr = th->Execute();
         }
 
         if(FAILED(hr))
@@ -1876,7 +1881,12 @@ HRESULT CLR_RT_ExecutionEngine::InitializeLocals( CLR_RT_HeapBlock* locals, CLR_
                         TINYCLR_SET_AND_LEAVE(CLR_E_WRONG_TYPE);
                     }
 
-                    cls = *cls2;
+                    if (CLR_DBG_Debugger::debuggerErasedFlash == false){
+                    	cls = *cls2;
+					} else 
+					{
+                        TINYCLR_SET_AND_LEAVE(CLR_E_WRONG_TYPE);
+					}
                 }
                 goto done;
             }

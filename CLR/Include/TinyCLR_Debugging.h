@@ -1025,6 +1025,11 @@ struct CLR_DBG_Debugger
     static BlockStorageDevice*  m_deploymentStorageDevice;
 
 
+	// During deployment some threads are Marked by the garbage collector and some user created threads are executed
+	// both of which cause Hard Faults. The following variable is set before we erase the deployment area and cleared
+	// upon reboot or continuation of debugging (usually by getting a PING debug message)
+	// Since we are loading new code and then restarting, suppressing these actions should not break anything.
+	static bool debuggerErasedFlash;
     //--//
 
     static void Debugger_Discovery();
