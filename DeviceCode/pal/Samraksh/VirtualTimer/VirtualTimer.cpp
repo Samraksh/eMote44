@@ -410,7 +410,7 @@ void VirtualTimerCallback(void *arg)
 
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].is_callback_running = true;
 	UINT16 currentVirtualTimerCount = gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_cnt_;
-	if(gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_ >= g_VirtualTimerPerHardwareTimer){
+	if(gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_cnt_ >= g_VirtualTimerPerHardwareTimer){
 		ASSERT(0);
 		return;
 	}
