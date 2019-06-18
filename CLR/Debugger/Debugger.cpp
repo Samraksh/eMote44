@@ -5,6 +5,7 @@
 #include "..\core\Core.h"
 #include <TinyCLR_Debugging.h>
 #include <MFUpdate_decl.h>
+#include <Samraksh/Shutdown.h>
 
 #include <crypto.h>
 
