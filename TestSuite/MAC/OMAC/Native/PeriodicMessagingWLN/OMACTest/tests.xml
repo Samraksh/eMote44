@@ -1,0 +1,44 @@
+<TestSuite>
+	<Test Name='OMACTest(Level_0B-Receive-Fan_in)' Type='Native broken'>
+		<Description>
+			Native OMAC receive test(fan-in) - primary device will be a receiver, rest senders
+		</Description>
+		<TestPath>
+			OMAC\Src\Native\Level_0B\Receive
+		</TestPath>
+		<TestProjName>
+			OMACTest.proj
+		</TestProjName>
+		<TesterName>
+		</TesterName>
+		<TestLocation>
+		</TestLocation>
+		<TestMFVersionNum>
+		</TestMFVersionNum>
+		<TestGitOption>			
+		</TestGitOption>
+		<TestGitBranch>
+		</TestGitBranch>
+		<TestUsePrecompiledBinary>
+		</TestUsePrecompiledBinary>
+		<TestHardware>
+		</TestHardware>
+		<TestSolution>
+		</TestSolution>
+		<TestMemoryType>
+		</TestMemoryType>
+		<TestSolutionType>
+		</TestSolutionType>
+		<TestGCCVersion>
+		</TestGCCVersion>
+		<TestSupporting>
+			load support projects: OMAC\Src\Native\Level_0B\Send\tests1.xml OMAC\Src\Native\Level_0B\Send\tests2.xml
+		</TestSupporting>
+		<TestJTAGHarness>
+		</TestJTAGHarness>
+		<TestPowerAutomateSelected>
+		</TestPowerAutomateSelected>
+		<TestBuild>
+		</TestBuild>
+	</Test>
+</TestSuite>

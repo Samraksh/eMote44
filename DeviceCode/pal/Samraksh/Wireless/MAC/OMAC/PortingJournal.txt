@@ -1,0 +1,51 @@
+OMAC porting journal:
+----------------------------------
+
+Overall Structure of the code:
+-------------------------------
+Class OMAC
+- Class OMACScheduler
+- Class RadioControl
+-Send and Receive Buffers
+
+Class OMACScheduler
+- Class DiscoveryTimeSyncHandler
+- Class DataReceptionHandler
+- Class DataTransmissionHandler
+
+Class DiscoveryTimeSyncHandler
+- Class FTSPTimeSync
+
+
+Tinyos names to  MF names mapping (some of the names have changed from Wenjie's code)
+--------------------------
+CounterAlarm -> SlotAlarm
+State -> ProtoState
+Input -> InputState
+ControlBeaconHanlder -> DiscoveryTimesyncHandler
+ControlBeaconHandlerC.nc has been split into FTSPTimeSync class, that performs timesync specific functions.
+This design is used so that we can at some stage replace FTSP with Ted's Timesync.
+
+
+
+Questions to Wenjie/And answers:
+-------------------------------------
+- What does HeartBeatTimer do? It seems to just print something once every sec: YES, Looks for dead-lock in code important
+- What is Input ? The state of OMAC is a vector <State,Input>
+- What is DataAlarm:
+When txSlotOffset is smaller than some threshold  the scheduler will start the DataAlarm, which would fire right before the receiver wakes up  And of course, we have to make sure that the DataAlarm is not already running before we start it again  once it fires, we change the state and turn on the radio
+the rest is taken care of in startDone().
+- What timesync and discovery is implemented/where?
+Disco is the neighbor discovery and FTSP is timesync protocol. Both are implemented in the ControlBeaconHanlderC.nc (i.e., DiscoveryTimesyncHandler.cpp in our case) file.
+The messages are transmitted using DISCO protocol, that is, the timing at which control messages are sent are precisely as described in Disco.  I use the TimeStampMessage layer to add time stamps to each of those neighbor discovery beacons so timesync is done for free
+
+Status::as of Sept 10
+------------------------
+- Most of the structure is done, but a lot of functions are just skeleton code
+- The Virtual/Hal Timer needs to integrated, A number  of OMAC classes use this, (I think 5 instances are used)
+-  RadioControl:  is the interface class to the radio layer. Which needs to implemented. RadioControl puts radio to sleep, ilde, wakes it up, etc. This could be a common module for lot macs and some stage needs to be moved out
+--Timesync is largely just skeleton currently, I dont understand the module design. There are lot tasks in the module.
+Might have to fill out the skeleon after understanding the protocol.
+-- I think at this most the code is ready for integration with the radio module and just send and receving packets.
+-Once basic send and receive is done, the discovery and timesync should be revisited 
+-After that DataSend and DataRecption needs to be implemented.

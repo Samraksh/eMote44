@@ -1,0 +1,44 @@
+<TestSuite>
+	<Test Name='OMACTest' Type='C# .NOW'>
+		<Description>
+			Fan-In test
+		</Description>
+		<TestPath>
+			OMAC\Src\C#\OMACFanIn
+		</TestPath>
+		<TestProjName>
+			OMACFanIn.csproj
+		</TestProjName>
+		<TesterName>
+		</TesterName>
+		<TestLocation>
+		</TestLocation>
+		<TestMFVersionNum>
+		</TestMFVersionNum>
+		<TestGitOption>			
+		</TestGitOption>
+		<TestGitBranch>
+		</TestGitBranch>
+		<TestUsePrecompiledBinary>
+		</TestUsePrecompiledBinary>
+		<TestHardware>
+		</TestHardware>
+		<TestSolution>
+		</TestSolution>
+		<TestMemoryType>
+		</TestMemoryType>
+		<TestSolutionType>
+		</TestSolutionType>
+		<TestGCCVersion>
+		</TestGCCVersion>
+		<TestSupporting>
+			load support projects: OMAC\Src\C#\OMACFanIn\CheckAutoAckSupport\tests.xml OMAC\Src\C#\OMACFanIn\CheckAutoAckSupport2\tests.xml
+		</TestSupporting>
+		<TestJTAGHarness>
+		</TestJTAGHarness>
+		<TestPowerAutomateSelected>
+		</TestPowerAutomateSelected>
+		<TestBuild>
+		</TestBuild>
+	</Test>
+</TestSuite>

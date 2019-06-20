@@ -1,0 +1,38 @@
+<TestSuite>
+	<Test Name='CSMA' Type='C#'>
+		<Description>
+			20 minute ping test support
+		</Description>
+		<TestPath>
+			csmaMACTest\Src\C#\Ping_20m\Ping_20mTestSupport
+		</TestPath>
+		<TestProjName>
+			eMotePing.csproj
+		</TestProjName>
+		<TesterName>
+		</TesterName>
+		<TestLocation>
+		</TestLocation>
+		<TestMFVersionNum>
+		</TestMFVersionNum>
+		<TestGitOption>			
+		</TestGitOption>
+		<TestGitBranch>
+		</TestGitBranch>
+		<TestUsePrecompiledBinary>
+		</TestUsePrecompiledBinary>
+		<TestHardware>
+		</TestHardware>
+		<TestSolution>
+		</TestSolution>
+		<TestMemoryType>
+		</TestMemoryType>
+		<TestSolutionType>
+		</TestSolutionType>
+		<TestGCCVersion>
+		</TestGCCVersion>
+		<TestSupporting>
+			support project 1
+		</TestSupporting>
+	</Test>
+</TestSuite>
