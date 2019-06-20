@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+   
+  <PropertyGroup>
+	<AssemblyName>NativeTest</AssemblyName>
+    <ProjectGuid>{8e326a99-2915-437c-a089-3c31fed8457d}</ProjectGuid>
+    <Directory>TestSuite\Security\Hmac\</Directory>
+    <IsClrProject>False</IsClrProject>
+    <ProjectPath>$(TESTSOURCE)\TestSuite\Security\hmac\Test.proj</ProjectPath>
+    <MFSettingsFile Condition="'$(TSOLUTION)'=='SmartFusion2'">$(SPOCLIENT)\Solutions\SmartFusion2\SmartFusion2.settings</MFSettingsFile>
+    <MFSettingsFile Condition="'$(TSOLUTION)'=='EmoteDotNow'">$(SPOCLIENT)\Solutions\EmoteDotNow\EmoteDotNow.settings</MFSettingsFile>
+    <MFSettingsFile Condition="'$(TSOLUTION)'=='EmoteDotLaura'">$(SPOCLIENT)\Solutions\EmoteDotLaura\EmoteDotLaura.settings</MFSettingsFile>
+    <IsSolutionWizardVisible>True</IsSolutionWizardVisible>
+  	<AddModules>$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\TinyCLR_Projects.proj</AddModules>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SamAppName>TINYCLR</SamAppName>
+  </PropertyGroup>
+  
+  
+  <PropertyGroup>
+    <OutputType>Executable</OutputType>
+    <MultipleOutputSections>false</MultipleOutputSections>
+    <ADD_LOAD_IMAGE_CRC>false</ADD_LOAD_IMAGE_CRC>
+    <ExtraTargets>BuildSigFiles</ExtraTargets>
+    <!--<EXEScatterFileDefinition>$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\scatterfile_emoteOS_$(COMPILER_TOOL).xml</EXEScatterFileDefinition> -->
+    <EXEScatterFileDefinition>$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\scatterfile_tinyclr_$(COMPILER_TOOL).xml</EXEScatterFileDefinition>
+  </PropertyGroup>
+  
+  <ItemGroup>
+ 	<Compile Include="EntryPoint.cpp" />
+    <Compile Include="LinkTest.cpp" />
+  </ItemGroup>
+  
+ 
+  <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
+  <Import Project="$(SPOCLIENT)\tools\Targets\Microsoft.SPOT.Build.Targets" />
+  <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
+   
+  <!-- Include all projects from TinyCLR -->
+  <Import Project="$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\emoteOS_Projects.proj" />
+ 
+ 
+  <ItemGroup>
+    <IncludePaths Include="Crypto" />
+    <IncludePaths Include="DeviceCode\PAL" />
+    <!-- <ScatterFileReferences Include="$(SRC_DIR)\scatterfile_emoteOS_$(COMPILER_TOOL).xml" /> -->
+  </ItemGroup> 
+</Project>
