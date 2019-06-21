@@ -2,7 +2,7 @@
 //#include "platform_selector.h"
 
 #define PKT_PERIOD_MICRO 10000000 // 10 secs
-#define TESTRADIONAME SX1276
+#define TESTRADIONAME SX1276RADIO
 //#define TESTRADIONAME RF231RADIO
 
 #define LinkTest_PRINT_RX_PACKET_INFO 1

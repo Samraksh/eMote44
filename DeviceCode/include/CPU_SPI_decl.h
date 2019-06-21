@@ -64,6 +64,7 @@ UINT32 CPU_SPI_ChipSelectLineCount( UINT32 spi_mod );
 
 #ifdef STM32H743xx
 void CPU_SPI_Init(UINT8 SPI_TYPE);
+void CPU_SPI_DeInit(UINT8 SPI_TYPE);
 void CPU_SPI_IoInit(UINT8 SPI_TYPE);
 void CPU_SPI_IoDeInit(UINT8 SPI_TYPE);
 UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData ); //add simple function for SPI

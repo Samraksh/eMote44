@@ -48,5 +48,8 @@
 #include <Blockstorage_decl.h>
 #include <SD_decl.h>
 
+#ifdef STM32H743xx
+//#include <Shutdown_decl.h>
+#endif
 #endif // _TINYPAL_H_
 

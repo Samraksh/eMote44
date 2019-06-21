@@ -20,13 +20,41 @@
 #include <limits.h>
 
 I2S_HandleTypeDef hi2s3;
+DMA_HandleTypeDef DMA_Handle;
 
 //#define MY_ENABLE_CACHE
 #define BREAKPOINT() __asm__("BKPT")
+#define DMA_BUFFER __attribute__((section(".dma_buffer")))
 
+
+DMA_BUFFER uint32_t rx_buffer[1024];
+
+extern "C" {
+	
+void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
+	hal_printf("Error_I2S\r\n");
+}
+
+void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+	hal_printf("Rx_I2S\r\n");	
+}
+
+void DMA1_Stream5_IRQHandler(void)
+{
+  hal_printf("DMA_Stream\r\n");
+  HAL_DMA_IRQHandler(&DMA_Handle);
+}
+
+void SPI3_IRQHandler(void)
+{ 
+  hal_printf("I2S3_Stream\r\n");
+  HAL_I2S_IRQHandler(&hi2s3);
+}
+}
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @retval None
+  * @retval Noneaudi
   */
 void Error_Handler(void)
 {
@@ -128,8 +156,29 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     GPIO_InitStruct.Alternate = GPIO_AF6_SPI3;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 	
-  /* USER CODE BEGIN SPI1_MspInit 1 */
-
+	DMA_Handle.Instance = DMA1_Stream5;
+    DMA_Handle.Init.Request = DMA_REQUEST_SPI3_RX;
+    DMA_Handle.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    DMA_Handle.Init.PeriphInc = DMA_PINC_ENABLE;
+    DMA_Handle.Init.MemInc = DMA_MINC_ENABLE;
+    DMA_Handle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+    DMA_Handle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+    DMA_Handle.Init.Mode = DMA_NORMAL;
+    DMA_Handle.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+    DMA_Handle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
+    if (HAL_DMA_Init(&DMA_Handle) != HAL_OK)
+    {
+      Error_Handler();
+    }
+	  
+	__HAL_LINKDMA(i2sHandle, hdmarx, DMA_Handle);
+	 
+	/* I2S3 interrupt Init */
+    HAL_NVIC_SetPriority(DMA1_Stream5_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+  /*  USER CODE BEGIN SPI1_MspInit 1 */
+	HAL_NVIC_SetPriority(SPI3_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(SPI3_IRQn);
   /* USER CODE END SPI1_MspInit 1 */
   }
 }
@@ -186,13 +235,15 @@ BOOL I2S_Internal_Initialize()
   {
     Error_Handler();
   }
+  
+
 }
 
 void I2S_Test()
 {
 	print_cpu_config();
-	mfcc_init();
-	while(1) {
+	//mfcc_init();
+	/*while(1) {
 		HAL_StatusTypeDef ret;
 		do {
 			ret = HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX); // I CHANGED THE I2S ST DRIVER. REPLACE WITH FRESH.
@@ -200,7 +251,9 @@ void I2S_Test()
 		if (ret != HAL_OK) BREAKPOINT();
 		for (int i=0; i<AUDIO_LEN; i++) mel_input_data[i] = i2s24_to_pcm16_h7(audio_data[i]);
 		mfcc_test(mel_input_data);
-	}
+	}*/
+	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);
+	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)rx_buffer, AUDIO_LEN/2);
 }
 
 BOOL I2S_Internal_Uninitialize()

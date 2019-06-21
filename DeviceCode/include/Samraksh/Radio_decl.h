@@ -53,7 +53,7 @@ enum RadioName
 	RF231RADIO,
 	RF231RADIOLR,
 	SI4468_SPI2,
-	SX1276LORA,
+	SX1276RADIO,
 };
 
 enum RadioAckType

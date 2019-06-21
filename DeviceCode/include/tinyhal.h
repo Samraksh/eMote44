@@ -592,6 +592,10 @@ extern void HAL_AssertEx();
 #define ASSERT(i)
 #endif
 
+#ifndef ASSERT_SP 
+#define ASSERT_SP(expr) ASSERT(expr)
+#endif
+
 #ifndef _ASSERTE
 #define _ASSERTE(expr) ASSERT(expr)
 #endif

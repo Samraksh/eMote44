@@ -1,3 +1,5 @@
+#include <tinyhal.h>
+
 #include <Samraksh/Radio.h>
 #include <Samraksh/VirtualTimer.h>
 #include "parameters.h"
@@ -70,6 +72,7 @@ DeviceStatus SX1276_HAL_TurnOnRx();
 DeviceStatus SX1276_HAL_Sleep();
 DeviceStatus SX1276_HAL_Standby();
 void SX1276_HAL_ChooseRadioConfig();
+UINT32 SX1276_HAL_ReadRssi();
 RadioMode_t SX1276_HAL_GetRadioState();
 
 UINT16 SX1276_HAL_GetAddress();

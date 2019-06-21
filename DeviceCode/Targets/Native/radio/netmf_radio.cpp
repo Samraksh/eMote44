@@ -86,8 +86,8 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			}
 			status = si446x_hal_init(eventHandlers, radioName, macName);
 			break;
-		case SX1276:
-			currentRadioName = SX1276;
+		case SX1276RADIO:
+			currentRadioName = SX1276RADIO;
 			currentRadioAckType = SOFTWARE_ACK;
 
 			status = SX1276_HAL_Initialize(eventHandlers);
@@ -119,6 +119,9 @@ BOOL CPU_Radio_Reset(UINT8 radioName)
 		case SI4468_SPI2:
 			status = si446x_hal_reset(radioName);
 			break;
+		case SX1276RADIO:	
+			status = SX1276_HAL_Reset();
+			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
 			break;
@@ -145,6 +148,9 @@ BOOL CPU_Radio_UnInitialize(UINT8 radioName)
 			break;
 		case SI4468_SPI2:
 			status = si446x_hal_uninitialize(radioName);
+			break;
+		case SX1276RADIO:	
+			status = SX1276_HAL_UnInitialize();
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -182,7 +188,7 @@ UINT16 CPU_Radio_GetAddress(UINT8 radioName)
 	case SI4468_SPI2:
 		address = si446x_hal_get_address(radioName);
 		break;
-	case SX1276:
+	case SX1276RADIO:
 		address = SX1276_HAL_GetAddress();
 		break;
 	default:
@@ -210,7 +216,7 @@ BOOL CPU_Radio_SetAddress(UINT8 radioName, UINT16 address)
 		case SI4468_SPI2:
 			status = si446x_hal_set_address(radioName, address);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			SX1276_HAL_SetAddress(address);
 			break;
 		default:
@@ -242,7 +248,7 @@ INT8 CPU_Radio_GetRadioName()
 		case SI4468_SPI2:
 			radioType = si446x_hal_get_RadioType();
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			SX1276_HAL_GetRadioName(radioName);
 			break;
 		default:
@@ -271,7 +277,7 @@ DeviceStatus CPU_Radio_SetRadioName(INT8 radioName)
 			si446x_hal_set_RadioType(radioName);
 			status = DS_Success;
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			SX1276_HAL_SetRadioName(radioName);
 			status = DS_Success;
 			break;
@@ -300,7 +306,7 @@ DeviceStatus CPU_Radio_ChangeTxPower(UINT8 radioName, int power)
 		case SI4468_SPI2:
 			status = si446x_hal_tx_power(radioName, power);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -326,7 +332,7 @@ UINT32 CPU_Radio_GetTxPower(UINT8 radioName)
 		case SI4468_SPI2:
 			txPower = si446x_hal_get_power(radioName);
 			break; 
-		case SX1276:
+		case SX1276RADIO:
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -350,7 +356,7 @@ DeviceStatus CPU_Radio_ChangeChannel(UINT8 radioName, int channel)
 		case SI4468_SPI2:
 			status = si446x_hal_set_channel(radioName, channel);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -376,7 +382,7 @@ UINT32 CPU_Radio_GetChannel(UINT8 radioName)
 		case SI4468_SPI2:
 			channel = si446x_hal_get_chan(radioName);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -450,7 +456,7 @@ void* CPU_Radio_Send(UINT8 radioName, void* msg, UINT16 size)
 		case SI4468_SPI2:
 			ptr_temp = si446x_hal_send(radioName, msg, size);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			ptr_temp = SX1276_HAL_Send(msg, size, 0);
 			break;
 		default:
@@ -479,7 +485,7 @@ void* CPU_Radio_Send_TimeStamped(UINT8 radioName, void* msg, UINT16 size, UINT32
 		case SI4468_SPI2:
 			ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			ptr_temp = SX1276_HAL_Send(msg, size, eventTime);
 			break;
 		default:
@@ -571,7 +577,7 @@ DeviceStatus CPU_Radio_TurnOnRx(UINT8 radioName)
 		case SI4468_SPI2:
 			status = si446x_hal_rx(radioName);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			//ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
 			status = SX1276_HAL_TurnOnRx();
 			break;
@@ -600,7 +606,9 @@ DeviceStatus CPU_Radio_TurnOffRx(UINT8 radioName)
 		case SI4468_SPI2:
 			status = si446x_hal_sleep(radioName);
 			break;
-
+		case SX1276RADIO:
+			status = SX1276_HAL_Sleep();
+			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
 			break;
@@ -656,7 +664,7 @@ DeviceStatus CPU_Radio_Sleep(UINT8 radioName, UINT8 level)
 		case SI4468_SPI2:
 			status = si446x_hal_sleep(radioName);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			//ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
 			status = SX1276_HAL_Sleep();
 			break;
@@ -686,7 +694,7 @@ DeviceStatus CPU_Radio_ClearChannelAssesment (UINT8 radioName)
 			//status = si446x_hal_cca(radioName);
 			status = si446x_hal_cca_ms(radioName, 200);
 			break;
-		case SX1276:
+		case SX1276RADIO:
 			status = SX1276_HAL_ChannelActivityDetection();
 			break;
 		default:
@@ -759,6 +767,9 @@ UINT32 CPU_Radio_GetRSSI(UINT8 radioName)
 			break;
 		case SI4468_SPI2:
 			val = si446x_hal_get_rssi(radioName);
+			break;
+		case SX1276RADIO:
+			val = SX1276_HAL_ReadRssi();
 			break;
 		default:
 			val=0xFFFFFFFF; // error condition.

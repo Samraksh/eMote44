@@ -21,9 +21,9 @@
 SPI_HandleTypeDef SpiHandle[6];
 //SPI_HandleTypeDef SpiHandle;
 /* Buffer used for transmission */
-uint8_t aTxBuffer2[]=" abc";
+//uint8_t aTxBuffer2[]=" abc";
 /* Buffer used for reception */
-uint8_t aRxBuffer2[BUFFERSIZE];
+//uint8_t aRxBuffer2[BUFFERSIZE];
 
 extern "C" {
 void SPI1_IRQHandler(void)

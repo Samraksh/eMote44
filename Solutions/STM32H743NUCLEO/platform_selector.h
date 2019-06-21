@@ -179,7 +179,7 @@ const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
 
 const UINT8 g_CountOfHardwareTimers = 2;
 const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = {SYSTEM_TIME, DEFAULT_TIMER };
-const UINT8 g_VirtualTimerPerHardwareTimer = 16;
+const UINT8 g_VirtualTimerPerHardwareTimer = 20;
 const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 48000000};
 
 // timers that are run within interrupt context
@@ -198,10 +198,16 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 #define VIRT_RX_TIMEOUT_TIMER 13
 #define VIRT_RX_TIMEOUT_SYNC_WORD 14
 
-#define VIRT_TIMER_SX1276_PacketLoadTimerName 15
-#define VIRT_TIMER_SX1276_PacketTxTimerName 16
-#define VIRT_TIMER_SX1276_CADTimer 17
+#define VIRT_TIMER_SX1276_PacketLoadTimerName 6
+#define VIRT_TIMER_SX1276_PacketTxTimerName 7
+#define VIRT_TIMER_SX1276_CADTimer 8
 
+#define VIRT_TIMER_MAC_SENDPKT 15
+#define VIRT_TIMER_MAC_BEACON 16
+#define VIRT_TIMER_MAC_FLUSHBUFFER 17
+#define VIRT_TIMER_OMAC_SCHEDULER 18
+
+#define LocalClockMonitor_TIMER1 19
 
 /* Definition for USARTx clock resources */
 #define USARTx                      USART3
@@ -341,14 +347,14 @@ do {                                                    \
 #define SPIx_IRQn                        SPI1_IRQn
 #define SPIx_IRQHandler                  SPI1_IRQHandler
 
-#define BUFFERSIZE                       (COUNTOF(aTxBuffer2) - 1)
+//#define BUFFERSIZE                       (COUNTOF(aTxBuffer2) - 1)
 /* Size of Trasmission buffer */
-#define TXBUFFERSIZE                (COUNTOF(aTxBuffer) - 1)
+//#define TXBUFFERSIZE                (COUNTOF(aTxBuffer) - 1)
 /* Size of Reception buffer */
-#define RXBUFFERSIZE                TXBUFFERSIZE
+//#define RXBUFFERSIZE                TXBUFFERSIZE
   
 /* Exported macro ------------------------------------------------------------*/
-#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
+//#define COUNTOF(__BUFFER__)   (sizeof(__BUFFER__) / sizeof(*(__BUFFER__)))
 /* Exported functions ------------------------------------------------------- */
 
 //

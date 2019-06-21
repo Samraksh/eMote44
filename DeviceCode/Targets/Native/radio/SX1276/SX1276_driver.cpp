@@ -155,6 +155,11 @@ DeviceStatus SX1276_HAL_UnInitialize(){
 	events.CadDone 				= NULL; 
 	events.DataStatusCallback 	= NULL;
 	
+	m_rm = SLEEP;
+	SX1276_Packet_ClearPayload();
+	
+	CPU_SPI_DeInit(SPI_TYPE_RADIO);
+	
 	return DS_Success;
 }
 
@@ -334,6 +339,31 @@ DeviceStatus SX1276_HAL_Standby(){
 	
 }
 
+DeviceStatus SX1276_HAL_Reset() {
+	m_rm = SLEEP;
+	SX1276_Packet_ClearPayload();
+	
+	SX1276Reset( );
+
+	// Calibrate Rx chain
+	RxChainCalibration( );
+
+	// Initialize radio default values
+	SX1276SetOpMode( RF_OPMODE_SLEEP );
+
+	SX1276SetRadioRegistersInit();
+	
+	SX1276SetModem( MODEM_FSK );
+
+	// Restore previous network type setting.
+	SX1276SetPublicNetwork( SX1276.Settings.LoRa.PublicNetwork );
+	// END WORKAROUND
+
+	SX1276.Settings.State = RF_IDLE;
+	
+	return DS_Success;
+}
+
 void SX1276_HAL_ChooseRadioConfig() {
 
     SX1276SetChannel( RF_FREQUENCY );
@@ -362,6 +392,16 @@ void SX1276_HAL_ChooseRadioConfig() {
 
 #endif
 
+}
+
+UINT32 SX1276_HAL_ReadRssi() {
+	UINT32 value;	
+#if defined( USE_MODEM_LORA )
+	value = (UINT32)SX1276ReadRssi(MODEM_LORA);
+#elif defined( USE_MODEM_FSK )
+	value = (UINT32)SX1276ReadRssi(MODEM_FSK);
+#endif
+	return value;
 }
 
 RadioMode_t SX1276_HAL_GetRadioState() {

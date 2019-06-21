@@ -13,6 +13,8 @@
 extern csmaMAC g_csmaMacObject;
 extern OMACType g_OMAC;
 
+extern UINT8 MAC_ID::Unique_Mac_ID = 0;
+
 Buffer_15_4_t g_send_buffer;
 Buffer_15_4_t g_receive_buffer;
 NeighborTable g_NeighborTable;

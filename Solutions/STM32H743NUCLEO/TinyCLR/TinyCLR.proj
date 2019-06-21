@@ -28,7 +28,7 @@
         <MMP_DAT_SKIP>false</MMP_DAT_SKIP>
         <MMP_DAT_CreateDatabaseFile>$(BIN_DIR)\tinyclr.dat</MMP_DAT_CreateDatabaseFile>
         <EXEScatterFileDefinition>$(SRC_DIR)\scatterfile_tinyclr_$(COMPILER_TOOL).$(SCATTER_EXT)</EXEScatterFileDefinition>
-        <CompressImageFlashSym>EntryPoint</CompressImageFlashSym>
+        <CompressImageFlashSym>Reset_Handler</CompressImageFlashSym>
         <CompressImageDatSym>TinyClr_Dat_Start</CompressImageDatSym>
         <CompressImageCfgSym>g_ConfigurationSector</CompressImageCfgSym>
         <!-- newlib-nano does not support long-long and long-double formatting, use standard newlib instead -->
