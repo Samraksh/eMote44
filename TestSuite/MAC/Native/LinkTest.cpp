@@ -11,6 +11,7 @@
 UINT16 testDest=0;
 LinkTest gLinkTest(0,0);
 extern UINT8 currentMacName;
+extern NeighborTable g_NeighborTable;
 
 void PrintHex(char *x, int size){
 	for (int j=0;j<size; j++){

@@ -13,7 +13,7 @@
 extern csmaMAC g_csmaMacObject;
 extern OMACType g_OMAC;
 
-extern UINT8 MAC_ID::Unique_Mac_ID = 0;
+UINT8 MAC_ID::Unique_Mac_ID = 0;
 
 Buffer_15_4_t g_send_buffer;
 Buffer_15_4_t g_receive_buffer;
@@ -515,6 +515,10 @@ BOOL MACLayer_UnInitialize(){
 
 UINT8 MACLayer_NumberMacsSupported(){
 	return FALSE;
+}
+
+void ClearMsgContents(Message_15_4_t* msg){
+	memset(msg,0,sizeof(Message_15_4_t));
 }
 
 

@@ -42,7 +42,7 @@
   <!-- Include all projects from TinyCLR -->
   <!--<Import Project="$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\emoteOS_Projects.proj" />-->
  
-   <!-- Include all projects from TinyCLR -->
+  <!-- Include all projects from TinyCLR -->
   <Import Project="$(SPOCLIENT)\Solutions\$(TSOLUTION)\TinyCLR\TinyCLR_Projects.proj" />
   
   <ItemGroup>
