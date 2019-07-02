@@ -3,6 +3,7 @@
 #include <Samraksh/Radio.h>
 #include <Samraksh/VirtualTimer.h>
 #include "parameters.h"
+#include "radio.h"
 
 #define MAX_PACKET_SIZE 255
 
@@ -38,8 +39,8 @@ typedef UINT8 ClockIdentifier_t;
 struct msgToBeTransmitted_t {
 	UINT8 msg_payload[MAX_PACKET_SIZE];
 	UINT16 msg_size;
-	UINT64 due_time;
 	ClockIdentifier_t clock_id;
+	UINT64 due_time;
 	bool isUploaded;
 };
 
@@ -53,7 +54,7 @@ void SX1276_HAL_RxTimeout();
 void SX1276_HAL_RxError();
 void SX1276_HAL_FhssChangeChannel(uint8_t currentChannel );
 void SX1276_HAL_CadDone(bool channelActivityDetected);
-DeviceStatus SX1276_HAL_Initialize(SamrakshRadio_I::RadioEvents_t re);
+DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler);
 DeviceStatus SX1276_HAL_UnInitialize();
 
 void* SX1276_HAL_Send(void* msg, UINT16 size, UINT32 eventTime, bool request_ack, bool saveCopyOfPacket);
@@ -71,6 +72,8 @@ bool SX1276_HAL_IsPacketTransmittable(void* msg, UINT16 size);
 DeviceStatus SX1276_HAL_TurnOnRx();
 DeviceStatus SX1276_HAL_Sleep();
 DeviceStatus SX1276_HAL_Standby();
+DeviceStatus SX1276_HAL_Reset();
+
 void SX1276_HAL_ChooseRadioConfig();
 UINT32 SX1276_HAL_ReadRssi();
 RadioMode_t SX1276_HAL_GetRadioState();

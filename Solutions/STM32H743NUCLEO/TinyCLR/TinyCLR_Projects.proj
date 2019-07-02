@@ -39,10 +39,10 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\CSMAMAC\dotNetMF.proj" />
         <DriverLibs Include="csma_pal.$(LIB_EXT)"/>
 	</ItemGroup>
-	<!--<ItemGroup>
+	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\dotNetMF.proj" />
         <DriverLibs Include="mac_pal.$(LIB_EXT)"/>
-	</ItemGroup>-->
+	</ItemGroup>
 	<!-- End of network stack   -->
 	
 	

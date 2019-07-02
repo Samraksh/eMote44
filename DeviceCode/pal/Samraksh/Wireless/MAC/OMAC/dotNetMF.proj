@@ -46,10 +46,10 @@
     <HFiles Include="DeviceCode/Include/Samraksh/Hal_util.h" />
     <HFiles Include="DeviceCode/Include/Samraksh/Buffer.h" />
     <HFiles Include="DeviceCode/Include/Samraksh/GlobalTime.h" />
-    <HFiles Include="OMAC.h" />
+    <HFiles Include="DeviceCode/Include/Samraksh/MAC/OMAC/OMAC.h" />
 	<Compile Include="OMAC.cpp" />
-    <HFiles Include="OMACConstants.h" />
-    <HFiles Include="SeedGenerator.h" />
+    <HFiles Include="DeviceCode/Include/Samraksh/MAC/OMAC/OMACConstants.h" />
+    <HFiles Include="DeviceCode/Include/Samraksh/MAC/OMAC/SeedGenerator.h" />
 	    
    
     <!--HFiles Include="Scheduler.h" /-->
