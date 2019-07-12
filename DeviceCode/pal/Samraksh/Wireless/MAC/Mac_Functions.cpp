@@ -5,13 +5,25 @@
  *      Author: Mukundan
  */
 
-#include <Samraksh/MAC/CSMAMAC/csmaMAC.h>
-#include <Samraksh/MAC/OMAC/OMAC.h>
 #include <Samraksh/MAC_decl.h>
 #include <Samraksh/PacketTimeSync_15_4.h>
 
+
+#if defined(__MAC_CSMA__)
+#include <Samraksh/MAC/CSMAMAC/csmaMAC.h>
+#endif
+
+#if defined(__MAC_OMAC__)
+#include <Samraksh/MAC/OMAC/OMAC.h>
+#endif
+
+#if defined(__MAC_CSMA__)
 extern csmaMAC g_csmaMacObject;
+#endif
+
+#if defined(__MAC_OMAC__)
 extern OMACType g_OMAC;
+#endif
 
 UINT8 MAC_ID::Unique_Mac_ID = 0;
 
@@ -41,11 +53,15 @@ DeviceStatus MAC_Initialize(MACEventHandler* eventHandler, UINT8 macName, UINT8 
 	DeviceStatus status = DS_Success;
 	if(macName == CSMAMAC){
 		currentMacName = macName;
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.Initialize(eventHandler, macName, routingAppID, radioName, (MACConfig*)config) ;
+#endif		
 	}
 	else if(macName == OMAC) {
 		currentMacName = macName;
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.Initialize(eventHandler, macName, routingAppID, radioName, (MACConfig *) config);
+#endif
 	}
 	else{
 		status = DS_Fail;
@@ -58,10 +74,14 @@ DeviceStatus MAC_Reconfigure(void* config)
 {
 	DeviceStatus status = DS_Success;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.SetConfig((MACConfig*)config);
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.SetConfig((MACConfig*)config);
+#endif
 	}
 	else{
 		status = DS_Fail;
@@ -73,12 +93,16 @@ DeviceStatus MAC_Reconfigure(void* config)
 UINT16 MAC_GetRadioAddress(){
 	UINT16 tempMacName = -1;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		tempMacName = g_csmaMacObject.GetRadioAddress();
 		return tempMacName;
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)			
 		tempMacName = g_OMAC.GetRadioAddress();
 		return tempMacName;
+#endif
 	}
 	return tempMacName;
 }
@@ -86,12 +110,16 @@ UINT16 MAC_GetRadioAddress(){
 BOOL MAC_SetRadioAddress(UINT16 address){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.SetRadioAddress(address);
 		return status;
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.SetRadioAddress(address);
 		return status;
+#endif
 	}
 	return status;
 }
@@ -99,12 +127,16 @@ BOOL MAC_SetRadioAddress(UINT16 address){
 BOOL MAC_SetRadioName(INT8 radioName){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.SetRadioName(radioName);
 		return status;
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.SetRadioName(radioName);
 		return status;
+#endif
 	}
 	return status;
 }
@@ -112,12 +144,16 @@ BOOL MAC_SetRadioName(INT8 radioName){
 BOOL MAC_SetRadioTxPower(int power){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.SetRadioTxPower(power);
 		return status;
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.SetRadioTxPower(power);
 		return status;
+#endif
 	}
 	return status;
 }
@@ -125,22 +161,30 @@ BOOL MAC_SetRadioTxPower(int power){
 BOOL MAC_SetRadioChannel(int channel){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.SetRadioChannel(channel);
 		return status;
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.SetRadioChannel(channel);
 		return status;
+#endif
 	}
 	return status;
 }
 
 DeviceStatus MAC_DeletePacketWithIndexInternal(PacketID_T index){
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return DS_Fail;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return g_OMAC.DeletePacketWithIndexInternal(index);
+#endif
 	}
 	return DS_Fail;
 }
@@ -148,10 +192,14 @@ DeviceStatus MAC_DeletePacketWithIndexInternal(PacketID_T index){
 UINT16 MAC_GetMsgIdWithPtr(Message_15_4_t* msg_carrier)
 {
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return INVALID_PACKET_ID;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return  g_NeighborTable.GetIndexWithPtr(msg_carrier);
+#endif
 	}
 	return INVALID_PACKET_ID;
 }
@@ -159,10 +207,14 @@ UINT16 MAC_GetMsgIdWithPtr(Message_15_4_t* msg_carrier)
 bool MAC_ChangeOwnerShipOfElementwIndex(PacketID_T index,  BufferOwner n_buf_ow)
 {
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return INVALID_PACKET_ID;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return  g_NeighborTable.ChangeOwnerShipOfElementwIndex(index,n_buf_ow);
+#endif
 	}
 	return INVALID_PACKET_ID;
 }
@@ -170,10 +222,14 @@ bool MAC_ChangeOwnerShipOfElementwIndex(PacketID_T index,  BufferOwner n_buf_ow)
 DeviceStatus MAC_GetPacketWithIndex(UINT8 **managedBuffer, UINT8 buffersize, PacketID_T index)
 {
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return DS_Fail;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return g_OMAC.GetPacketWithIndex(managedBuffer, buffersize, index);
+#endif
 	}
 	return DS_Fail;
 }
@@ -181,10 +237,14 @@ DeviceStatus MAC_GetPacketWithIndex(UINT8 **managedBuffer, UINT8 buffersize, Pac
 DeviceStatus MAC_GetPacketSizeWithIndex( UINT8* buffersizeptr, PacketID_T index)
 {
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return DS_Fail;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return g_OMAC.GetPacketSizeWithIndex( buffersizeptr, index);
+#endif
 	}
 	return DS_Fail;
 }
@@ -263,10 +323,14 @@ DeviceStatus MAC_GetNextPacket(UINT8 **managedBuffer)
 DeviceStatus MAC_UnInitialize(){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.UnInitialize();
+#endif
 	}
 	else if(currentMacName == OMAC) {
+#if defined(__MAC_OMAC__)	
 		status = g_OMAC.UnInitialize();
+#endif
 	}
 
 	return ((status == TRUE) ? DS_Success : DS_Fail);
@@ -279,10 +343,14 @@ UINT8 MAC_GetID(){
 DeviceStatus MAC_SendTimeStamped(UINT16 destAddress, UINT8 dataType, void * msg, UINT16 size, UINT32 eventTime){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.SendTimeStamped(destAddress, dataType, msg, size, eventTime);
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)	
 		status = g_OMAC.SendTimeStamped(destAddress, dataType, msg, size, eventTime);
+#endif
 	}
 
 	if(status != TRUE)
@@ -296,10 +364,14 @@ DeviceStatus MAC_Send(UINT16 destAddress, UINT8 dataType, void * msg, UINT16 siz
 
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.Send(destAddress, dataType, msg, size);
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		status = g_OMAC.Send(destAddress, dataType, msg, size);
+#endif
 	}
 
 	if(status != TRUE)
@@ -310,20 +382,28 @@ DeviceStatus MAC_Send(UINT16 destAddress, UINT8 dataType, void * msg, UINT16 siz
 
 PacketID_T MAC_EnqueueToSend(UINT16 destAddress, UINT8 dataType, void * msg, UINT16 size){
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return INVALID_PACKET_ID;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return g_OMAC.EnqueueToSend(destAddress, dataType, msg, size);
+#endif
 	}
 	return INVALID_PACKET_ID;
 }
 
 PacketID_T MAC_EnqueueToSendTimeStamped(UINT16 destAddress, UINT8 dataType, void * msg, UINT16 size, UINT32 eventTime){
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		return INVALID_PACKET_ID;
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		return g_OMAC.EnqueueToSendTimeStamped(destAddress, dataType, msg, size, eventTime);
+#endif
 	}
 	return INVALID_PACKET_ID;
 }
@@ -402,8 +482,9 @@ DeviceStatus MAC_GetNeighborStatus(UINT16 macAddress, UINT8 *buffer)
 			buffer[7] = (g_NeighborTable.Neighbor[i].ReceiveLink.AveDelay);
 			buffer[8] = (g_NeighborTable.Neighbor[i].neighborStatus & 0x0F) || ( ((g_NeighborTable.Neighbor[i].IsAvailableForUpperLayers) & 0x0F) << 4)  ;
 			buffer[9] = (g_NeighborTable.Neighbor[i].NumInitializationMessagesSent);
+#if defined(__MAC_OMAC__)
 			buffer[10] =  g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.regressgt2.NumberOfRecordedElements(g_NeighborTable.Neighbor[i].MACAddress);
-
+#endif
 //			buffer[9] = (g_NeighborTable.Neighbor[i].CountOfPacketsReceived & 0xff);
 //			buffer[10] = (g_NeighborTable.Neighbor[i].CountOfPacketsReceived & 0xff00) >> 8;
 			buffer[11] = (g_NeighborTable.Neighbor[i].LastHeardTime) & 0xff;
@@ -430,10 +511,15 @@ DeviceStatus MAC_GetNeighborStatus(UINT16 macAddress, UINT8 *buffer)
 //Neighbor functions
 NeighborTable* MAC_GetNeighborTable(UINT8 macID){
 	if(MacName == CSMAMAC)
+#if defined(__MAC_CSMA__)		
 		return g_csmaMacObject.GetNeighborTable();
+#endif
 	else if(MacName == OMAC)
+#if defined(__MAC_OMAC__)	
 		return NULL;
+#endif
 	//return (NeighborTable *)(NULL);
+	return NULL;
 }
 
 Neighbor_t* MAC_GetNeighbor(UINT8 macID, UINT16 macAddress){
@@ -447,10 +533,14 @@ Neighbor_t* MAC_GetNeighbor(UINT8 macID, UINT16 macAddress){
 UINT8 MAC_GetSendBufferSize(){
 	UINT8 bufferSize = -1;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		bufferSize = g_csmaMacObject.GetSendBufferSize();
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)	
 		bufferSize = g_OMAC.GetSendBufferSize();
+#endif
 	}
 
 	return bufferSize;
@@ -459,10 +549,14 @@ UINT8 MAC_GetSendBufferSize(){
 UINT8 MAC_GetReceiveBufferSize(){
 	UINT8 bufferSize = -1;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		bufferSize = g_csmaMacObject.GetReceiveBufferSize();
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		bufferSize = g_OMAC.GetReceiveBufferSize();
+#endif
 	}
 
 	return bufferSize;
@@ -471,10 +565,14 @@ UINT8 MAC_GetReceiveBufferSize(){
 UINT8 MAC_GetPendingPacketsCount_Send(){
 	UINT8 pendingPackets = -1;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		pendingPackets = g_csmaMacObject.GetSendPending();
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)	
 		pendingPackets = g_OMAC.GetSendPending();
+#endif
 	}
 
 	return pendingPackets;
@@ -483,10 +581,14 @@ UINT8 MAC_GetPendingPacketsCount_Send(){
 UINT8 MAC_GetPendingPacketsCount_Receive(){
 	UINT8 pendingPackets = -1;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		pendingPackets = g_csmaMacObject.GetReceivePending();
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)			
 		pendingPackets = g_OMAC.GetReceivePending();
+#endif
 	}
 
 	return pendingPackets;
@@ -504,10 +606,14 @@ BOOL MACLayer_Initialize(){
 BOOL MACLayer_UnInitialize(){
 	BOOL status = FALSE;
 	if(currentMacName == CSMAMAC){
+#if defined(__MAC_CSMA__)
 		status = g_csmaMacObject.UnInitialize();
+#endif
 	}
 	else if(currentMacName == OMAC){
+#if defined(__MAC_OMAC__)		
 		status = g_OMAC.UnInitialize();
+#endif
 	}
 
 	return status;

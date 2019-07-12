@@ -15,23 +15,26 @@
 #include <tinyhal.h>
 #include <pal\com\usb\USB.h>
 
-#include "STM32H7_usb_functions.h"
-#include "usb_device.h"
-
+#include "usbd_def.h"
+#include "usbd_core.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h"
+#include "usbd_cdc_if.h"
 /**
   * @brief  This function handles USB-On-The-Go FS/HS global interrupt request.
   * @param  None
   * @retval None
   */
-#ifdef USE_USB_FS
-void OTG_FS_IRQHandler(void)
-#else
-void OTG_HS_IRQHandler(void)
-#endif
+  
+extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
+ 
+
+extern "C" void OTG_FS_IRQHandler(void)
 {
-  HAL_PCD_IRQHandler(&hpcd);
+  HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
 }
 
+USBD_HandleTypeDef hUsbDeviceFS;
 
 USB_CONTROLLER_STATE * CPU_USB_GetState( int Controller )
 {
@@ -42,19 +45,19 @@ HRESULT CPU_USB_Initialize( int Controller )
 	GLOBAL_LOCK (irq);
 	
 	/* Init Device Library */
-	USBD_Init(&USBD_Device, &VCP_Desc, 0);
+	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
 
 	/* Add Supported Class */
-	USBD_RegisterClass(&USBD_Device, USBD_CDC_CLASS);
+	USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC);
 
 	/* Add CDC Interface Class */
-	USBD_CDC_RegisterInterface(&USBD_Device, &USBD_CDC_fops);
+	USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
 
 	/* Start Device Process */
-	USBD_Start(&USBD_Device);
+	USBD_Start(&hUsbDeviceFS);
 
 	HAL_PWREx_EnableUSBVoltageDetector();
-  
+	
 	return S_OK;
 }
 

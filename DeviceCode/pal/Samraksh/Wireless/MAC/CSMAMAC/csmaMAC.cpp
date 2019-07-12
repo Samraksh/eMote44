@@ -1,5 +1,5 @@
 #include <Samraksh/VirtualTimer.h>
-#include "csmaMAC.h"
+#include <Samraksh/MAC/CSMAMAC/csmaMAC.h>
 //#include <Timer/netmf_timers.cpp>
 
 #define BEACON_PERIOD_MICRO 10000000
