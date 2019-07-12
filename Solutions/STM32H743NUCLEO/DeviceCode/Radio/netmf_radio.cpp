@@ -20,20 +20,25 @@
 //				v0.4 - Added initial support for Si446x driver (Nathan Stohs)
 
 #include <tinyhal.h>
+#ifdef RADIO_RF231
 #include "RF231\RF231.h"
+#endif
+
+#ifdef RADIO_SI446X
 #include "SI4468\si446x.h"
-#include "SX1276\SX1276_driver.h"
-
-#define ASSERT_NOFAIL(x) {if(x==DS_Fail){ SOFT_BREAKPOINT(); }}
-
 #define SI4468_SPI2_POWER_OFFSET 16
 #define SI4468_SPI2_CHANNEL_OFFSET 16
+#endif
 
+#ifdef RADIO_LORA
+#include "SX1276\SX1276_driver.h"
+//extern EMOTE_SX1276_LORA::Samraksh_SX1276_hal_netmfadapter gsx1276radio_netmf_adapter;
+#endif
+
+#define ASSERT_NOFAIL(x) {if(x==DS_Fail){ HAL_AssertEx(); }}
 const char * strUfoRadio = "[NATIVE] Error in function %s : Unidentified radio \r\n";
 #define PRINTF_UNIDENTIFIED_RADIO()  hal_printf( strUfoRadio , __func__ );
 
-extern EMOTE_SX1276_LORA::Samraksh_SX1276_hal_netmfadapter gsx1276radio_netmf_adapter;
-//extern EMOTE_SX1276_LORA::Samraksh_SX1276_hal_netmfadapter gsx1276radio_netmf_adapter;
 
 INT8 currentRadioName;
 INT8 currentRadioAckType;
@@ -49,7 +54,8 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 
 	switch(radioName)
 	{
-	/*	case RF231RADIO:
+#ifdef RADIO_RF231
+		case RF231RADIO:
 			currentRadioName = RF231RADIO;
 			if(__RF231_HARDWARE_ACK__){
 				currentRadioAckType = HARDWARE_ACK;
@@ -62,6 +68,8 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			}
 			status = grf231Radio.Initialize(eventHandlers, radioName, macName);
 			break;
+#endif
+#ifdef RADIO_RF231LR
 		case RF231RADIOLR:
 			currentRadioName = RF231RADIOLR;
 			if(__RF231_HARDWARE_ACK__){
@@ -75,6 +83,8 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			}
 			status = grf231RadioLR.Initialize(eventHandlers, radioName, macName);
 			break;
+#endif
+#ifdef RADIO_SI446X
 		case SI4468_SPI2:
 			currentRadioName = SI4468_SPI2;
 			//Hardware ack not supported by SI4468. So, software ack by default
@@ -86,13 +96,15 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			}
 			status = si446x_hal_init(eventHandlers, radioName, macName);
 			break;
-		*/
+#endif
+#ifdef RADIO_LORA
 		case SX1276RADIO:
 			currentRadioName = SX1276RADIO;
 			currentRadioAckType = SOFTWARE_ACK;
 
 			status = SX1276_HAL_Initialize(eventHandlers);
 			break;
+#endif
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
 			break;

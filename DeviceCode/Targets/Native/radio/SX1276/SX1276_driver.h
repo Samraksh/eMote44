@@ -3,6 +3,7 @@
 #include <Samraksh/Radio.h>
 #include <Samraksh/VirtualTimer.h>
 #include "parameters.h"
+#include "radio.h"
 
 #define MAX_PACKET_SIZE 255
 

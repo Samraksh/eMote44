@@ -20,8 +20,10 @@
 #include <tinyhal.h>
 #include <Samraksh\Message.h>
 #include <Samraksh\Radio.h>
-#include <spi\netmf_spi.h>
-#include <gpio\netmf_gpio.h>
+//#include <spi\netmf_spi.h>
+//#include <gpio\netmf_gpio.h>
+#include <CPU_SPI_decl.h>
+#include <CPU_GPIO_decl.h>
 
 /* === VARS ================================================================ */
 
