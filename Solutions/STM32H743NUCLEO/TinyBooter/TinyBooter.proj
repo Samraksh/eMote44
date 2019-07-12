@@ -129,7 +129,7 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\dotNetMF.proj" />
     </ItemGroup>-->
     <ItemGroup>
-       <!--<DriverLibs Include="STM32H7_USB.$(LIB_EXT)" />
+     <!--  <DriverLibs Include="STM32H7_USB.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_USB\dotNetMF.proj" />-->
        <DriverLibs Include="cpu_usb_stubs.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\processor\stubs_USB\dotNetMF.proj" />

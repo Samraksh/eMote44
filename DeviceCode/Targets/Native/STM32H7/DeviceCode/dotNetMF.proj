@@ -60,14 +60,18 @@
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_uart.c" /> 
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_uart_ex.c" /> 
     <Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_pwr.c" />
+    <Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_pwr_ex.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_tim.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_tim_ex.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_usart.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_dma.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_rtc.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_rtc_ex.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_pcd.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_pcd_ex.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_ll_usb.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_flash.c" />
- </ItemGroup>
+</ItemGroup>
   
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 </Project>

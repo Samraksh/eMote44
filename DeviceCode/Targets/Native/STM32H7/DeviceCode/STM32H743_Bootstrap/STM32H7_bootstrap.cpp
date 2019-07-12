@@ -90,8 +90,9 @@ static void DefaultSystemClock_Config(void)
 	{
 		Error_Handler();
 	}
-	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3;
+	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART3|RCC_PERIPHCLK_USB;
 	PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
+	PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
 	{
 		Error_Handler();
