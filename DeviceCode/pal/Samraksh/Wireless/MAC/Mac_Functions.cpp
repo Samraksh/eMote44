@@ -46,6 +46,8 @@ UINT8 currentMacName;
 #endif
 
 
+
+
 //Basic functions
 //UINT8 MacName = 0;
 
@@ -621,10 +623,6 @@ BOOL MACLayer_UnInitialize(){
 
 UINT8 MACLayer_NumberMacsSupported(){
 	return FALSE;
-}
-
-void ClearMsgContents(Message_15_4_t* msg){
-	memset(msg,0,sizeof(Message_15_4_t));
 }
 
 

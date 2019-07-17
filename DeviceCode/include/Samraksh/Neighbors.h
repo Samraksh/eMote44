@@ -528,5 +528,8 @@ struct PACK EntendedMACInfoMsgSummary //3 bytes
 	UINT8 NumEntriesInMsg;
 };
 
-
+extern "C"
+{
+	void ClearMsgContents(Message_15_4_t* msg);
+}
 #endif /* NEIGHBORS_H_ */

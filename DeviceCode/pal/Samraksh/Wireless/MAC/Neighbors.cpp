@@ -502,3 +502,10 @@ void NeighborTable::DegradeLinks(){
 	}
 }
 
+extern "C"
+{
+	void ClearMsgContents(Message_15_4_t* msg){
+		memset(msg,0,sizeof(Message_15_4_t));
+	}
+}
+

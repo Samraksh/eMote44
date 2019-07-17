@@ -43,6 +43,26 @@ const char * strUfoRadio = "[NATIVE] Error in function %s : Unidentified radio \
 INT8 currentRadioName;
 INT8 currentRadioAckType;
 
+extern "C"
+{
+	void* DefaultReceiveHandler(void *msg, UINT16 Size)
+	{
+		return NULL;
+	}
+
+	void DefaultSendAckHandler(void *msg, UINT16 Size, NetOpStatus status, UINT8 radioAckStatus)
+	{
+
+	}
+
+	BOOL DefaultRadioInterruptHandler(RadioInterrupt Interrupt, void *param)
+	{
+		return FALSE;
+	}
+}
+
+
+
 // Calls the corresponding radio object initialize function based on the radio chosen
 DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioName, UINT8 numberRadios, UINT8 macName )
 {
@@ -54,7 +74,7 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 
 	switch(radioName)
 	{
-#ifdef RADIO_RF231
+#if RADIO_RF231==1
 		case RF231RADIO:
 			currentRadioName = RF231RADIO;
 			if(__RF231_HARDWARE_ACK__){
@@ -69,7 +89,7 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			status = grf231Radio.Initialize(eventHandlers, radioName, macName);
 			break;
 #endif
-#ifdef RADIO_RF231LR
+#if RADIO_RF231LR==1
 		case RF231RADIOLR:
 			currentRadioName = RF231RADIOLR;
 			if(__RF231_HARDWARE_ACK__){
@@ -84,7 +104,7 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			status = grf231RadioLR.Initialize(eventHandlers, radioName, macName);
 			break;
 #endif
-#ifdef RADIO_SI446X
+#if RADIO_SI446X==1
 		case SI4468_SPI2:
 			currentRadioName = SI4468_SPI2;
 			//Hardware ack not supported by SI4468. So, software ack by default
@@ -97,7 +117,7 @@ DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioN
 			status = si446x_hal_init(eventHandlers, radioName, macName);
 			break;
 #endif
-#ifdef RADIO_LORA
+#if RADIO_LORA==1
 		case SX1276RADIO:
 			currentRadioName = SX1276RADIO;
 			currentRadioAckType = SOFTWARE_ACK;
@@ -268,7 +288,7 @@ INT8 CPU_Radio_GetRadioName()
 			radioType = si446x_hal_get_RadioType();
 			break;
 		case SX1276RADIO:
-			SX1276_HAL_GetRadioName(radioName);
+			radioType=SX1276_HAL_GetRadioName();
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -478,7 +498,7 @@ void* CPU_Radio_Send(UINT8 radioName, void* msg, UINT16 size)
 			ptr_temp = si446x_hal_send(radioName, msg, size);
 			break;
 		case SX1276RADIO:
-			ptr_temp = SX1276_HAL_Send(msg, size, 0);
+			ptr_temp = SX1276_HAL_Send(msg, size, 0, true, false);
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
@@ -507,7 +527,7 @@ void* CPU_Radio_Send_TimeStamped(UINT8 radioName, void* msg, UINT16 size, UINT32
 			ptr_temp = si446x_hal_send_ts(radioName, msg, size, eventTime);
 			break;
 		case SX1276RADIO:
-			ptr_temp = SX1276_HAL_Send(msg, size, eventTime);
+			ptr_temp = SX1276_HAL_Send(msg, size, eventTime, true, false);
 			break;
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
