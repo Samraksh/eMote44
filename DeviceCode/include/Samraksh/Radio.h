@@ -22,20 +22,11 @@
 
 extern "C"
 {
-	void* DefaultReceiveHandler(void *msg, UINT16 Size)
-	{
-		return NULL;
-	}
+	void* DefaultReceiveHandler(void *msg, UINT16 Size);
 
-	void DefaultSendAckHandler(void *msg, UINT16 Size, NetOpStatus status, UINT8 radioAckStatus)
-	{
+	void DefaultSendAckHandler(void *msg, UINT16 Size, NetOpStatus status, UINT8 radioAckStatus);
 
-	}
-
-	BOOL DefaultRadioInterruptHandler(RadioInterrupt Interrupt, void *param)
-	{
-		return FALSE;
-	}
+	BOOL DefaultRadioInterruptHandler(RadioInterrupt Interrupt, void *param);
 }
 
 

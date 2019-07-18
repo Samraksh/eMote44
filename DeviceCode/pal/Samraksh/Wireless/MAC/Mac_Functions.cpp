@@ -25,7 +25,7 @@ extern csmaMAC g_csmaMacObject;
 extern OMACType g_OMAC;
 #endif
 
-//extern UINT8 MAC_ID::Unique_Mac_ID = 0;
+UINT8 MAC_ID::Unique_Mac_ID = 0;
 
 Buffer_15_4_t g_send_buffer;
 Buffer_15_4_t g_receive_buffer;
@@ -44,6 +44,8 @@ UINT8 currentMacName;
 #define SET_PIN(x,y)
 #define DEBUG_PRINTF_MAC(x)
 #endif
+
+
 
 
 //Basic functions

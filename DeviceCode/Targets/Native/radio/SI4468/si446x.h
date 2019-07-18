@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
 #include <tinyhal.h>
-#include <stm32f10x.h>
 
 #include <Samraksh\Radio.h>
 

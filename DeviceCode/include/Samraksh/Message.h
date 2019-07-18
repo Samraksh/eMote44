@@ -448,9 +448,4 @@ public:
 #define Message_15_4_t IEEE802_15_4_Message_t2
 
 
-void ClearMsgContents(Message_15_4_t* msg){
-	memset(msg,0,sizeof(Message_15_4_t));
-}
-
-
 #endif /* MESSAGE_H_ */

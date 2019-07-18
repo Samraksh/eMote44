@@ -34,7 +34,7 @@ public:
 	}
 };
 
-UINT8 MAC_ID::Unique_Mac_ID = 0;
+//extern UINT8 MAC_ID::Unique_Mac_ID;
 
 template <class MessageT, class ConfigT>
 class MAC : public MAC_ID

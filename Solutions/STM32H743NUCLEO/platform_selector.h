@@ -269,8 +269,13 @@ do {                                                    \
     }                                                    \
   } while(0) 
 
+#define RADIO_LORA 1
+#define RADIO_SI446X 0
+#define RADIO_RF231 0
 
-/* Definition for LoRa I/O */
+// Definition for LoRa I/O
+#ifdef RADIO_LORA
+
 #define RADIO_RESET_PORT                          GPIOD
 #define RADIO_RESET_PIN                           GPIO_PIN_15
 
@@ -312,6 +317,9 @@ do {                                                    \
 
 //#define RADIO_LEDRX_PORT                           GPIOC
 //#define RADIO_LEDRX_PIN                            GPIO_PIN_0
+
+#endif
+
 /* Definition for SPIx clock resources */
 
 #define SPIx                        SPI1

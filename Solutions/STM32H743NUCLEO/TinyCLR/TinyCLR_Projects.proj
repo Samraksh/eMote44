@@ -34,6 +34,10 @@
 	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\radio\SX1276\dotNetMF.proj" />
         <DriverLibs Include="NETMF_LoRa_Radio_Driver.$(LIB_EXT)"/>
+	</ItemGroup>	
+	<ItemGroup>
+        <RequiredProjects Include="$(SPOCLIENT)\Solutions\STM32H743NUCLEO\DeviceCode\Radio\dotNetMF.proj" />
+        <DriverLibs Include="netmf_radio.$(LIB_EXT)"/>
 	</ItemGroup>
 	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\CSMAMAC\dotNetMF.proj" />

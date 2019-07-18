@@ -4,7 +4,6 @@
 
 #include <tinyhal.h>
 #include <Samraksh/MAC_decl.h>
-#include <Samraksh/MAC/CSMAMAC/csmaMAC.h>
 #include <Samraksh/VirtualTimer.h>
 #include <Samraksh/Message.h>
 #include <Samraksh/Radio_decl.h>
