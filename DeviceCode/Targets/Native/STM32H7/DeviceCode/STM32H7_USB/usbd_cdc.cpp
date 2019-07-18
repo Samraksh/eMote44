@@ -59,6 +59,7 @@
   */ 
 
 /* Includes ------------------------------------------------------------------*/
+#include <tinyhal.h>
 #include "usbd_cdc.h"
 #include "usbd_desc.h"
 #include "usbd_ctlreq.h"
@@ -514,7 +515,9 @@ static uint8_t  USBD_CDC_Init (USBD_HandleTypeDef *pdev,
                  CDC_CMD_PACKET_SIZE);
   
     
-  pdev->pClassData = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
+  ////pdev->pClassData = USBD_malloc(sizeof (USBD_CDC_HandleTypeDef));
+
+  pdev->pClassData = (USBD_CDC_HandleTypeDef*)  private_malloc(sizeof (USBD_CDC_HandleTypeDef));
   
   if(pdev->pClassData == NULL)
   {

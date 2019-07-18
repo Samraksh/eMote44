@@ -123,7 +123,8 @@ USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *
   /* Initialize low level driver */
   USBD_LL_Init(pdev);
   
-  Debug_Print_in_HAL(" usbd_core.c 126");	
+ // HAL_Delay(10);
+ // Debug_Print_in_HAL(" usbd_core.c 126");	
   return USBD_OK; 
 }
 

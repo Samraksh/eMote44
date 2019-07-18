@@ -48,8 +48,8 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32h7xx.h"
-#include "stm32h7xx_hal.h"
+#include <stm32h7xx_hal.h>
+#include "..\stm32h7xx.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
 
@@ -368,11 +368,11 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   Debug_Print_in_HAL(" usbd_conf.c 349\n");	
 
   HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 0x80);
-  Debug_Print_in_HAL(" usbd_conf.c 352\n");	
+  //Debug_Print_in_HAL(" usbd_conf.c 352\n");	
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 0x40);
-  Debug_Print_in_HAL(" usbd_conf.c 354\n");	
+ // Debug_Print_in_HAL(" usbd_conf.c 354\n");	
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 1, 0x80);
-  Debug_Print_in_HAL(" usbd_conf.c 356\n");	
+  //Debug_Print_in_HAL(" usbd_conf.c 356\n");	
   }
   return USBD_OK;
 }

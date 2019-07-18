@@ -42,18 +42,23 @@ USB_CONTROLLER_STATE * CPU_USB_GetState( int Controller )
 
 HRESULT CPU_USB_Initialize( int Controller )
 {
-	GLOBAL_LOCK (irq);
+	//GLOBAL_LOCK (irq);
 	
 	/* Init Device Library */
+	//hal_printf(" 48 USB.cpp \n");
+	//HAL_Delay(10u);
 	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
 
 	/* Add Supported Class */
+	//hal_printf(" 52 USB.cpp \n");
 	USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC);
 
 	/* Add CDC Interface Class */
+	//hal_printf(" 56 USB.cpp \n");
 	USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
 
 	/* Start Device Process */
+	//hal_printf(" 60 USB.cpp \n");
 	USBD_Start(&hUsbDeviceFS);
 
 	HAL_PWREx_EnableUSBVoltageDetector();
@@ -87,7 +92,13 @@ BOOL CPU_USB_ProtectPins( int Controller, BOOL On )
 }
 
 void Debug_Print_in_HAL(const char* format){
-	hal_printf(format);
+	//hal_printf(format);
+}
+
+void *USBD_static_malloc(uint32_t size)
+{
+  static uint8_t mem[sizeof(USBD_CDC_HandleTypeDef)];
+  return mem;
 }
 
 void Error_Handler(void)

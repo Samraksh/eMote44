@@ -51,6 +51,7 @@
 #ifndef __USBD_CONF__H__
 #define __USBD_CONF__H__
 
+
 #ifdef __cplusplus
  extern "C" {
 #endif
@@ -59,10 +60,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "STM32H7_usb_functions.h"
-#include "stm32h7xx.h"
-#include "stm32h7xx_hal.h"
+//#include <tinyhal.h>
 
+#include <stm32h7xx_hal.h>
+#include "..\stm32h7xx.h"
+
+#include "STM32H7_usb_functions.h"
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */
