@@ -1,7 +1,8 @@
 #include "LinkTest.h"
 //#include "platform_selector.h"
 
-#define PKT_PERIOD_MICRO 10000000 // 10 secs
+#define PKT_PERIOD_MICRO 2000000 // 2 secs
+//#define PKT_PERIOD_MICRO 10000000 // 10 secs
 #define TESTRADIONAME SX1276RADIO
 //#define TESTRADIONAME RF231RADIO
 
@@ -100,6 +101,7 @@ void LinkTest_SendAckHandler (void* msg, UINT16 size, NetOpStatus status, UINT8 
 }
 
 void SendTimerHandler(void * arg){
+	hal_printf("Send Timer\r\n");
 	gLinkTest.SendMsg();
 }
 
@@ -119,7 +121,9 @@ void LinkTest::Initialize()
 	myEventHandler.SetSendAckHandler(sa_fptr);
 	NeighborChangeFuncPtrType nc_fptr =  &LinkTest_NeighborChangeHandler;
 	myEventHandler.SetNeighborChangeHandler(nc_fptr);
-	MacId = CSMAMAC;
+	//MacId = CSMAMAC;
+	MacId = OMAC;
+
 
 	VirtTimer_Initialize();
 
@@ -132,6 +136,7 @@ void LinkTest::Initialize()
 
 	VirtualTimerReturnMessage rm;
 	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, PKT_PERIOD_MICRO, FALSE, FALSE, SendTimerHandler, DEFAULT_TIMER);
+	//rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, PKT_PERIOD_MICRO, FALSE, FALSE, SendTimerHandler);
 	ASSERT_SP(rm == TimerSupported);
 };
 

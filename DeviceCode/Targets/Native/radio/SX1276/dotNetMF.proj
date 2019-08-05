@@ -42,7 +42,7 @@
 	<HFiles Include="SX1276.h" />
 	<Compile Include="SX1276.cpp" />
 	<Compile Include="SX1276_driver.cpp" />	
-	<Compile Include="..\netmf_radio.cpp" />
+	<!--<Compile Include="..\netmf_radio.cpp" />-->
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />

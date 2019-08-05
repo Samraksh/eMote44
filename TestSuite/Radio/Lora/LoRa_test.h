@@ -16,5 +16,5 @@
 
 typedef struct my_pkt_struct {
 	unsigned count;
-	char name[8];
+	char name[23];
 } my_pkt_t;

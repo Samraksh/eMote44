@@ -309,12 +309,12 @@ bool RadioControl_t::PiggybackTimeSyncMessage(Message_15_4_t* msg, UINT16 &size)
 		// Event time already exists in the packet (either just added or added by the C# application earlier)
 		// Adjust the time stamp of the timesync packet accordingly.
 		msg->GetMetaData()->SetReceiveTimeStamp((INT64)event_time);
-
+#ifdef OMAC_DEBUG_GPIO
 		CPU_GPIO_SetPinState( RADIOCONTROL_SENDTS_PIN, TRUE );
 		CPU_GPIO_SetPinState( RADIOCONTROL_SENDTS_PIN, FALSE );
 		CPU_GPIO_SetPinState( RADIOCONTROL_SENDTS_PIN, TRUE );
 		CPU_GPIO_SetPinState( RADIOCONTROL_SENDTS_PIN, FALSE );
-
+#endif
 		header->flags = ((header->flags | TIMESTAMPED_FLAG));
 		y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
 		y_lo = y & 0xFFFFFFFF;

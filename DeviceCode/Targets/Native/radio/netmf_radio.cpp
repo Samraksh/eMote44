@@ -238,7 +238,7 @@ UINT16 CPU_Radio_GetAddress(UINT8 radioName)
 		break;
 	}
 
-	ASSERT_SP(address != 0);   // note: 0 is valid address and will pass in Release flavor.
+	//ASSERT_SP(address != 0);   // note: 0 is valid address and will pass in Release flavor.
 	return address;
 }
 

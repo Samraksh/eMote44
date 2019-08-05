@@ -4,6 +4,8 @@
 
 #define BEACON_PERIOD_MICRO 10000000
 #define SOFT_BREAKPOINT() ASSERT(0)
+#define DEBUG_PRINTF_CSMA hal_printf
+#define DEBUG_CSMAMAC
 csmaMAC g_csmaMacObject;
 
 void PrintHex(UINT8* x, UINT16 size){
@@ -19,6 +21,7 @@ UINT8 RadioLockUp;
 UINT16 discoveryCounter = 0;
 
 void* csmaReceiveHandler(void *msg, UINT16 Size){
+	hal_printf("receive handler\r\n");
 	return (void*) g_csmaMacObject.ReceiveHandler((Message_15_4_t *) msg, Size);
 }
 
@@ -44,6 +47,7 @@ void SendFirstPacketToRadio(void * arg){
 // Send a beacon everytime this fires
 void beaconScheduler(void *arg){
 	DEBUG_PRINTF_CSMA("bS fire\r\n");
+	//hal_printf("bS fire\r\n");
 	g_csmaMacObject.UpdateNeighborTable();
 	g_csmaMacObject.SendHello();
 }
@@ -57,9 +61,11 @@ DeviceStatus csmaMAC::SendHello(){
 	helloPayload[3] = (UINT8) 'L';
 	helloPayload[4] = (UINT8) 'O';
 
-	if(g_csmaMacObject.Send(0xffff, MFM_CSMA_DISCOVERY, (void *) helloPayload, 5) == TRUE)
+	hal_printf("MFM_CSMA_DISCOVERY: %d\n\r", MFM_CSMA_DISCOVERY);
+	if(g_csmaMacObject.Send(0xffff, MFM_CSMA_DISCOVERY, (void *) helloPayload, 5) == TRUE) {
+		//hal_printf("bS success\r\n");	
 		return DS_Success;
-
+	}
 	return DS_Fail;
 }
 
@@ -71,7 +77,8 @@ DeviceStatus csmaMAC::SetConfig(MACConfig *config){
 	//MyConfig.RadioType  = config->RadioType;
 	MyConfig.NeighborLivenessDelay = config->NeighborLivenessDelay;
 
-	DEBUG_PRINTF_CSMA("SetConfig: %d %d %d %d %d %d %d %d\r\n",MyConfig.BufferSize,MyConfig.CCA,MyConfig.CCASenseTime,MyConfig.RadioID,MyConfig.FCF,MyConfig.DestPAN,MyConfig.Network,MyConfig.NeighborLivelinessDelay);
+	//DEBUG_PRINTF_CSMA("SetConfig: %d %d %d %d %d %d %d %d\r\n",MyConfig.BufferSize,MyConfig.CCA,MyConfig.CCASenseTime,MyConfig.RadioID,MyConfig.FCF,MyConfig.DestPAN,MyConfig.Network,MyConfig.NeighborLivelinessDelay);
+	DEBUG_PRINTF_CSMA("SetConfig: %d %d %d %d\r\n",MyConfig.BufferSize,MyConfig.CCA,MyConfig.CCASenseTime,MyConfig.NeighborLivenessDelay);
 
 	return DS_Success;
 }
@@ -329,8 +336,8 @@ BOOL csmaMAC::Send(UINT16 dest, UINT8 dataType, void* msg, int Size){
 		payload[i] = lmsg[i];
 	}
 
-	DEBUG_PRINTF_CSMA("CSMA Sending: dest: %d, src: %d, network: %d, mac_id: %d, type: %d\r\n",dest, GetMyAddress(),MyConfig.Network,this->macName,dataType);
-
+	//DEBUG_PRINTF_CSMA("CSMA Sending: dest: %d, src: %d, network: %d, mac_id: %d, type: %d\r\n",dest, GetMyAddress(),MyConfig.Network,this->macName,dataType);
+	DEBUG_PRINTF_CSMA("CSMA Sending: dest: %d, src: %d, network: %d, type: %d\r\n",dest, GetMyAddress(),this->macName,dataType);
 	// Check if the circular buffer is full
 	//if(!g_send_buffer.Store((void *) &msg_carrier, metadata->GetLength())){
 	if(!g_send_buffer.Store((void *) &msg_carrier, length)){
@@ -394,7 +401,7 @@ void csmaMAC::SendToRadio(){
 
 		//Try twice with random wait between, if carrier sensing fails return; MAC will try again later
 		CPU_Radio_TurnOnRx(this->radioName);
-		//DeviceStatus ds = CPU_Radio_ClearChannelAssesment(this->radioName, 200);
+		//DeviceStatus ds = (this->radioName, 200);
 		DeviceStatus ds = CPU_Radio_ClearChannelAssesment(this->radioName);
 		//DeviceStatus ds = DS_Success;
 		if(ds == DS_Busy) {
@@ -457,7 +464,7 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 
 
 	if(Size == sizeof(softwareACKHeader)){
-		//hal_printf("software ACK\r\n");
+		hal_printf("software ACK\r\n");
 		return msg;
 	}
 	else if(Size < sizeof(IEEE802_15_4_Header_t)){
@@ -482,18 +489,21 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 	}
 
 	IEEE802_15_4_Metadata_t* rcv_meta = msg->GetMetaData();
-	//UINT8* rcv_payload = msg->GetPayload();
+	UINT8* rcv_payload = msg->GetPayload();
 
-	//hal_printf("(%d) <%d> %d\r\n",Size, (int)rcv_payload[0],((int)(rcv_payload[1] << 8) + (int)rcv_payload[2]) );
+	hal_printf("(%d) <%d> %d\r\n",Size, (int)rcv_payload[0],((int)(rcv_payload[1] << 8) + (int)rcv_payload[2]) );
 
 	// If the message type is a discovery then return the same bag you got from the radio layer
 	// Don't make a callback here because the neighbor table takes care of informing the application of a changed situation of
 	// it neighbors
+	//hal_printf("MFM_CSMA_DISCOVERY receive value = %d (%d)", rcv_msg_hdr->payloadType, rcv_msg_hdr->src);
 	if(rcv_msg_hdr->payloadType == MFM_CSMA_DISCOVERY)
 	{
-			//Add the sender to NeighborTable
+		hal_printf("csmaMAC.cpp:502\r\n");
+		//Add the sender to NeighborTable
 			if(g_NeighborTable.FindIndex(rcv_msg_hdr->src, &index) != DS_Success)
 			{
+				hal_printf("csmaMAC.cpp:506\r\n");
 				// Insert into the table if a new node was discovered
 				neighborTableCommonParameters_One_t.MACAddress = rcv_msg_hdr->src;
 				neighborTableCommonParameters_One_t.status = Alive;
@@ -509,6 +519,7 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 
 				if(g_NeighborTable.InsertNeighbor(&neighborTableCommonParameters_One_t, &neighborTableCommonParameters_two_t) == DS_Success)
 				{
+					hal_printf("csmaMAC.cpp:522\r\n");
 					NeighborChangeFuncPtrType appHandler = g_csmaMacObject.GetAppHandler(CurrentActiveApp)->neighborHandler;
 
 					// Check if  a neighbor change has been registered
@@ -517,12 +528,14 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 						//GLOBAL_LOCK(irq);//MS: why?
 						// CLR_RT_HeapBlock_NativeEventDispatcher::SaveToHALQueue calls ASSERT_IRQ_MUST_BE_OFF()
 						// Insert neighbor always inserts one neighbor so the call back argument will alsways be 1
+						hal_printf("Neighbor Changed Handler in Link Test\n\r");
 						(*appHandler)(1);
 					}
 				}
 			}
 			else
 			{
+				hal_printf("csmaMAC.cpp:538\r\n");
 				//g_NeighborTable.UpdateNeighbor(rcv_msg_hdr->src, Alive, HAL_Time_CurrentTicks(), rcv_meta->GetRssi(), rcv_meta->GetLqi());
 				neighborTableCommonParameters_One_t.MACAddress = rcv_msg_hdr->src;
 				neighborTableCommonParameters_One_t.status = Alive;
@@ -541,6 +554,7 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 	else if( ( rcv_msg_hdr->dest != MAC_BROADCAST_ADDRESS && rcv_msg_hdr->dest != CPU_Radio_GetAddress(this->radioName) ) )
 	{
 		//HandlePromiscousMessage(msg);
+		hal_printf("csmaMAC.cpp:556\r\n");
 		return msg;
 	}
 	// Implement bag exchange if the packet type is data
@@ -571,6 +585,7 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 
 	//TODO: GLOBAL_LOCK(irq); // CLR_RT_HeapBlock_NativeEventDispatcher::SaveToHALQueue requires IRQs off.  Updater needs IRQs on; TODO: make Update use a queue and disable IRQs again?
 	//(*appHandler)(msg, g_receive_buffer.GetNumberMessagesInBuffer());
+	hal_printf("Receive Handler in Link Test\n\r");
 	(*appHandler)(*next_free_buffer, rcv_msg_hdr->payloadType);
 
 #if 0

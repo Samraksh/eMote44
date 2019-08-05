@@ -20,6 +20,31 @@ UINT64 received_ts_ticks;
 UINT16 radio_address;
 INT8 radioName;
 UINT16 preloadedMsgSize;
+
+// This somehow gets put in the radio function. Out of scope for now, but fix me later.
+static void GetCPUSerial(uint8_t * ptr, unsigned num_of_bytes ){
+	unsigned Device_Serial0;unsigned Device_Serial1; unsigned Device_Serial2;
+	Device_Serial0 = *(unsigned*)(0x1FF0F420);
+	Device_Serial1 = *(unsigned*)(0x1FF0F424);
+	Device_Serial2 = *(unsigned*)(0x1FF0F428);
+
+	if(num_of_bytes==12){
+	    ptr[0] = (uint8_t)(Device_Serial0 & 0x000000FF);
+	    ptr[1] = (uint8_t)((Device_Serial0 & 0x0000FF00) >> 8);
+	    ptr[2] = (uint8_t)((Device_Serial0 & 0x00FF0000) >> 16);
+	    ptr[3] = (uint8_t)((Device_Serial0 & 0xFF000000) >> 24);
+
+	    ptr[4] = (uint8_t)(Device_Serial1 & 0x000000FF);
+	    ptr[5] = (uint8_t)((Device_Serial1 & 0x0000FF00) >> 8);
+	    ptr[6] = (uint8_t)((Device_Serial1 & 0x00FF0000) >> 16);
+	    ptr[7] = (uint8_t)((Device_Serial1 & 0xFF000000) >> 24);
+
+	    ptr[8] = (uint8_t)(Device_Serial2 & 0x000000FF);
+	    ptr[9] = (uint8_t)((Device_Serial2 & 0x0000FF00) >> 8);
+	    ptr[10] = (uint8_t)((Device_Serial2 & 0x00FF0000) >> 16);
+	    ptr[11] = (uint8_t)((Device_Serial2 & 0xFF000000) >> 24);
+	}
+}
 	
 void SX1276_HAL_ValidHeaderDetected(){	
 	void* dummy_ptr = NULL;
@@ -55,11 +80,12 @@ void SX1276_HAL_TxTimeout(){
 
 void SX1276_HAL_RxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr){	
 	if(payload == NULL) {
-		//hal_printf("RX timeout");
+		hal_printf("RX timeout with no payload\r\n");
 		SX1276_HAL_TurnOnRx();
 		  // Reset the radio
 		return;
 	}
+	hal_printf("RX Done \r\n");
 	Message_15_4_t* pckt_ptr = reinterpret_cast<Message_15_4_t*>(payload);
 	if(received_ts_ticks == UNSET_TS)
 		received_ts_ticks = HAL_Time_CurrentTicks();
@@ -68,7 +94,8 @@ void SX1276_HAL_RxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr
 }
 
 void SX1276_HAL_RxTimeout(){
-	SX1276Reset();
+	hal_printf("RX timeout\r\n");
+/*	SX1276Reset();
 	//g_SX1276M1BxASWrapper.IoInit( );
 	RxChainCalibration();
 	SX1276SetOpMode( RF_OPMODE_SLEEP );
@@ -77,11 +104,12 @@ void SX1276_HAL_RxTimeout(){
 	SX1276SetRadioRegistersInit();
 	
 	SX1276SetModem(MODEM_LORA);
-	SX1276_HAL_ChooseRadioConfig();
+	SX1276_HAL_ChooseRadioConfig();*/
 	SX1276_HAL_TurnOnRx();
 }
 
 void SX1276_HAL_RxError(){	
+	hal_printf("RX CRC Error\r\n");
 	SX1276_HAL_TurnOnRx();
 }
 
@@ -89,9 +117,9 @@ void SX1276_HAL_FhssChangeChannel(uint8_t currentChannel ){
 
 }
 void SX1276_HAL_CadDone(bool channelActivityDetected){	
-	m_rm = SLEEP;
+/*	m_rm = SLEEP;
 	CAD_Status = channelActivityDetected;
-	Is_CAD_Running = false;
+	Is_CAD_Running = false;*/
 }
 
 
@@ -127,6 +155,22 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 	events.FhssChangeChannel 	= SX1276_HAL_FhssChangeChannel;
 	events.CadDone 				= SX1276_HAL_CadDone; 
 	events.DataStatusCallback 	= SX1276_HAL_DataStatusCallback;
+
+	{
+		//Get cpu serial and hash it to use as node id. THIS IS NOT A DRIVER FUNCTION and NOT A MAC FUNCTION. CREATE A NAMING SERVICE
+		UINT8 cpuserial[12];
+		memset(cpuserial, 0, 12);
+		GetCPUSerial(cpuserial, 12);
+		UINT16 tempNum=0;
+		UINT16 * temp = (UINT16 *) cpuserial;
+		for (int i=0; i< 6; i++){
+			tempNum=tempNum ^ temp[i]; //XOR 72-bit number to generate 16-bit hash
+		}
+		//SX1276_HAL_SetAddress(tempNum);
+		SX1276_HAL_SetAddress(25084);
+
+		hal_printf("Address: %d\r\n", DBGMCU->IDCODE);
+	}
 	
 	received_ts_ticks = UNSET_TS;
 	
@@ -135,7 +179,8 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 	VirtualTimerReturnMessage rm;
 	rm = VirtTimer_SetTimer(VIRT_TIMER_SX1276_PacketLoadTimerName, 0, 1000, TRUE, FALSE, SX1276_HAL_PacketLoadTimerHandler);
 	rm = VirtTimer_SetTimer(VIRT_TIMER_SX1276_PacketTxTimerName, 0, 1000, TRUE, FALSE, SX1276_HAL_PacketTxTimerHandler);
-	rm = VirtTimer_SetTimer(VIRT_TIMER_SX1276_CADTimer, 0,  1000, TRUE, FALSE, SX1276_HAL_CADTimerHandler, LOW_DRIFT_TIMER);
+	//rm = VirtTimer_SetTimer(VIRT_TIMER_SX1276_CADTimer, 0,  1000, TRUE, FALSE, SX1276_HAL_CADTimerHandler, LOW_DRIFT_TIMER);
+	rm = VirtTimer_SetTimer(VIRT_TIMER_SX1276_CADTimer, 0,  1000, TRUE, FALSE, SX1276_HAL_CADTimerHandler);
 
 	SX1276Init(&events);
 	
@@ -179,8 +224,8 @@ void* SX1276_HAL_Send(void* msg, UINT16 size, UINT32 eventTime, bool request_ack
 	}
 	
 	//if radio layer accepted pkt return true, else return false.
-	SX1276Send(SX1276_Packet_GetPayload(), size, eventTime);
-	
+	//SX1276Send(SX1276_Packet_GetPayload(), size, eventTime);
+	SX1276Send(static_cast<uint8_t *>(msg), size, eventTime);
 	SX1276_HAL_DataStatusCallback(true,size);	
 	return msg;
 }
@@ -257,16 +302,17 @@ DeviceStatus SX1276_HAL_ChannelActivityDetection(){
 	rm = VirtTimer_Start(VIRT_TIMER_SX1276_CADTimer);
 
 	m_rm = RX;
-	SX1276StartCad();
+	//SX1276StartCad();
 
 	UINT32 i = 1;
-	while(Is_CAD_Running && i < 20000){
-		i++;
+	//while(Is_CAD_Running && i < 20000){
+	//	i++;
 		//hal_printf("CAD Running");
-	};
-
-	if(CAD_Status) return DS_Success;
-	else return DS_Fail;
+	//};
+	
+	return DS_Success;
+	//if(CAD_Status) return DS_Success;
+	//else return DS_Fail;
 }
 
 void SX1276_HAL_PacketLoadTimerHandler(void* param) {
@@ -275,7 +321,7 @@ void SX1276_HAL_PacketLoadTimerHandler(void* param) {
 	m_rm = STANDBY;
 	UINT64 curtime = VirtTimer_GetTicks(SX1276_Packet_GetClockId());
 	SX1276WriteFifo(SX1276_Packet_GetPayload(), SX1276_Packet_GetSize());
-	SX1276_Packet_MarkUploaded();
+ 	SX1276_Packet_MarkUploaded();
 	if(curtime >= SX1276_Packet_GetDueTime()){ //Failed to load and send correctly
 		delay = 10000;
 	}
@@ -297,7 +343,7 @@ void SX1276_HAL_CADTimerHandler(void * param){
 }
 
 bool SX1276_HAL_SetTimer(UINT8 timer_id, UINT32 start_delay, UINT32 period, BOOL is_one_shot, UINT8 hardwareTimerId) {
-	VirtualTimerReturnMessage rm = TimerSupported;
+ 	VirtualTimerReturnMessage rm = TimerSupported;
 	if(rm != TimerSupported) return false;  rm = VirtTimer_Stop(timer_id);
 	if(rm != TimerSupported) return false;  rm = VirtTimer_Change(timer_id, start_delay, period, is_one_shot, hardwareTimerId);
 	if(rm != TimerSupported) return false;  rm = VirtTimer_Start(timer_id);
@@ -340,6 +386,7 @@ DeviceStatus SX1276_HAL_Standby(){
 }
 
 DeviceStatus SX1276_HAL_Reset() {
+	hal_printf("Reset\n\r");
 	m_rm = SLEEP;
 	SX1276_Packet_ClearPayload();
 	

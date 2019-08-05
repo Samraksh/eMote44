@@ -10,6 +10,8 @@
 #include <Samraksh/MAC/OMAC/Scheduler.h>
 #include <Samraksh/MAC/OMAC/OMAC.h>
 
+#define SOFT_BREAKPOINT() ASSERT(0)
+
 extern OMACType g_OMAC;
 
 void PublicPostExecutionTaskHandler1(void * param){
@@ -228,8 +230,10 @@ void OMACScheduler::ScheduleNextEvent(){
 	}
 	else if(timeSyncEventOffset == nextWakeupTimeInMicSec) {
 		//nextWakeupTimeInMicSec = nextWakeupTimeInMicSec - OMAC_HW_ACK_DELAY_MICRO;
+#ifdef OMAC_DEBUG_GPIO		
 		CPU_GPIO_SetPinState(SCHED_TSREQ_EXEC_PIN, TRUE);
 		CPU_GPIO_SetPinState(SCHED_TSREQ_EXEC_PIN, FALSE);
+#endif
 		m_state = I_TIMESYNC_PENDING;
 	}
 	else{
@@ -343,9 +347,13 @@ bool OMACScheduler::RunEventTask(){
 		m_lastHandler = CONTROL_BEACON_HANDLER;
 		break;
 	default: //Case for
+#ifdef OMAC_DEBUG_GPIO	
 		CPU_GPIO_SetPinState(OMAC_SCHED_POST_POST_EXEC, TRUE);
+#endif
 		PostExecution();
+#ifdef OMAC_DEBUG_GPIO		
 		CPU_GPIO_SetPinState(OMAC_SCHED_POST_POST_EXEC, FALSE);
+#endif
 	}
 	return true;
 }

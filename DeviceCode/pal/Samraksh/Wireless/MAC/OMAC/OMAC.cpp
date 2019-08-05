@@ -26,6 +26,7 @@
 #define DEBUG_OMAC 0
 const bool NEED_OMAC_CALLBACK_CONTINUATION = false;
 
+#define SOFT_BREAKPOINT() ASSERT(0)
 
 #if defined(OMAC_DEBUG_PRINTF) || defined(DEBUG_OMAC_PREPAREMESSAGEBUFFER)
 #define DEBUG_OMAC_PMB_PRINTF(...) hal_printf( __VA_ARGS__ )
@@ -95,8 +96,10 @@ void OMACSendAckHandler(void* msg, UINT16 Size, NetOpStatus status, UINT8 radioA
 		case MFM_OMAC_NEIGHBORHOOD:
 			break;
 		case MFM_TIMESYNC:
+#ifdef OMAC_DEBUG_GPIO		
 			CPU_GPIO_SetPinState(SEND_ACK_PIN, TRUE);
 			CPU_GPIO_SetPinState(SEND_ACK_PIN, FALSE);
+#endif
 			break;
 		case MFM_OMAC_DATA_ACK:
 			if(CPU_Radio_GetRadioAckType() == SOFTWARE_ACK){
@@ -107,11 +110,15 @@ void OMACSendAckHandler(void* msg, UINT16 Size, NetOpStatus status, UINT8 radioA
 			break;
 		case MFM_DATA:
 		default:
+#ifdef OMAC_DEBUG_GPIO
 			CPU_GPIO_SetPinState(SEND_ACK_PIN, TRUE);
+#endif			
 			if(g_OMAC.m_omac_scheduler.m_execution_started && g_OMAC.m_omac_scheduler.m_state == I_DATA_SEND_PENDING && radioAckStatus == NetworkOperations_Success){
 				g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.SendACKHandler(rcv_msg, radioAckStatus);
 			}
+#ifdef OMAC_DEBUG_GPIO
 			CPU_GPIO_SetPinState(SEND_ACK_PIN, FALSE);
+#endif
 			break;
 		}
 	}
@@ -267,7 +274,7 @@ DeviceStatus OMACType::SetOMACParametersBasedOnRadioName(UINT8 radioName){
 		rv = DS_Success;
 		break;
 	}
-	case SX1276:
+	case SX1276RADIO:
 		{
 			UINT16 TX_BUFFER = 20 * MILLISECINMICSEC;
 			UINT16 RX_BUFFER = 70 * MILLISECINMICSEC;
@@ -612,9 +619,10 @@ Message_15_4_t* OMACType::ReceiveHandler(Message_15_4_t* msg, int Size){
 	if(!Initialized){
 		return msg;
 	}
+#ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 	CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
-
+#endif
 	DeviceStatus ds;
 	EntendedMACInfoMsgSummary* macinfosum_msg = NULL;
 	DiscoveryMsg_t* disco_msg = NULL;
@@ -710,6 +718,7 @@ Message_15_4_t* OMACType::ReceiveHandler(Message_15_4_t* msg, int Size){
 
 		if(!IsPcktValid(msg, Size)){
 			hal_printf("Packet invalid2 \r\n");
+#ifdef OMAC_DEBUG_GPIO
 			CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 			CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 			CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
@@ -718,6 +727,7 @@ Message_15_4_t* OMACType::ReceiveHandler(Message_15_4_t* msg, int Size){
 			CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 			CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 			CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
+#endif
 			return msg;
 		}
 		//g_OMAC.m_omac_scheduler.m_DataReceptionHandler.m_isreceiving = false;
@@ -769,7 +779,7 @@ Message_15_4_t* OMACType::ReceiveHandler(Message_15_4_t* msg, int Size){
 #endif
 			break;
 		}
-		case MFM_OMAC_NEIGHBORHOOD://Not processed
+		case MFM_OMAC_NEIGHBORHOOD: //Not processed
 		{
 #ifdef OMAC_DEBUG_PRINTF
 			OMAC_HAL_PRINTF("OMACType::ReceiveHandler MFM_NEIGHBORHOOD\r\n");
@@ -809,7 +819,7 @@ Message_15_4_t* OMACType::ReceiveHandler(Message_15_4_t* msg, int Size){
 #endif
 			break;
 		}
-		case MFM_OMAC_DATA_BEACON_TYPE://Not processed
+		case MFM_OMAC_DATA_BEACON_TYPE: //Not processed
 		{
 #ifdef OMAC_DEBUG_PRINTF
 			OMAC_HAL_PRINTF("OMACType::ReceiveHandler MFM_OMAC_DATA_BEACON_TYPE \r\n");

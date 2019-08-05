@@ -17,6 +17,8 @@
 
 extern void HAL_CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents);
 
+int CADcount;
+
 void CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents)
 {
     HAL_CPU_Sleep(level, wakeEvents);
@@ -51,7 +53,7 @@ static void rx_done(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
 		return;
 	}
 
-	if ( strncmp("Samraksh", pkt->name, sizeof(pkt->name)) != 0) {
+	if ( strncmp("ABCDEFGHIJKLMN Samraksh", pkt->name, sizeof(pkt->name)) != 0) {
 		spur++;
 		debug_printf("%s(): Spurious packet size:%d rssi:%d spur:%u named:%s\r\n", __func__, size, rssi, spur, pkt->name);
 		return;
@@ -76,7 +78,10 @@ static void radio_change_channel( uint8_t currentChannel ) {
 }
 
 static void radio_cad_done(bool channelActivityDetected) {
-	if (channelActivityDetected == true) debug_printf("%s\r\n", __func__);
+	if (channelActivityDetected == true) {
+		debug_printf("%s\r\n", __func__);
+		CADcount++;
+	}
 }
 
 static uint32_t get_cpu_id_hash(void) {
@@ -109,7 +114,7 @@ static void native_link_test(void) {
 	debug_printf("I am 0x%.8X\r\n", id);
 
 	pkt.count = 0;
-	strncpy(pkt.name, "Samraksh", sizeof(pkt.name));
+	strncpy(pkt.name, "ABCDEFGHIJKLMN Samraksh", sizeof(pkt.name));
 
 	CPU_SPI_Init(SPI_TYPE_RADIO);
 		
@@ -154,6 +159,9 @@ static void native_link_test(void) {
 		//next = CPU_Timer_GetCounter(RTC_32BIT);
 		now = next;
 		while(1) {
+			CADcount = 0;
+			//SX1276StartCad();
+			
 			// wait for now to zero-cross if overflow detected
 			while (overflow && now >= last_now) {
 				Events_WaitForEvents(0, POLL_INTERVAL_MS);
@@ -171,6 +179,10 @@ static void native_link_test(void) {
 				now = HAL_GetTick();
 				//now = CPU_Timer_GetCounter(RTC_32BIT);
 			}
+		//	HAL_Delay(50);
+			//if (CADcount > 0) hal_printf("CAD CAD\r\n");
+			//else hal_printf("NO CAD\r\n");
+			
 			SX1276Send( (uint8_t *)&pkt, sizeof(pkt), 0 );
 			debug_printf("Sent: %u\r\n", pkt.count);
 			pkt.count++;
@@ -190,7 +202,11 @@ static void native_link_test(void) {
 			//Events_Clear(SYSTEM_EVENT_FLAG_IO);
 			if (SX1276GetStatus() == RF_IDLE) { 
 			//	hal_printf("LoRa_test.cpp:187\n\r");
-				SX1276SetRx(0); 
+			//	SX1276SetRx(0); 
+			//
+			}
+			if (SX1276GetStatus() != RF_CAD) {
+				SX1276StartCad();
 			}
 			//hal_printf("LoRa_test.cpp:190\n\r");
 			// SYSTEM_EVENT_FLAG_IO should trigger on GPIO interrupts

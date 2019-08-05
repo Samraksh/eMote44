@@ -23,7 +23,8 @@ extern OMACType g_OMAC;
 #define DEBUG_OMAC_UNWUS_PRINTF(...) (void)0
 #endif
 
-
+#define OMAC_DTH_DEBUG_ReceiveDATAACK 0
+#define OMAC_DTH_DEBUG_SendACKHandler 0
 
 void PublicDataTxCallback(void * param){
 #if OMAC_DTH_TIMER_TARGET_TIME_CORRECTION
@@ -990,10 +991,10 @@ void DataTransmissionHandler::ReceiveDATAACK(UINT16 sourceaddress){ //Mark 8
 	//1) SOFTWARE_ACKs are used
 	//3) If the sourceID is equal to the destination of the original message
 	//
-
+#ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 	CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
-
+#endif
 
 	if( true
 			&& 	CPU_Radio_GetRadioAckType() == SOFTWARE_ACK

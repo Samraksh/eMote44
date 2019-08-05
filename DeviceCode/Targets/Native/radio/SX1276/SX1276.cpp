@@ -1463,6 +1463,7 @@ void SX1276OnTimeoutIrq( void* context )
         }
         if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
         {
+			hal_printf("RX TIMEOUT From timer\n\r");
             RadioEvents->RxTimeout( );
         }
         break;
@@ -1769,6 +1770,7 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 					SX1276.Settings.State = RF_IDLE;
 					if( ( RadioEvents != NULL ) && ( RadioEvents->RxTimeout != NULL ) )
 					{
+						hal_printf("RX TIMEOUT From IRQ\n\r");
 						RadioEvents->RxTimeout( );
 					}
 					break;
@@ -1886,9 +1888,10 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
     case MODEM_FSK:
         break;
     case MODEM_LORA:
-	   	if( SX1276.Settings.State == RF_RX_RUNNING){ //BK: Adding interrupt for packet detected
+		//hal_printf("DIO3IRQ\n\r");
+ 	   	if( SX1276.Settings.State == RF_RX_RUNNING){ //BK: Adding interrupt for packet detected
     		if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_VALIDHEADER ) == RFLR_IRQFLAGS_VALIDHEADER ){ //BK:Adding callback for
-				
+				hal_printf("Valid Header\n\r");
 				// Clear Irq
 				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_VALIDHEADER | RFLR_IRQFLAGS_VALIDHEADER );
 				if( ( RadioEvents != NULL ) && ( RadioEvents->ValidHeaderDetected != NULL ) )
@@ -1900,6 +1903,7 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		
         if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
         {
+			hal_printf("CAD Detected\r\n");
             // Clear Irq
             SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
@@ -1907,8 +1911,9 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 RadioEvents->CadDone( true );
             }
         }
-        else
+        else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDONE ) == RFLR_IRQFLAGS_CADDONE )
         {
+			//hal_printf("CAD Done\r\n");
             // Clear Irq
             SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )

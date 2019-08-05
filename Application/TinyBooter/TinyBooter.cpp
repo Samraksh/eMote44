@@ -63,7 +63,7 @@ void ApplicationEntryPoint()
 
         DebuggerPort_Initialize( HalSystemConfig.DebuggerPorts[ 0 ] );
 		//HAL_Delay(10U);
-		CPU_USB_Initialize(0);
+		//CPU_USB_Initialize(0);
 		//HAL_Delay(10);
 		//hal_printf(" 64 TinyBooter.cpp \n");
 		//USART_Initialize( ConvertCOM_ComPort(USART_DEFAULT_PORT), HalSystemConfig.USART_DefaultBaudRate, USART_PARITY_NONE, 8, USART_STOP_BITS_ONE, USART_FLOW_NONE );

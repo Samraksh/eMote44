@@ -10,7 +10,7 @@
 #include <Samraksh/MAC/OMAC/DataReceptionHandler.h>
 #include <Samraksh/MAC/OMAC/OMAC.h>
 
-
+#define OMAC_DRH_DEBUG_UNEXPECTED_POST_EXECUTE 0
 extern OMACType g_OMAC;
 
 
@@ -381,9 +381,10 @@ void DataReceptionHandler::SendACKHandler(){ // Handler for end of tranmission i
 		VirtualTimerReturnMessage rm;
 		// m_isreceiving = false;
 		//ASSERT_SP(m_receptionstate == DRS_TX_START);
+#ifdef OMAC_DEBUG_GPIO		
 		CPU_GPIO_SetPinState( DATATX_SendACKHandler_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_SendACKHandler_PIN_TOGGLER) );
 		CPU_GPIO_SetPinState( DATATX_SendACKHandler_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_SendACKHandler_PIN_TOGGLER) );
-
+#endif
 		if(m_receptionstate != DRS_TX_START){
 			return;
 		}
@@ -400,9 +401,10 @@ void DataReceptionHandler::SendACKHandler(){ // Handler for end of tranmission i
 #endif
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_RECEIVER);
 		g_OMAC.m_omac_scheduler.m_DataReceptionHandler.is_VIRT_TIMER_OMAC_RECEIVER_in_use = true;
+#ifdef OMAC_DEBUG_GPIO		
 		CPU_GPIO_SetPinState( DATATX_SendACKHandler_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_SendACKHandler_PIN_TOGGLER) );
 		CPU_GPIO_SetPinState( DATATX_SendACKHandler_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_SendACKHandler_PIN_TOGGLER) );
-
+#endif
 	}
 }
 

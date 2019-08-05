@@ -35,8 +35,8 @@
 //
 /////////////////////////////////////////////////////////
 
-#define __MAC_CSMA__
-//#define __MAC_OMAC__
+//#define __MAC_CSMA__
+#define __MAC_OMAC__
 
 #define __RADIO_SX1276__
 //#define __RADIO_SI4468__
@@ -182,10 +182,11 @@ const UINT8 TIMER_32BIT = ADVTIMER_32BIT;
 const UINT8 RTC_32BIT = 4;
 const UINT8 LOW_DRIFT_TIMER = RTC_32BIT;
 const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
+const UINT8 OMACClockSpecifier = ADVTIMER_32BIT; //??
 
 const UINT8 g_CountOfHardwareTimers = 2;
 const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = {SYSTEM_TIME, DEFAULT_TIMER };
-const UINT8 g_VirtualTimerPerHardwareTimer = 20;
+const UINT8 g_VirtualTimerPerHardwareTimer = 30;
 const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 48000000};
 
 // timers that are run within interrupt context
@@ -214,6 +215,14 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 #define VIRT_TIMER_OMAC_SCHEDULER 18
 
 #define LocalClockMonitor_TIMER1 19
+
+#define VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE 20
+#define VIRT_TIMER_OMAC_SCHEDULER_RADIO_STOP_RETRY 21
+#define VIRT_TIMER_OMAC_RECEIVER 22
+#define VIRT_TIMER_OMAC_RECEIVER_ACK 23
+#define VIRT_TIMER_OMAC_DISCOVERY 24
+#define VIRT_TIMER_OMAC_TRANSMITTER 25
+#define VIRT_TIMER_OMAC_TIMESYNC 26
 
 /* Definition for USARTx clock resources */
 #define USARTx                      USART3
@@ -275,8 +284,8 @@ do {                                                    \
 
 // Definition for LoRa I/O
 #ifdef RADIO_LORA
-
-#define RADIO_RESET_PORT                          GPIOD
+// dragino LoRa Sheild
+/* #define RADIO_RESET_PORT                          GPIOD
 #define RADIO_RESET_PIN                           GPIO_PIN_15
 
 #define RADIO_MOSI_PORT                           GPIOA
@@ -293,6 +302,38 @@ do {                                                    \
 
 //#define RADIO_BUSY_PORT                           GPIOB
 //#define RADIO_BUSY_PIN                            GPIO_PIN_3
+
+#define RADIO_DIO_0_PORT                          GPIOF
+#define RADIO_DIO_0_PIN                           GPIO_PIN_15
+
+#define RADIO_DIO_1_PORT                          GPIOE
+#define RADIO_DIO_1_PIN                           GPIO_PIN_9
+
+#define RADIO_DIO_2_PORT                          GPIOF
+#define RADIO_DIO_2_PIN                           GPIO_PIN_13
+
+#define RADIO_DIO_3_PORT                          GPIOF
+#define RADIO_DIO_3_PIN                           GPIO_PIN_12
+
+#define RADIO_ANT_SWITCH_PORT              		  GPIOA
+#define RADIO_ANT_SWITCH_PIN              		  GPIO_PIN_9 */
+
+// LoRa/GPS HAT
+
+#define RADIO_RESET_PORT                          GPIOD
+#define RADIO_RESET_PIN                           GPIO_PIN_15
+
+#define RADIO_MOSI_PORT                           GPIOA
+#define RADIO_MOSI_PIN                            GPIO_PIN_7
+
+#define RADIO_MISO_PORT                           GPIOA
+#define RADIO_MISO_PIN                            GPIO_PIN_6
+
+#define RADIO_SCLK_PORT                           GPIOA
+#define RADIO_SCLK_PIN                            GPIO_PIN_5
+
+#define RADIO_NSS_PORT                            GPIOD
+#define RADIO_NSS_PIN                             GPIO_PIN_14
 
 #define RADIO_DIO_0_PORT                          GPIOF
 #define RADIO_DIO_0_PIN                           GPIO_PIN_15
@@ -382,6 +423,7 @@ do {                                                    \
 #define USB_DP_Pin 						GPIO_PIN_12
 #define USB_DP_GPIO_Port 				GPIOA
 
+#define OMAC_DISCO_SEQ_NUMBER			97
 
 //#define BUFFERSIZE                       (COUNTOF(aTxBuffer2) - 1)
 /* Size of Trasmission buffer */

@@ -39,9 +39,13 @@
         <RequiredProjects Include="$(SPOCLIENT)\Solutions\STM32H743NUCLEO\DeviceCode\Radio\dotNetMF.proj" />
         <DriverLibs Include="netmf_radio.$(LIB_EXT)"/>
 	</ItemGroup>
-	<ItemGroup>
+	<!--<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\CSMAMAC\dotNetMF.proj" />
         <DriverLibs Include="csma_pal.$(LIB_EXT)"/>
+	</ItemGroup>-->
+	<ItemGroup>
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\OMAC\dotNetMF.proj" />
+        <DriverLibs Include="omac_pal.$(LIB_EXT)"/>
 	</ItemGroup>
 	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\dotNetMF.proj" />
@@ -277,10 +281,10 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_USART\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
-	    <DriverLibs Include="cpu_usb_stubs.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\processor\stubs_USB\dotNetMF.proj" />
-        <!--<DriverLibs Include="STM32H7_USB.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_USB\dotNetMF.proj" />-->
+	   <!-- <DriverLibs Include="cpu_usb_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Drivers\Stubs\processor\stubs_USB\dotNetMF.proj" />-->
+        <DriverLibs Include="STM32H7_USB.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_USB\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
         <DriverLibs Include="STM32H7_INTC.$(LIB_EXT)" />
