@@ -932,6 +932,7 @@ HAL_StatusTypeDef HAL_I2S_Receive(I2S_HandleTypeDef *hi2s, uint16_t *pData, uint
 		  *((uint32_t *)hi2s->pRxBuffPtr) = data;
 		  //hi2s->pRxBuffPtr += sizeof(uint32_t);
 		  hi2s->pRxBuffPtr += sizeof(uint16_t);
+		  //hi2s->pRxBuffPtr++;
 		  hi2s->RxXferCount--;
 	  }
      // hi2s->pRxBuffPtr += 2;
@@ -1801,11 +1802,25 @@ static void I2S_Receive_16Bit_IT(I2S_HandleTypeDef *hi2s)
   */
 static void I2S_Receive_32Bit_IT(I2S_HandleTypeDef *hi2s)
 {
+  static unsigned even = 0;
   /* Receive data */
-  *((uint32_t *)hi2s->pRxBuffPtr) = hi2s->Instance->RXDR;
-  hi2s->pRxBuffPtr += 2;
-  hi2s->RxXferCount--;
+ // *((uint32_t *)hi2s->pRxBuffPtr) = hi2s->Instance->RXDR;
+ // hi2s->pRxBuffPtr += 2;
+ // hi2s->RxXferCount--;
 
+  uint32_t data = *((__IO uint32_t *)&hi2s->Instance->RXDR);
+  /* Receive data in 32 Bit mode */
+  //*((uint32_t *)hi2s->pRxBuffPtr) = hi2s->Instance->RXDR;
+  if ( (even++ & 1) == 0) {
+     *((uint32_t *)hi2s->pRxBuffPtr) = data;
+     //hi2s->pRxBuffPtr += sizeof(uint32_t);
+    // hi2s->pRxBuffPtr += sizeof(uint16_t);
+     hi2s->pRxBuffPtr++;
+	 hi2s->RxXferCount--;
+  }
+  // hi2s->pRxBuffPtr += 2;
+  //hi2s->RxXferCount--;
+	
   if (hi2s->RxXferCount == 0UL)
   {
     /* Disable RXNE and ERR interrupt */

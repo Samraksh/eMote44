@@ -28,21 +28,36 @@ DMA_HandleTypeDef DMA_Handle;
 
 
 DMA_BUFFER uint32_t rx_buffer[1024];
+uint32_t rx_buffer2[1024];
 
 extern "C" {
 	
 void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 	hal_printf("Error_I2S\r\n");
+	BREAKPOINT();
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	hal_printf("Rx_I2S\r\n");	
+	//rx_buffer[2] = 4;
+	//hal_printf("Rx_I2S\r\n");	
+}
+
+void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
+{
+	//rx_buffer[2] = 3;
+	//rx_buffer[0] = rx_buffer[0]+1;
+	static bool state = FALSE;
+	if (state)
+		state = FALSE;
+	else
+		state = TRUE;
+	CPU_GPIO_EnableOutputPin(LED2, state);
 }
 
 void DMA1_Stream5_IRQHandler(void)
 {
-  hal_printf("DMA_Stream\r\n");
+  //hal_printf("DMA_Stream\r\n");
   HAL_DMA_IRQHandler(&DMA_Handle);
 }
 
@@ -86,6 +101,8 @@ static int16_t i2s24_to_pcm16_h7(uint32_t x) {
 
 #define MY_FRAME_SIZE 1024
 static uint32_t audio_data[MY_FRAME_SIZE];
+static uint32_t audio_data2[MY_FRAME_SIZE];
+static uint32_t audio_data3[MY_FRAME_SIZE];
 static int16_t mel_input_data[MY_FRAME_SIZE];
 #define AUDIO_LEN (sizeof(audio_data)/sizeof(audio_data[0])) 	// 32-bit samples
 #define AUDIO_BYTES (sizeof(audio_data))						// Bytes of data
@@ -102,7 +119,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
   /* USER CODE END SPI1_MspInit 0 */
     /* I2S1 clock enable */
     __HAL_RCC_SPI3_CLK_ENABLE();
-  
+	__HAL_RCC_DMA1_CLK_ENABLE();
     //__HAL_RCC_GPIOA_CLK_ENABLE();
     //__HAL_RCC_GPIOD_CLK_ENABLE();
 	
@@ -159,14 +176,16 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
 	DMA_Handle.Instance = DMA1_Stream5;
     DMA_Handle.Init.Request = DMA_REQUEST_SPI3_RX;
     DMA_Handle.Init.Direction = DMA_PERIPH_TO_MEMORY;
-    DMA_Handle.Init.PeriphInc = DMA_PINC_ENABLE;
+    DMA_Handle.Init.PeriphInc = DMA_PINC_DISABLE;
     DMA_Handle.Init.MemInc = DMA_MINC_ENABLE;
-    DMA_Handle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
-    DMA_Handle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
-    DMA_Handle.Init.Mode = DMA_NORMAL;
-    DMA_Handle.Init.Priority = DMA_PRIORITY_VERY_HIGH;
-    DMA_Handle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
-    if (HAL_DMA_Init(&DMA_Handle) != HAL_OK)
+    DMA_Handle.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    DMA_Handle.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+    DMA_Handle.Init.Mode = DMA_CIRCULAR;
+    DMA_Handle.Init.Priority = DMA_PRIORITY_LOW;
+    //DMA_Handle.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+	//DMA_Handle.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+    
+	if (HAL_DMA_Init(&DMA_Handle) != HAL_OK)
     {
       Error_Handler();
     }
@@ -193,7 +212,7 @@ void HAL_I2S_MspDeInit(I2S_HandleTypeDef* i2sHandle)
   /* USER CODE END SPI1_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_SPI1_CLK_DISABLE();
-  
+  	__HAL_RCC_DMA1_CLK_DISABLE();
 	/**I2S3 GPIO Configuration    
     PA15 (JTDI)     ------> I2S3_WS
     PB3      ------> I2S3_CK
@@ -252,8 +271,19 @@ void I2S_Test()
 		for (int i=0; i<AUDIO_LEN; i++) mel_input_data[i] = i2s24_to_pcm16_h7(audio_data[i]);
 		mfcc_test(mel_input_data);
 	}*/
+	HAL_StatusTypeDef ret;
 	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);
-	HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)rx_buffer, AUDIO_LEN/2);
+	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data2, AUDIO_LEN/2, INT_MAX);	
+	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data3, AUDIO_LEN/2, INT_MAX);	
+	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)rx_buffer, AUDIO_LEN/2);
+	
+
+	//rx_buffer[0] = 1;
+	//rx_buffer[1] = 2;
+
+	//rx_buffer[2] = 3;
+	if (ret != HAL_OK) hal_printf("DMA is no OKAY\r\n");
+
 }
 
 BOOL I2S_Internal_Uninitialize()
