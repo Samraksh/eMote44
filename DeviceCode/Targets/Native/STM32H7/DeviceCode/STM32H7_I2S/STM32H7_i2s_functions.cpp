@@ -30,6 +30,43 @@ DMA_HandleTypeDef DMA_Handle;
 DMA_BUFFER uint32_t rx_buffer[1024];
 uint32_t rx_buffer2[1024];
 
+MFCC *dut1;
+int init_mfcc = 0;
+
+// Version for H7 which only needs sign extension
+static int16_t i2s24_to_pcm16_h7(uint32_t x) {
+	// 24-bit to 16-bit
+	int16_t ret = (int16_t) (x >> 8);
+	return ret;
+}
+
+
+#define MY_MFCC_SIZE 8
+#define MY_FRAME_SIZE 1024
+static uint32_t audio_data[MY_FRAME_SIZE];
+static uint32_t audio_data2[MY_FRAME_SIZE];
+static uint32_t audio_data3[MY_FRAME_SIZE];
+static int16_t mel_input_data[MY_FRAME_SIZE];
+#define AUDIO_LEN (sizeof(audio_data)/sizeof(audio_data[0])) 	// 32-bit samples
+#define AUDIO_BYTES (sizeof(audio_data))						// Bytes of data
+
+void test_test(int DMA_CHECK) {
+	
+	if (init_mfcc == 0) {
+		dut1 = new MFCC(MY_MFCC_SIZE, MY_FRAME_SIZE, 7);
+		init_mfcc = 1;
+	}		
+	int j = 0;
+	for (int i = 0; i < 1024; i++) {
+		if (i%2 == 1) {
+			if (DMA_CHECK == 1) mel_input_data[j] = i2s24_to_pcm16_h7(rx_buffer[i]);
+			j++;
+		}	
+		if (DMA_CHECK == 0) mel_input_data[i] = i2s24_to_pcm16_h7(audio_data[i]);
+	}
+	dut1->mfcc_compute(mel_input_data);
+}
+
 extern "C" {
 	
 void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
@@ -41,18 +78,22 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
 {
 	//rx_buffer[2] = 4;
 	//hal_printf("Rx_I2S\r\n");	
+	//mfcc_init();
+	test_test(1);
+	
 }
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
+	
 	//rx_buffer[2] = 3;
 	//rx_buffer[0] = rx_buffer[0]+1;
-	static bool state = FALSE;
-	if (state)
-		state = FALSE;
-	else
-		state = TRUE;
-	CPU_GPIO_EnableOutputPin(LED2, state);
+	//static bool state = FALSE;
+	//if (state)
+	//	state = FALSE;
+	//else
+	//	state = TRUE;
+	//CPU_GPIO_EnableOutputPin(LED2, state);
 }
 
 void DMA1_Stream5_IRQHandler(void)
@@ -77,6 +118,7 @@ void Error_Handler(void)
 }
 
 
+
 static void print_cpu_config(void) {
 	PLL1_ClocksTypeDef pll1;
 	uint32_t spi1;
@@ -92,20 +134,6 @@ static void print_cpu_config(void) {
 		pll1.PLL1_P_Frequency/1000000, pll1.PLL1_Q_Frequency/1000000, pll1.PLL1_R_Frequency/1000000, spi1/1000000);
 }
 
-// Version for H7 which only needs sign extension
-static int16_t i2s24_to_pcm16_h7(uint32_t x) {
-	// 24-bit to 16-bit
-	int16_t ret = (int16_t) (x >> 8);
-	return ret;
-}
-
-#define MY_FRAME_SIZE 1024
-static uint32_t audio_data[MY_FRAME_SIZE];
-static uint32_t audio_data2[MY_FRAME_SIZE];
-static uint32_t audio_data3[MY_FRAME_SIZE];
-static int16_t mel_input_data[MY_FRAME_SIZE];
-#define AUDIO_LEN (sizeof(audio_data)/sizeof(audio_data[0])) 	// 32-bit samples
-#define AUDIO_BYTES (sizeof(audio_data))						// Bytes of data
 
 
 void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
@@ -260,6 +288,7 @@ BOOL I2S_Internal_Initialize()
 
 void I2S_Test()
 {
+
 	print_cpu_config();
 	//mfcc_init();
 	/*while(1) {
@@ -271,11 +300,12 @@ void I2S_Test()
 		for (int i=0; i<AUDIO_LEN; i++) mel_input_data[i] = i2s24_to_pcm16_h7(audio_data[i]);
 		mfcc_test(mel_input_data);
 	}*/
+
 	HAL_StatusTypeDef ret;
 	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);
-	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data2, AUDIO_LEN/2, INT_MAX);	
-	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data3, AUDIO_LEN/2, INT_MAX);	
-	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)rx_buffer, AUDIO_LEN/2);
+	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);	
+	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);	
+    ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)rx_buffer, AUDIO_LEN/2);
 	
 
 	//rx_buffer[0] = 1;

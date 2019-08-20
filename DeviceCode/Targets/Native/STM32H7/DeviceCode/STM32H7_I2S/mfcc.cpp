@@ -59,7 +59,7 @@ static int16_t lfsr1(void)
 static MFCC *dut;
 
 void mfcc_init() {
-	usb_printf("MFCC init: Frame: %u FFT: %u MFCC: %u\r\n", MY_FRAME_SIZE, NUM_FBANK_BINS, MY_MFCC_SIZE);
+	//usb_printf("MFCC init: Frame: %u FFT: %u MFCC: %u\r\n", MY_FRAME_SIZE, NUM_FBANK_BINS, MY_MFCC_SIZE);
 	dut = new MFCC(MY_MFCC_SIZE,MY_FRAME_SIZE,7);
 }
 
@@ -69,7 +69,7 @@ void mfcc_test(const int16_t *data) {
 	//memset(mfcc_out, 0, sizeof(mfcc_out));
 	//now1 = get_timer();
 	//start_timer();
-	dut->mfcc_compute(data, mfcc_out);
+	//dut->mfcc_compute(data, mfcc_out);
 	//now2 = get_timer();
 	//stop_timer();
 	//usb_printf("Compute Took %u us\r\n", (now2-now1)/CPU_MHZ);
@@ -196,7 +196,8 @@ float ** MFCC::create_mel_fbank() {
   return mel_fbank;
 }
 
-void MFCC::mfcc_compute(const int16_t * audio_data, q7_t* mfcc_out) {
+//void MFCC::mfcc_compute(const int16_t * audio_data, q7_t* mfcc_out) {
+void MFCC::mfcc_compute(const int16_t * audio_data) {
 
   int32_t i, j, bin;
   // unsigned now1, now2;
