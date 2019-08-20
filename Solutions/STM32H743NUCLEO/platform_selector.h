@@ -108,12 +108,12 @@
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)
 #define USB_ALLOW_CONFIGURATION_OVERRIDE 1
 
-#define DEBUG_TEXT_PORT                 COM3
-#define STDIO                           COM3
-#define DEBUGGER_PORT                   COM3
-#define MESSAGING_PORT                  COM3
+#define DEBUG_TEXT_PORT                 COM5
+#define STDIO                           COM5
+#define DEBUGGER_PORT                   COM5
+#define MESSAGING_PORT                  COM5
 
-#define USART_DEFAULT_PORT              2 // COM3
+#define USART_DEFAULT_PORT              4 // COM3
 #define USART_DEFAULT_BAUDRATE          115200
 
 // System Timer Configuration
@@ -140,11 +140,11 @@
 #define _P_NONE_                        GPIO_PIN_NONE
 
 // Serial
-#define TOTAL_USART_PORT                3
+#define TOTAL_USART_PORT                8
 //                                         "COM1"    "COM2"    "COM3"
 //                                         USART1    USART2    USART3
-#define STM32H7_UART_TXD_PINS           { _P_NONE_, _P(A, 2), _P(D, 8) }
-#define STM32H7_UART_RXD_PINS           { _P_NONE_, _P(A, 3), _P(D, 9) }
+//#define STM32H7_UART_TXD_PINS           { _P_NONE_, _P(A, 2), _P(D, 8) }
+//#define STM32H7_UART_RXD_PINS           { _P_NONE_, _P(A, 3), _P(D, 9) }
 // USART1 cannot be used: USART1_RX on PA10 conflicts with USB, PB7 conflicts with LED2
 // USART3 is connected to ST-LINK (PD8, PD9) and available as a virtual COM port
 
@@ -224,17 +224,41 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 #define VIRT_TIMER_OMAC_TRANSMITTER 25
 #define VIRT_TIMER_OMAC_TIMESYNC 26
 
+
+
+/* Definition for USARTx Pins */
+#define USART2_TX_PIN               GPIO_PIN_2
+#define USART2_TX_GPIO_PORT         GPIOA
+#define USART2_TX_AF                GPIO_AF7_USART2
+#define USART2_RX_PIN               GPIO_PIN_6
+#define USART2_RX_GPIO_PORT         GPIOD
+#define USART2_RX_AF                GPIO_AF7_USART2
+
+#define USART3_TX_PIN               GPIO_PIN_8
+#define USART3_TX_GPIO_PORT         GPIOD
+#define USART3_TX_AF                GPIO_AF7_USART3
+#define USART3_RX_PIN               GPIO_PIN_9
+#define USART3_RX_GPIO_PORT         GPIOD
+#define USART3_RX_AF                GPIO_AF7_USART3
+
+#define UART5_TX_PIN               GPIO_PIN_13
+#define UART5_TX_GPIO_PORT         GPIOB
+#define UART5_TX_AF                GPIO_AF14_UART5
+#define UART5_RX_PIN               GPIO_PIN_12
+#define UART5_RX_GPIO_PORT         GPIOB
+#define UART5_RX_AF                GPIO_AF14_UART5
+
 /* Definition for USARTx clock resources */
-#define USARTx                      USART3
+/*#define USARTx                      USART3
 #define USARTx_CLK_ENABLE()         __HAL_RCC_USART3_CLK_ENABLE()
 #define USARTx_RX_GPIO_CLK_ENABLE() __HAL_RCC_GPIOD_CLK_ENABLE()
 #define USARTx_TX_GPIO_CLK_ENABLE() __HAL_RCC_GPIOD_CLK_ENABLE()
 
 #define USARTx_FORCE_RESET()        __HAL_RCC_USART3_FORCE_RESET()
 #define USARTx_RELEASE_RESET()      __HAL_RCC_USART3_RELEASE_RESET()
-
+*/
 /* Definition for USARTx Pins */
-#define USARTx_TX_PIN               GPIO_PIN_8
+/*#define USARTx_TX_PIN               GPIO_PIN_8
 #define USARTx_TX_GPIO_PORT         GPIOD
 #define USARTx_TX_AF                GPIO_AF7_USART3
 #define USARTx_RX_PIN               GPIO_PIN_9
@@ -243,7 +267,7 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 #define USARTx_CK_PIN               GPIO_PIN_7
 #define USARTx_CK_GPIO_PORT         GPIOD
 #define USARTx_CK_AF                GPIO_AF7_USART3
-
+*/
 /*!
  * \brief GPIOs Macro
  */
@@ -320,8 +344,8 @@ do {                                                    \
 
 // LoRa/GPS HAT
 
-#define RADIO_RESET_PORT                          GPIOD
-#define RADIO_RESET_PIN                           GPIO_PIN_15
+#define RADIO_RESET_PORT                          GPIOA
+#define RADIO_RESET_PIN                           GPIO_PIN_8
 
 #define RADIO_MOSI_PORT                           GPIOA
 #define RADIO_MOSI_PIN                            GPIO_PIN_7
@@ -332,20 +356,20 @@ do {                                                    \
 #define RADIO_SCLK_PORT                           GPIOA
 #define RADIO_SCLK_PIN                            GPIO_PIN_5
 
-#define RADIO_NSS_PORT                            GPIOD
-#define RADIO_NSS_PIN                             GPIO_PIN_14
+#define RADIO_NSS_PORT                            GPIOC
+#define RADIO_NSS_PIN                             GPIO_PIN_1
 
-#define RADIO_DIO_0_PORT                          GPIOF
-#define RADIO_DIO_0_PIN                           GPIO_PIN_15
+#define RADIO_DIO_0_PORT                          GPIOB
+#define RADIO_DIO_0_PIN                           GPIO_PIN_5
 
-#define RADIO_DIO_1_PORT                          GPIOF
-#define RADIO_DIO_1_PIN                           GPIO_PIN_14
+#define RADIO_DIO_1_PORT                          GPIOB
+#define RADIO_DIO_1_PIN                           GPIO_PIN_6
 
-#define RADIO_DIO_2_PORT                          GPIOF
-#define RADIO_DIO_2_PIN                           GPIO_PIN_13
+#define RADIO_DIO_2_PORT                          GPIOB
+#define RADIO_DIO_2_PIN                           GPIO_PIN_7
 
-#define RADIO_DIO_3_PORT                          GPIOF
-#define RADIO_DIO_3_PIN                           GPIO_PIN_12
+#define RADIO_DIO_3_PORT                          GPIOB
+#define RADIO_DIO_3_PIN                           GPIO_PIN_8
 
 #define RADIO_ANT_SWITCH_PORT              		  GPIOA
 #define RADIO_ANT_SWITCH_PIN              		  GPIO_PIN_9

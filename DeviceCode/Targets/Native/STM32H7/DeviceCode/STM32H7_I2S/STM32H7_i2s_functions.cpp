@@ -64,7 +64,7 @@ void test_test(int DMA_CHECK) {
 		}	
 		if (DMA_CHECK == 0) mel_input_data[i] = i2s24_to_pcm16_h7(audio_data[i]);
 	}
-	dut1->mfcc_compute(mel_input_data);
+	//dut1->mfcc_compute(mel_input_data);
 }
 
 extern "C" {
@@ -152,7 +152,7 @@ void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
     //__HAL_RCC_GPIOD_CLK_ENABLE();
 	
 	/**I2S3 GPIO Configuration    
-    PA15 (JTDI)     ------> I2S3_WS
+    PA4 (JTDI)     ------> I2S3_WS
     PC10      ------> I2S3_CK
 	PC11      ------> I2S3_SDI
 	PC12     ------> I2S3_SDO 
