@@ -272,6 +272,13 @@ uint32_t SX1276Init( RadioEvents_t *events )
 
     SX1276.Settings.State = RF_IDLE;
 
+    if (SX1276Read(REG_LR_VERSION) != 0x12) {
+    	while(1){
+    		//__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
+    		hal_printf("Something went terribly wrong in SPI Initialization = %d\n\r",SX1276Read(REG_LR_VERSION));
+    	}
+    }
+
     return ( uint32_t )SX1276BoardGetWakeTime( ) + RADIO_WAKEUP_TIME;// BOARD_WAKEUP_TIME;
 }
 
@@ -1496,6 +1503,12 @@ void SX1276OnTimeoutIrq( void* context )
         SX1276.Settings.State = RF_IDLE;
         if( ( RadioEvents != NULL ) && ( RadioEvents->TxTimeout != NULL ) )
         {
+			if (CPU_GPIO_Read(RADIO_DIO_0_PORT, RADIO_DIO_0_PIN) == 0) {
+				CPU_GPIO_Write( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 1);
+				hal_printf("TX TIMEOUT From timer 1\n\r");
+					
+			}
+			else hal_printf("TX TIMEOUT From timer 0\n\r");
             RadioEvents->TxTimeout( );
         }
         break;

@@ -160,8 +160,8 @@
 
 // User LEDs
 #define LED1                            _P(B, 0)  // Green
-#define LED2                            _P(B, 7)  // Blue
-#define LED3                            _P(B,14)  // Red
+#define LED2                            _P(B, 1)  // Blue
+#define LED3                            _P(B, 2)  // Red
 
 #define GPIO_0 _P(A,3)
 #define GPIO_1 _P(C,2)
@@ -258,7 +258,7 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 #define USARTx_RELEASE_RESET()      __HAL_RCC_USART3_RELEASE_RESET()
 */
 /* Definition for USARTx Pins */
-/*#define USARTx_TX_PIN               GPIO_PIN_8
+/*#define USARTx_TX_PIN             GPIO_PIN_8
 #define USARTx_TX_GPIO_PORT         GPIOD
 #define USARTx_TX_AF                GPIO_AF7_USART3
 #define USARTx_RX_PIN               GPIO_PIN_9

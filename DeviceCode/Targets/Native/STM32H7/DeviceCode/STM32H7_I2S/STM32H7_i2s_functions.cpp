@@ -26,8 +26,14 @@ DMA_HandleTypeDef DMA_Handle;
 #define BREAKPOINT() __asm__("BKPT")
 #define DMA_BUFFER __attribute__((section(".dma_buffer")))
 
+#define SAMPLE_DMA_SEC 2 //seconds to be buffered per FULL dma transfer
+#define SAMP_RATE_HZ I2S_AUDIOFREQ_8K
 
-DMA_BUFFER uint32_t rx_buffer[1024];
+ 
+const uint32_t raw_len = SAMP_RATE_HZ * SAMPLE_DMA_SEC * 2; // FULL transfer size
+uint8_t mono_data[SAMP_RATE_HZ/2 * SAMPLE_DMA_SEC *3]; //Filled on each HALF transfer
+DMA_BUFFER uint32_t raw_data[raw_len];
+
 uint32_t rx_buffer2[1024];
 
 MFCC *dut1;
@@ -52,19 +58,33 @@ static int16_t mel_input_data[MY_FRAME_SIZE];
 
 void test_test(int DMA_CHECK) {
 	
-	if (init_mfcc == 0) {
+	int i, j;
+	
+	if (DMA_CHECK == 1) i = 0;
+	else if (DMA_CHECK == 2) i = raw_len/2;
+
+	for (j = 0; j < sizeof(mono_data); j+=12, i+=8) {
+		memcpy(&mono_data[j+0], (uint8_t *) &raw_data[i+1], 3);
+		memcpy(&mono_data[j+3], (uint8_t *) &raw_data[i+3], 3);
+		memcpy(&mono_data[j+6], (uint8_t *) &raw_data[i+5], 3);
+		memcpy(&mono_data[j+9], (uint8_t *) &raw_data[i+7], 3);		
+		hal_printf(" %d %d %d %d ", mono_data[j+0], mono_data[j+3], mono_data[j+6], mono_data[j+9]);
+	}
+	hal_printf("\r\n");
+	/*if (init_mfcc == 0) {
 		dut1 = new MFCC(MY_MFCC_SIZE, MY_FRAME_SIZE, 7);
 		init_mfcc = 1;
-	}		
-	int j = 0;
+	}*/		
+	/*int j = 0;
 	for (int i = 0; i < 1024; i++) {
 		if (i%2 == 1) {
 			if (DMA_CHECK == 1) mel_input_data[j] = i2s24_to_pcm16_h7(rx_buffer[i]);
 			j++;
 		}	
 		if (DMA_CHECK == 0) mel_input_data[i] = i2s24_to_pcm16_h7(audio_data[i]);
-	}
-	//dut1->mfcc_compute(mel_input_data);
+	}*/
+	//dut1->mfcc_compute(mono_data);
+	
 }
 
 extern "C" {
@@ -79,13 +99,13 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s)
 	//rx_buffer[2] = 4;
 	//hal_printf("Rx_I2S\r\n");	
 	//mfcc_init();
-	test_test(1);
+	test_test(2);
 	
 }
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s)
 {
-	
+	test_test(1);
 	//rx_buffer[2] = 3;
 	//rx_buffer[0] = rx_buffer[0]+1;
 	//static bool state = FALSE;
@@ -274,7 +294,7 @@ BOOL I2S_Internal_Initialize()
   hi2s3.Init.FirstBit = I2S_FIRSTBIT_MSB;
   hi2s3.Init.WSInversion = I2S_WS_INVERSION_DISABLE;
   //hi2s3.Init.IOSwap = I2S_IO_SWAP_DISABLE;
-  //hi2s3.Init.Data24BitAlignment = I2S_DATA_24BIT_ALIGNMENT_RIGHT;
+  hi2s3.Init.Data24BitAlignment = I2S_DATA_24BIT_ALIGNMENT_RIGHT;
   //hi2s3.Init.FifoThreshold = I2S_FIFO_THRESHOLD_01DATA;
   hi2s3.Init.MasterKeepIOState = I2S_MASTER_KEEP_IO_STATE_DISABLE;
   //hi2s3.Init.SlaveExtendFREDetection = I2S_SLAVE_EXTEND_FRE_DETECTION_DISABLE;
@@ -305,7 +325,7 @@ void I2S_Test()
 	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);
 	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);	
 	HAL_I2S_Receive(&hi2s3, (uint16_t *)audio_data, AUDIO_LEN/2, INT_MAX);	
-    ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)rx_buffer, AUDIO_LEN/2);
+    ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, raw_len);
 	
 
 	//rx_buffer[0] = 1;
