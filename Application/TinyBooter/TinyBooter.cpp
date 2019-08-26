@@ -34,17 +34,17 @@ void ApplicationEntryPoint()
                                                         
     HeapLocation         ( BaseAddress, SizeInBytes );  
     SimpleHeap_Initialize( BaseAddress, SizeInBytes );  
-
-    g_eng.Initialize( HalSystemConfig.DebuggerPorts[ 0 ] );
-
-    // internal reset and stop check
+ 
+	g_eng.Initialize( HalSystemConfig.DebuggerPorts[ 0 ] );
+ 
+	// internal reset and stop check
     enterBootMode = g_PrimaryConfigManager.IsBootLoaderRequired( timeout );
 
     // ODM defined method to enter bootloader mode
-    if(!enterBootMode)
+    /*if(!enterBootMode)
     {
         enterBootMode = WaitForTinyBooterUpload( timeout );
-    }
+    }*/
     if(!enterBootMode)   
     {
         if(!g_eng.EnumerateAndLaunch())
@@ -60,7 +60,6 @@ void ApplicationEntryPoint()
         
       //  hal_fprintf( STREAM_LCD, "TinyBooter v%d.%d.%d.%d\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD, VERSION_REVISION);
        // hal_fprintf( STREAM_LCD, "%s Build Date:\r\n\t%s %s\r\n", HalName, __DATE__, __TIME__ );
-
         DebuggerPort_Initialize( HalSystemConfig.DebuggerPorts[ 0 ] );
 		//HAL_Delay(10U);
 		//CPU_USB_Initialize(0);
@@ -102,8 +101,8 @@ void ApplicationEntryPoint()
 		hal_printf(" 99 TinyBooter.cpp %d\n",HAL_Time_CurrentTicks());
 		//CPU_USART_WriteCharToTxBuffer(ConvertCOM_ComPort(USART_DEFAULT_PORT), 'a' );
 		*/	
+		
 		TinyBooter_OnStateChange( State_EnterBooterMode, NULL );
-
 	
         DebuggerPort_Flush( HalSystemConfig.DebugTextPort  );
         hal_printf( "TinyBooter v%d.%d.%d.%d\r\n", VERSION_MAJOR, VERSION_MINOR, VERSION_BUILD, VERSION_REVISION);
@@ -120,6 +119,9 @@ void ApplicationEntryPoint()
         hal_printf( "ARM Compiler version %d\r\n", __ARMCC_VERSION );
 #endif
         DebuggerPort_Flush( HalSystemConfig.DebugTextPort );
+		
+		
+		
 		//hal_printf(" 87 TinyBooter.cpp \n");
         //
         // Send "presence" ping.

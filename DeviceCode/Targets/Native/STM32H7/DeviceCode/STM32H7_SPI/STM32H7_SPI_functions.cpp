@@ -368,9 +368,9 @@ void CPU_SPI_IoInit(UINT8 SPI_TYPE)
 
 		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
 		initStruct.Pull = GPIO_NOPULL;
-
+		initStruct.Speed = GPIO_SPEED_HIGH;
+		
 		CPU_GPIO_Init(RADIO_NSS_PORT, RADIO_NSS_PIN, &initStruct );
-
 		CPU_GPIO_Write(RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );
 	}
 }

@@ -87,7 +87,7 @@ static void radio_cad_done(bool channelActivityDetected) {
 static uint32_t get_cpu_id_hash(void) {
 	// 96-bit (3 word) global unique ID
 	uint32_t *id = (uint32_t *) 0x1FFFF7E8;
-	uint32_t ret = TX_NODE;
+	uint32_t ret = RX_NODE;
 
 	//RCC_AHBPeriphClockCmd(RCC_AHBPeriph_CRC, ENABLE);
 	//__HAL_RCC_CRC_CLK_ENABLE();
@@ -202,12 +202,12 @@ static void native_link_test(void) {
 			//Events_Clear(SYSTEM_EVENT_FLAG_IO);
 			if (SX1276GetStatus() == RF_IDLE) { 
 			//	hal_printf("LoRa_test.cpp:187\n\r");
-			//	SX1276SetRx(0); 
+				SX1276SetRx(0); 
 			//
 			}
-			if (SX1276GetStatus() != RF_CAD) {
-				SX1276StartCad();
-			}
+			//if (SX1276GetStatus() != RF_CAD) {
+			//	SX1276StartCad();
+			//}
 			//hal_printf("LoRa_test.cpp:190\n\r");
 			// SYSTEM_EVENT_FLAG_IO should trigger on GPIO interrupts
 			// at least once of which is generated for all radio events

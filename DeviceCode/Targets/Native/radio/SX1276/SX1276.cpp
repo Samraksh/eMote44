@@ -273,10 +273,11 @@ uint32_t SX1276Init( RadioEvents_t *events )
     SX1276.Settings.State = RF_IDLE;
 
     if (SX1276Read(REG_LR_VERSION) != 0x12) {
-    	while(1){
+    	//while(1){
     		//__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
-    		hal_printf("Something went terribly wrong in SPI Initialization = %d\n\r",SX1276Read(REG_LR_VERSION));
-    	}
+    		hal_printf("%0x%.2x : Something went terribly wrong in SPI Initialization = \n\r",SX1276Read(REG_LR_VERSION));
+			__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG
+    	//}
     }
 
     return ( uint32_t )SX1276BoardGetWakeTime( ) + RADIO_WAKEUP_TIME;// BOARD_WAKEUP_TIME;

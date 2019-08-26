@@ -58,9 +58,9 @@ void ApplicationEntryPoint()
 	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 1000000, FALSE, FALSE, Timer_Red_Handler);
 	VirtTimer_Start(VIRT_TIMER_LED_RED);
 	
-	I2S_Internal_Initialize();
-	I2S_Test();
-    hal_printf(" CLR 28 ");
+//	I2S_Internal_Initialize();
+//	I2S_Test();
+  //  hal_printf(" CLR 28 ");
     ClrStartup( clrSettings );
 
 #if !defined(BUILD_RTM)

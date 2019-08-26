@@ -360,6 +360,7 @@ void HAL_Initialize()
     //Events_Initialize();
 
     CPU_GPIO_Initialize();
+	 
     CPU_SPI_Initialize();
 	
     ENABLE_INTERRUPTS();
@@ -402,7 +403,7 @@ void HAL_Initialize()
     Gesture_Initialize();
     Ink_Initialize();
     TimeService_Initialize();
-	
+
 #if defined(ENABLE_NATIVE_PROFILER)
     Native_Profiler_Init();
 #endif
