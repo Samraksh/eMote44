@@ -49,9 +49,9 @@ static void DefaultSystemClock_Config(void)
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
 	RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
-	MODIFY_REG(PWR->CR3, PWR_CR3_SCUEN, 0);
-
-	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+	//MODIFY_REG(PWR->CR3, PWR_CR3_SCUEN, 0);
+	HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
 
 	while ((PWR->D3CR & (PWR_D3CR_VOSRDY)) != PWR_D3CR_VOSRDY)
 	{
@@ -109,6 +109,10 @@ static void DefaultSystemClock_Config(void)
 												|RCC_PERIPHCLK_SPI3 | RCC_PERIPHCLK_SPI1
 												|RCC_PERIPHCLK_USB | RCC_PERIPHCLK_QSPI
 												|RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_CKPER;
+	PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_D1HCLK;
+	PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_CLKP;
+	PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSE;
+	PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
 	PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
 	PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)

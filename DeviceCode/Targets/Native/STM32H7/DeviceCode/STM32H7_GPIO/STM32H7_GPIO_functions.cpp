@@ -456,7 +456,9 @@ void CPU_GPIO_EnableOutputPin( GPIO_PIN pin, BOOL initialState )
     if( pin < STM32H7_Gpio_MaxPins )
     {
         CPU_GPIO_SetPinState( pin, initialState );
-        STM32H7_GPIO_Pin_Config( pin, 1, RESISTOR_DISABLED, 0 ); // general purpose output
+		if (pin == LED1 || pin == LED2 || pin == LED3) 
+			STM32H7_GPIO_Pin_Config( pin, 1, RESISTOR_DISABLED, 1 ); 
+		else STM32H7_GPIO_Pin_Config( pin, 1, RESISTOR_DISABLED, 0 ); // general purpose output
         STM32H7_GPIO_Set_Interrupt( pin, NULL, 0, GPIO_INT_NONE, FALSE ); // disable interrupt
     }
 }

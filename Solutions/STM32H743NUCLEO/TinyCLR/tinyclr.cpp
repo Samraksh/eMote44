@@ -14,7 +14,7 @@ void CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents)
 
 void Timer_Green_Handler(void *arg)
 {
-	static bool state = FALSE;
+	static bool state = TRUE;
 	if (state)
 		state = FALSE;
 	else
@@ -26,7 +26,7 @@ void Timer_Green_Handler(void *arg)
 
 void Timer_Red_Handler(void *arg)
 {
-	static bool state = FALSE;
+	static bool state = TRUE;
 	if (state)
 		state = FALSE;
 	else

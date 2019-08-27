@@ -121,6 +121,7 @@ void Timer_Green_Handler(void *arg)
 	else
 		state = TRUE;
 	CPU_GPIO_EnableOutputPin(LED1, state);
+	hal_printf("Blink \r\n");
 	//CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	//CPU_GPIO_SetPinState(GPIO_0, FALSE);
 }
@@ -139,15 +140,13 @@ void TinyBooter_OnStateChange( TinyBooterState state, void* data, void ** retDat
         ////////////////////////////////////////////////////////////////////////////////////
         case State_EnterBooterMode:
             // Turn on all user LEDs
-			CPU_GPIO_EnableOutputPin(LED1, TRUE);
+			CPU_GPIO_EnableOutputPin(LED1, FALSE);
 			//BSP_LED_Init(LED_GREEN);
 			//BSP_LED_On(LED_GREEN); 
             //CPU_GPIO_EnableOutputPin(LED2, TRUE);
-            CPU_GPIO_EnableOutputPin(LED3, TRUE);
+            CPU_GPIO_EnableOutputPin(LED3, FALSE);
 			//I2S_Internal_Initialize();
 			//I2S_Test();
-			VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 500000, FALSE, FALSE, Timer_Green_Handler);
-			VirtTimer_Start(VIRT_TIMER_LED_GREEN);
 	
             hal_fprintf( STREAM_LCD, "Waiting\r" );
             break;

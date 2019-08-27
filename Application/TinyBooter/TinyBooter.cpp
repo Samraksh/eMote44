@@ -135,7 +135,7 @@ void ApplicationEntryPoint()
         }
     
         UINT64 ticksStart = HAL_Time_CurrentTicks();
-
+        hal_printf( "-4 \r\n");
         //
         // Wait for somebody to press a button; if no button press comes in, lauch the image
         //
@@ -144,12 +144,11 @@ void ApplicationEntryPoint()
             const UINT32 c_EventsMask = SYSTEM_EVENT_FLAG_COM_IN |
                                         SYSTEM_EVENT_FLAG_USB_IN |
                                         SYSTEM_EVENT_FLAG_BUTTON;
-
-            UINT32 events = ::Events_WaitForEvents( c_EventsMask, timeout );
+	        UINT32 events = ::Events_WaitForEvents( c_EventsMask, timeout );
 
             if(events != 0)
             {
-                Events_Clear( events );
+				Events_Clear( events );
             }
 
             if(events & SYSTEM_EVENT_FLAG_BUTTON)
@@ -163,7 +162,7 @@ void ApplicationEntryPoint()
             }
 
             if(LOADER_ENGINE_ISFLAGSET(&g_eng, Loader_Engine::c_LoaderEngineFlag_ValidConnection))
-            {
+            {				
                 LOADER_ENGINE_CLEARFLAG(&g_eng, Loader_Engine::c_LoaderEngineFlag_ValidConnection);
                 
                 TinyBooter_OnStateChange( State_ValidCommunication, (void*)&timeout );
@@ -171,7 +170,7 @@ void ApplicationEntryPoint()
                 ticksStart = HAL_Time_CurrentTicks();
             }
             else if((timeout != -1) && (HAL_Time_CurrentTicks()-ticksStart) > CPU_MillisecondsToTicks((UINT32)timeout))
-            {
+            {				
                 TinyBooter_OnStateChange( State_Timeout, NULL );
                 g_eng.EnumerateAndLaunch();
             }
