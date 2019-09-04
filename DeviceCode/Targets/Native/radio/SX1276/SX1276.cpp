@@ -264,7 +264,7 @@ uint32_t SX1276Init( RadioEvents_t *events )
     SX1276SetOpMode( RF_OPMODE_SLEEP );
 
     //SX1276BoardIoIrqInit( DioIrq );
-	SX1276BoardIoIrqInit();
+	///SX1276BoardIoIrqInit();
 
     SX1276SetRadioRegistersInit();
 
@@ -1261,21 +1261,22 @@ void SX1276Reset( void )
 {
     GPIO_InitTypeDef initStruct = { 0 };
 
-    initStruct.Mode =GPIO_MODE_OUTPUT_PP;
+    initStruct.Mode = GPIO_MODE_OUTPUT_PP;
     initStruct.Pull = GPIO_NOPULL;
-    initStruct.Speed = GPIO_SPEED_HIGH;
+    initStruct.Speed = GPIO_SPEED_LOW;
 
     // Set RESET pin to 0
+	CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 0 );
     CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
-    CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 0 );
+
 
     // Wait 1 ms
     ///DelayMs( 1 );
 	HAL_Delay(1); ////
     // Configure RESET as input
-    initStruct.Mode = GPIO_NOPULL;
-    CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
-
+    ///initStruct.Mode = GPIO_NOPULL;  
+    ///CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
+    CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 1 ); 
     // Wait 6 ms
     ///DelayMs( 6 );
 	HAL_Delay(6);////
@@ -1287,7 +1288,7 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
       
-      SX1276BoardSetAntSwLowPower( true );
+      ///SX1276BoardSetAntSwLowPower( true );
       
       ///LoRaBoardCallbacks->SX1276BoardSetXO( RESET ); 
     }
@@ -1295,7 +1296,7 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       ///LoRaBoardCallbacks->SX1276BoardSetXO( SET ); 
       
-      SX1276BoardSetAntSwLowPower( false );
+      ///SX1276BoardSetAntSwLowPower( false );
       
       SX1276BoardSetAntSw( opMode );
       
@@ -1995,7 +1996,7 @@ void SX1276BoardIoInit( void )
   
   initStruct.Mode = GPIO_MODE_IT_RISING;
   initStruct.Pull = GPIO_PULLDOWN;
-  initStruct.Speed = GPIO_SPEED_HIGH;
+  initStruct.Speed = GPIO_SPEED_LOW;
 
   CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
   CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
@@ -2122,7 +2123,7 @@ static void SX1276AntSwInit( void )
 
   initStruct.Mode =GPIO_MODE_OUTPUT_PP;
   initStruct.Pull = GPIO_NOPULL;
-  initStruct.Speed = GPIO_SPEED_HIGH;
+  initStruct.Speed = GPIO_SPEED_LOW;
   
   CPU_GPIO_Init( RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, &initStruct  ); 
   CPU_GPIO_Write( RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, RADIO_ANT_SWITCH_SET_RX);
@@ -2135,7 +2136,7 @@ static void SX1276AntSwDeInit( void )
   initStruct.Mode = GPIO_MODE_OUTPUT_PP ;
   
   initStruct.Pull = GPIO_NOPULL;
-  initStruct.Speed = GPIO_SPEED_HIGH;
+  initStruct.Speed = GPIO_SPEED_LOW;
 
   CPU_GPIO_Init(  RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, &initStruct ); 
   CPU_GPIO_Write( RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, 0);

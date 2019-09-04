@@ -359,7 +359,7 @@ void CPU_SPI_IoInit(UINT8 SPI_TYPE)
 
 		initStruct.Mode = GPIO_MODE_AF_PP;
 		initStruct.Pull = GPIO_NOPULL;
-		initStruct.Speed = GPIO_SPEED_HIGH;
+		initStruct.Speed = GPIO_SPEED_LOW;
 		initStruct.Alternate = GPIO_AF5_SPI1 ;
 
 		CPU_GPIO_Init( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct);		
@@ -368,10 +368,11 @@ void CPU_SPI_IoInit(UINT8 SPI_TYPE)
 
 		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
 		initStruct.Pull = GPIO_NOPULL;
-		initStruct.Speed = GPIO_SPEED_HIGH;
+		initStruct.Speed = GPIO_SPEED_LOW;	
 		
+		CPU_GPIO_Write(RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );	
 		CPU_GPIO_Init(RADIO_NSS_PORT, RADIO_NSS_PIN, &initStruct );
-		CPU_GPIO_Write(RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );
+
 	}
 }
 
@@ -391,20 +392,21 @@ void CPU_SPI_IoDeInit(UINT8 SPI_TYPE)
 		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
 
 		initStruct.Pull = GPIO_NOPULL  ; 
-		CPU_GPIO_Init ( RADIO_MOSI_PORT, RADIO_MOSI_PIN, &initStruct ); 
 		CPU_GPIO_Write( RADIO_MOSI_PORT, RADIO_MOSI_PIN, 0 );
+		CPU_GPIO_Init ( RADIO_MOSI_PORT, RADIO_MOSI_PIN, &initStruct ); 
 
 		initStruct.Pull = GPIO_PULLDOWN; 
+		CPU_GPIO_Write( RADIO_MISO_PORT, RADIO_MISO_PIN, 0 );	
 		CPU_GPIO_Init ( RADIO_MISO_PORT, RADIO_MISO_PIN, &initStruct ); 
-		CPU_GPIO_Write( RADIO_MISO_PORT, RADIO_MISO_PIN, 0 );
 
 		initStruct.Pull = GPIO_NOPULL  ; 
-		CPU_GPIO_Init ( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct ); 
 		CPU_GPIO_Write( RADIO_SCLK_PORT, RADIO_SCLK_PIN, 0 );
+		CPU_GPIO_Init ( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct ); 
   
 		initStruct.Pull = GPIO_NOPULL  ; 
+		CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN , 1 );			
 		CPU_GPIO_Init ( RADIO_NSS_PORT, RADIO_NSS_PIN , &initStruct ); 
-		CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN , 1 );	
+
 
 	} 
 }
