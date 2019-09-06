@@ -264,7 +264,7 @@ uint32_t SX1276Init( RadioEvents_t *events )
     SX1276SetOpMode( RF_OPMODE_SLEEP );
 
     //SX1276BoardIoIrqInit( DioIrq );
-	///SX1276BoardIoIrqInit();
+	SX1276BoardIoIrqInit();
 
     SX1276SetRadioRegistersInit();
 

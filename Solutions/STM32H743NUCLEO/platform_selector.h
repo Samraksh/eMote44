@@ -248,26 +248,6 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 4800
 #define UART5_RX_GPIO_PORT         GPIOB
 #define UART5_RX_AF                GPIO_AF14_UART5
 
-/* Definition for USARTx clock resources */
-/*#define USARTx                      USART3
-#define USARTx_CLK_ENABLE()         __HAL_RCC_USART3_CLK_ENABLE()
-#define USARTx_RX_GPIO_CLK_ENABLE() __HAL_RCC_GPIOD_CLK_ENABLE()
-#define USARTx_TX_GPIO_CLK_ENABLE() __HAL_RCC_GPIOD_CLK_ENABLE()
-
-#define USARTx_FORCE_RESET()        __HAL_RCC_USART3_FORCE_RESET()
-#define USARTx_RELEASE_RESET()      __HAL_RCC_USART3_RELEASE_RESET()
-*/
-/* Definition for USARTx Pins */
-/*#define USARTx_TX_PIN             GPIO_PIN_8
-#define USARTx_TX_GPIO_PORT         GPIOD
-#define USARTx_TX_AF                GPIO_AF7_USART3
-#define USARTx_RX_PIN               GPIO_PIN_9
-#define USARTx_RX_GPIO_PORT         GPIOD
-#define USARTx_RX_AF                GPIO_AF7_USART3
-#define USARTx_CK_PIN               GPIO_PIN_7
-#define USARTx_CK_GPIO_PORT         GPIOD
-#define USARTx_CK_AF                GPIO_AF7_USART3
-*/
 /*!
  * \brief GPIOs Macro
  */
@@ -308,41 +288,6 @@ do {                                                    \
 
 // Definition for LoRa I/O
 #ifdef RADIO_LORA
-// dragino LoRa Sheild
-/* #define RADIO_RESET_PORT                          GPIOD
-#define RADIO_RESET_PIN                           GPIO_PIN_15
-
-#define RADIO_MOSI_PORT                           GPIOA
-#define RADIO_MOSI_PIN                            GPIO_PIN_7
-
-#define RADIO_MISO_PORT                           GPIOA
-#define RADIO_MISO_PIN                            GPIO_PIN_6
-
-#define RADIO_SCLK_PORT                           GPIOA
-#define RADIO_SCLK_PIN                            GPIO_PIN_5
-
-#define RADIO_NSS_PORT                            GPIOD
-#define RADIO_NSS_PIN                             GPIO_PIN_14
-
-//#define RADIO_BUSY_PORT                           GPIOB
-//#define RADIO_BUSY_PIN                            GPIO_PIN_3
-
-#define RADIO_DIO_0_PORT                          GPIOF
-#define RADIO_DIO_0_PIN                           GPIO_PIN_15
-
-#define RADIO_DIO_1_PORT                          GPIOE
-#define RADIO_DIO_1_PIN                           GPIO_PIN_9
-
-#define RADIO_DIO_2_PORT                          GPIOF
-#define RADIO_DIO_2_PIN                           GPIO_PIN_13
-
-#define RADIO_DIO_3_PORT                          GPIOF
-#define RADIO_DIO_3_PIN                           GPIO_PIN_12
-
-#define RADIO_ANT_SWITCH_PORT              		  GPIOA
-#define RADIO_ANT_SWITCH_PIN              		  GPIO_PIN_9 */
-
-// LoRa/GPS HAT
 
 #define RADIO_RESET_PORT                          GPIOA
 #define RADIO_RESET_PIN                           GPIO_PIN_8
@@ -374,15 +319,6 @@ do {                                                    \
 #define RADIO_ANT_SWITCH_PORT              		  GPIOA
 #define RADIO_ANT_SWITCH_PIN              		  GPIO_PIN_9
 
-//#define DEVICE_SEL_PORT                           GPIOA
-//#define DEVICE_SEL_PIN                            GPIO_PIN_4
-
-//#define RADIO_LEDTX_PORT                           GPIOC
-//#define RADIO_LEDTX_PIN                            GPIO_PIN_1
-
-//#define RADIO_LEDRX_PORT                           GPIOC
-//#define RADIO_LEDRX_PIN                            GPIO_PIN_0
-
 #endif
 
 /* Definition for SPIx clock resources */
@@ -409,24 +345,24 @@ do {                                                    \
 #define SPIx_MOSI_AF                GPIO_AF5_SPI1
 
 /* Definition for SPIx's DMA */
-#define SPIx_TX_DMA_STREAM               DMA2_Stream3
-#define SPIx_RX_DMA_STREAM               DMA2_Stream2
+///#define SPIx_TX_DMA_STREAM               DMA2_Stream3
+///#define SPIx_RX_DMA_STREAM               DMA2_Stream2
 
-#define SPIx_TX_DMA_REQUEST              DMA_REQUEST_SPI1_TX
-#define SPIx_RX_DMA_REQUEST              DMA_REQUEST_SPI1_RX
+///#define SPIx_TX_DMA_REQUEST              DMA_REQUEST_SPI1_TX
+///#define SPIx_RX_DMA_REQUEST              DMA_REQUEST_SPI1_RX
 
 /* Definition for SPIx's NVIC */
-#define SPIx_DMA_TX_IRQn                 DMA2_Stream3_IRQn
-#define SPIx_DMA_RX_IRQn                 DMA2_Stream2_IRQn
+///#define SPIx_DMA_TX_IRQn                 DMA2_Stream3_IRQn
+///#define SPIx_DMA_RX_IRQn                 DMA2_Stream2_IRQn
 
-#define SPIx_DMA_TX_IRQHandler           DMA2_Stream3_IRQHandler
-#define SPIx_DMA_RX_IRQHandler           DMA2_Stream2_IRQHandler
+///#define SPIx_DMA_TX_IRQHandler           DMA2_Stream3_IRQHandler
+///#define SPIx_DMA_RX_IRQHandler           DMA2_Stream2_IRQHandler
 
 /* Definition for SPIx's NVIC */
 #define SPIx_IRQn                        SPI1_IRQn
 #define SPIx_IRQHandler                  SPI1_IRQHandler
 
-#define USB_PowerSwitchOn_Pin 			GPIO_PIN_6
+/* #define USB_PowerSwitchOn_Pin 			GPIO_PIN_6
 #define USB_PowerSwitchOn_GPIO_Port		GPIOG
 
 #define USB_OverCurrent_Pin 			GPIO_PIN_7
@@ -439,7 +375,7 @@ do {                                                    \
 #define USB_VBUS_GPIO_Port 				GPIOA
 
 #define USB_ID_Pin 						GPIO_PIN_10
-#define USB_ID_GPIO_Port 				GPIOA
+#define USB_ID_GPIO_Port 				GPIOA */
 
 #define USB_DM_Pin 						GPIO_PIN_11
 #define USB_DM_GPIO_Port 				GPIOA
