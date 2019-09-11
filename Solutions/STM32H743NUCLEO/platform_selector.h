@@ -321,6 +321,15 @@ do {                                                    \
 
 #endif
 
+#define ACCEL_CS_PORT						GPIOG
+#define ACCEL_CS_PIN						GPIO_PIN_6
+
+#define ACCEL_INT_1_PORT					GPIOG
+#define ACCEL_INT_1_PIN						GPIO_PIN_7
+
+#define ACCEL_INT_2_PORT					GPIOG
+#define ACCEL_INT_2_PIN						GPIO_PIN_8
+
 /* Definition for SPIx clock resources */
 
 #define SPIx                        SPI1
@@ -344,44 +353,9 @@ do {                                                    \
 #define SPIx_MOSI_GPIO_PORT         GPIOA
 #define SPIx_MOSI_AF                GPIO_AF5_SPI1
 
-/* Definition for SPIx's DMA */
-///#define SPIx_TX_DMA_STREAM               DMA2_Stream3
-///#define SPIx_RX_DMA_STREAM               DMA2_Stream2
-
-///#define SPIx_TX_DMA_REQUEST              DMA_REQUEST_SPI1_TX
-///#define SPIx_RX_DMA_REQUEST              DMA_REQUEST_SPI1_RX
-
-/* Definition for SPIx's NVIC */
-///#define SPIx_DMA_TX_IRQn                 DMA2_Stream3_IRQn
-///#define SPIx_DMA_RX_IRQn                 DMA2_Stream2_IRQn
-
-///#define SPIx_DMA_TX_IRQHandler           DMA2_Stream3_IRQHandler
-///#define SPIx_DMA_RX_IRQHandler           DMA2_Stream2_IRQHandler
-
 /* Definition for SPIx's NVIC */
 #define SPIx_IRQn                        SPI1_IRQn
 #define SPIx_IRQHandler                  SPI1_IRQHandler
-
-/* #define USB_PowerSwitchOn_Pin 			GPIO_PIN_6
-#define USB_PowerSwitchOn_GPIO_Port		GPIOG
-
-#define USB_OverCurrent_Pin 			GPIO_PIN_7
-#define USB_OverCurrent_GPIO_Port		GPIOG
-
-#define USB_SOF_Pin 					GPIO_PIN_8
-#define USB_SOF_GPIO_Port 				GPIOA
-
-#define USB_VBUS_Pin 					GPIO_PIN_9
-#define USB_VBUS_GPIO_Port 				GPIOA
-
-#define USB_ID_Pin 						GPIO_PIN_10
-#define USB_ID_GPIO_Port 				GPIOA */
-
-#define USB_DM_Pin 						GPIO_PIN_11
-#define USB_DM_GPIO_Port 				GPIOA
-
-#define USB_DP_Pin 						GPIO_PIN_12
-#define USB_DP_GPIO_Port 				GPIOA
 
 #define OMAC_DISCO_SEQ_NUMBER			97
 

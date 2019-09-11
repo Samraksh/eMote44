@@ -53,6 +53,7 @@
 #include "usbd_def.h"
 #include "usbd_core.h"
 
+#include "STM32H7_usb_functions.h"
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -67,11 +68,6 @@
 /* USER CODE END PV */
 
 PCD_HandleTypeDef hpcd_USB_OTG_FS;
-
-void Error_Handler(void);
-
-/* External functions --------------------------------------------------------*/
-void SystemClock_Config(void);
 
 /* USER CODE BEGIN 0 */
 
@@ -103,53 +99,24 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
   /* USER CODE END USB_OTG_FS_MspInit 0 */
   
     /**USB_OTG_FS GPIO Configuration    
-    PA8     ------> USB_OTG_FS_SOF
-    PA9     ------> USB_OTG_FS_VBUS
-    PA10     ------> USB_OTG_FS_ID
     PA11     ------> USB_OTG_FS_DM
     PA12     ------> USB_OTG_FS_DP 
     */
-	/*Configure GPIO pin Output Level */
-	HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
-	/*Configure GPIO pin : USB_PowerSwitchOn_Pin */
-	GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(USB_PowerSwitchOn_GPIO_Port, &GPIO_InitStruct);
-
-	/*Configure GPIO pin : USB_OverCurrent_Pin */
-	GPIO_InitStruct.Pin = USB_OverCurrent_Pin;
-	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	HAL_GPIO_Init(USB_OverCurrent_GPIO_Port, &GPIO_InitStruct);
-
-
-	Debug_Print_in_HAL(" usbd_conf.c 112");	
-    GPIO_InitStruct.Pin = USB_SOF_Pin|USB_ID_Pin|USB_DM_Pin|USB_DP_Pin;
+    GPIO_InitStruct.Pin = USB_DM_Pin|USB_DP_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
     GPIO_InitStruct.Alternate = GPIO_AF10_OTG1_FS;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-	Debug_Print_in_HAL(" usbd_conf.c 119");	
 
-    GPIO_InitStruct.Pin = USB_VBUS_Pin;
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(USB_VBUS_GPIO_Port, &GPIO_InitStruct);
-	Debug_Print_in_HAL(" usbd_conf.c 125");	
-    /* Peripheral clock enable */
 	SET_BIT(RCC->AHB1ENR, RCC_AHB1ENR_USB2OTGHSEN);
     //__HAL_RCC_USB_OTG_FS_CLK_ENABLE();
-	Debug_Print_in_HAL(" usbd_conf.c 128");	
 
     /* Peripheral interrupt init */
     HAL_NVIC_SetPriority(OTG_FS_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
 	/* USER CODE BEGIN USB_OTG_FS_MspInit 1 */
-	Debug_Print_in_HAL(" usbd_conf.c 134");	
   /* USER CODE END USB_OTG_FS_MspInit 1 */
   }
 }
@@ -165,14 +132,10 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
     __HAL_RCC_USB_OTG_FS_CLK_DISABLE();
   
     /**USB_OTG_FS GPIO Configuration    
-    PA8     ------> USB_OTG_FS_SOF
-    PA9     ------> USB_OTG_FS_VBUS
-    PA10     ------> USB_OTG_FS_ID
     PA11     ------> USB_OTG_FS_DM
     PA12     ------> USB_OTG_FS_DP 
     */
-    HAL_GPIO_DeInit(GPIOA, USB_SOF_Pin|USB_VBUS_Pin|USB_ID_Pin|USB_DM_Pin 
-                          |USB_DP_Pin);
+    HAL_GPIO_DeInit(GPIOA, USB_DM_Pin | USB_DP_Pin);
 
     /* Peripheral interrupt Deinit*/
     HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
@@ -182,6 +145,7 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
   /* USER CODE END USB_OTG_FS_MspDeInit 1 */
   }
 }
+
 
 /**
   * @brief  Setup stage callback
@@ -360,19 +324,19 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
   hpcd_USB_OTG_FS.Init.battery_charging_enable = ENABLE;
   hpcd_USB_OTG_FS.Init.vbus_sensing_enable = ENABLE;
   hpcd_USB_OTG_FS.Init.use_dedicated_ep1 = DISABLE;
-  Debug_Print_in_HAL(" usbd_conf.c 345\n");
+
   if (HAL_PCD_Init(&hpcd_USB_OTG_FS) != HAL_OK)
   {
-    Error_Handler( );
+    //Error_Handler( );
   }
-  Debug_Print_in_HAL(" usbd_conf.c 349\n");	
+ /// Debug_Print_in_HAL(" usbd_conf.c 349\n");	
 
   HAL_PCDEx_SetRxFiFo(&hpcd_USB_OTG_FS, 0x80);
-  //Debug_Print_in_HAL(" usbd_conf.c 352\n");	
+
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 0, 0x40);
- // Debug_Print_in_HAL(" usbd_conf.c 354\n");	
+
   HAL_PCDEx_SetTxFiFo(&hpcd_USB_OTG_FS, 1, 0x80);
-  //Debug_Print_in_HAL(" usbd_conf.c 356\n");	
+	
   }
   return USBD_OK;
 }
@@ -418,9 +382,9 @@ USBD_StatusTypeDef USBD_LL_Start(USBD_HandleTypeDef *pdev)
 {
   HAL_StatusTypeDef hal_status = HAL_OK;
   USBD_StatusTypeDef usb_status = USBD_OK;
-  Debug_Print_in_HAL("usbd_conf.c 417");
+  ///Debug_Print_in_HAL("usbd_conf.c 417");
   hal_status = HAL_PCD_Start(pdev->pData);
-  Debug_Print_in_HAL("usbd_conf.c 419");   
+ /// Debug_Print_in_HAL("usbd_conf.c 419");   
   switch (hal_status) {
     case HAL_OK :
       usb_status = USBD_OK;

@@ -98,7 +98,6 @@ USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *
   /* Check whether the USB Host handle is valid */
   if(pdev == NULL)
   {
-	Debug_Print_in_HAL(" usbd_core.c 101");	
     USBD_ErrLog("Invalid Device handle");
     return USBD_FAIL; 
   }
@@ -106,14 +105,12 @@ USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *
   /* Unlink previous class*/
   if(pdev->pClass != NULL)
   {
-	Debug_Print_in_HAL(" usbd_core.c 109");	  
     pdev->pClass = NULL;
   }
   
   /* Assign USBD Descriptors */
   if(pdesc != NULL)
   {	  
-	Debug_Print_in_HAL(" usbd_core.c 117");	
     pdev->pDesc = pdesc;
   }
   
@@ -123,8 +120,6 @@ USBD_StatusTypeDef USBD_Init(USBD_HandleTypeDef *pdev, USBD_DescriptorsTypeDef *
   /* Initialize low level driver */
   USBD_LL_Init(pdev);
   
- // HAL_Delay(10);
- // Debug_Print_in_HAL(" usbd_core.c 126");	
   return USBD_OK; 
 }
 
@@ -185,10 +180,8 @@ USBD_StatusTypeDef  USBD_RegisterClass(USBD_HandleTypeDef *pdev, USBD_ClassTypeD
   */
 USBD_StatusTypeDef  USBD_Start  (USBD_HandleTypeDef *pdev)
 {
-   Debug_Print_in_HAL("usb_core.c 187\n");
   /* Start the low level driver  */
   USBD_LL_Start(pdev); 
-   Debug_Print_in_HAL("usb_core.c 190\n");
   return USBD_OK;  
 }
 

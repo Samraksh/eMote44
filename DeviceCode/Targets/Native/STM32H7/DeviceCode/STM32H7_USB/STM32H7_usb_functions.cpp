@@ -40,6 +40,8 @@ USB_CONTROLLER_STATE * CPU_USB_GetState( int Controller )
 {
 }
 
+
+
 HRESULT CPU_USB_Initialize( int Controller )
 {
 	//GLOBAL_LOCK (irq);
@@ -89,10 +91,6 @@ BOOL CPU_USB_GetInterruptState( )
 BOOL CPU_USB_ProtectPins( int Controller, BOOL On )
 {
     return TRUE;
-}
-
-void Debug_Print_in_HAL(const char* format){
-	//hal_printf(format);
 }
 
 void *USBD_static_malloc(uint32_t size)

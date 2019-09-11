@@ -65,7 +65,6 @@
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
-#include "STM32H7_usb_functions.h"
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */
