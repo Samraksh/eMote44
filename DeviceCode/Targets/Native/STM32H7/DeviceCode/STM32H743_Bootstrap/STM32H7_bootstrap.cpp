@@ -2,6 +2,12 @@
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
+#ifndef STARTUP_DELAY_MS
+#define START_UP_DELAY() ((void)0)
+#else
+#define START_UP_DELAY() if (STARTUP_DELAY_MS > 0) HAL_Delay(STARTUP_DELAY_MS)
+#endif
+
 #define BREAKPOINT(x) __asm__("BKPT")
 //#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
 #define VECT_TAB_OFFSET 0x00000070
@@ -202,6 +208,7 @@ void BootstrapCode() {
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
 	#endif
+	START_UP_DELAY();
 }
 } // extern "C"
 

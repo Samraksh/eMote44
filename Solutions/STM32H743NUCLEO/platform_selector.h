@@ -30,6 +30,10 @@
 
 #define STM32H743xx
 
+// Add pause after reset, otherwise JTAG reset will have some fly-through
+// Can remove for production
+#define STARTUP_DELAY_MS 200
+
 //
 // Processor and features
 //
