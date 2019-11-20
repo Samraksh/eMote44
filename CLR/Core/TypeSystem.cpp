@@ -1651,7 +1651,7 @@ HRESULT CLR_RT_Assembly::CreateInstance( const CLR_RECORD_ASSEMBLY* header, CLR_
         assm->Assembly_Initialize( offsets );
         
 #if !defined(BUILD_RTM)
-        CLR_Debug::Printf( "   Assembly: %s (%d.%d.%d.%d)  ", assm->m_szName, header->version.iMajorVersion, header->version.iMinorVersion, header->version.iBuildNumber, header->version.iRevisionNumber );
+        CLR_Debug::Printf( "Assembly: %s (%d.%d.%d.%d)\r\n", assm->m_szName, header->version.iMajorVersion, header->version.iMinorVersion, header->version.iBuildNumber, header->version.iRevisionNumber );
 
         if(s_CLR_RT_fTrace_AssemblyOverhead >= c_CLR_RT_Trace_Info)
         {
