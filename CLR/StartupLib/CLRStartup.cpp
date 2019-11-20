@@ -232,7 +232,7 @@ struct Settings
 
         TINYCLR_CHECK_HRESULT(CheckKnownAssembliesForNonXIP( &assStart, &assEnd ));
 #if !defined(BUILD_RTM)
-        CLR_Debug::Printf(" Loading start at %x, end %x\r\n", (UINT32)assStart, (UINT32)assEnd);
+        CLR_Debug::Printf("Loading start at %x, end %x\r\n", (UINT32)assStart, (UINT32)assEnd);
 #endif 
 
         g_buildCRC = SUPPORT_ComputeCRC( assStart, (UINT32)assEnd -(UINT32) assStart, 0 );

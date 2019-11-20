@@ -521,7 +521,7 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 	if(Timer == ADVTIMER_32BIT )
 	{
 		tim5CallBackISR = ISR;
-		hal_printf("init adv 32bit\r\n");
+		//hal_printf("init adv 32bit\r\n"); // serial console is not up yet
 		// Set TIM2 instance keeps track of system time
 		TimHandle5.Instance = TIM5;
 
@@ -540,7 +540,7 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 	else if(Timer == RTC_32BIT )
 	{
 		callBackISR_Param = RTC_32BIT;
-		hal_printf("init rtc 32bit\r\n");
+		//hal_printf("init rtc 32bit\r\n"); // serial console is not up yet
 		CPU_RTC_Init(ISR, callBackISR_Param);
 	}
 
