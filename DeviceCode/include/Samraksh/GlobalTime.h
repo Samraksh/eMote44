@@ -51,6 +51,7 @@ private:
 		INT64 offsetSum, offsetAverageRest;
 		INT64 latestLocalTime, earliestLocalTime;
 		INT64 simpleOffsetChangeSum, simpleCurrentOffsetDiff , simpleCurrentLocalTimeDiff;
+
 		UINT16 nbrIndex = FindNeighbor(nbr);
 		if(nbrIndex==c_bad_nbrIndex){
 			return;
@@ -58,6 +59,8 @@ private:
 		UINT64 *nbrLocalTimes = samples[nbrIndex].recordedTime;
 		INT64 *nbrOffset = samples[nbrIndex].offsetBtwNodes;
 		UINT8 numSamples = samples[nbrIndex].numSamples;
+
+
 		//We use a rough approximation first to avoid time overflow errors. The idea
 		//is that all times in the table should be relatively close to each other.
 		//i is the first nonempty entry in the table
@@ -65,11 +68,14 @@ private:
 	    for(i = 0; i < MAX_SAMPLES && nbrLocalTimes[i] == INVALID_TIMESTAMP; ++i){
 	    	j = 0;
 	    }
+
+
 	    UINT8 firstIdx, lastIdx;
 	    firstIdx = lastIdx = i;
 	    //hal_printf("fIdx init to %u\n", firstIdx);
 	    newLocalAverage = nbrLocalTimes[i];
 		newOffsetAverage = nbrOffset[i];
+
 		localSum = 0;
 		localAverageRest = 0;
 		offsetSum =0;
@@ -79,14 +85,17 @@ private:
 			if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
 				//This only works because C ISO 1999 defines the sign for modulo the
 				//same as for the Dividend! This approximates dividing using only integers.
+
 				localSum += (INT64)(nbrLocalTimes[i] - newLocalAverage) / numSamples;
 				localAverageRest += (nbrLocalTimes[i] - newLocalAverage) % numSamples;
 				offsetSum += (INT64)(nbrOffset[i] - newOffsetAverage) / numSamples;
 				offsetAverageRest += (nbrOffset[i] - newOffsetAverage) % numSamples;
+
 			}
 		}
 		newLocalAverage += localSum + localAverageRest / numSamples;
 		newOffsetAverage += offsetSum + offsetAverageRest / numSamples;
+
 		//Find latestLocalTime and earliestLocalTime in the buffer
 		if (numSamples >= 2) {
 			latestLocalTime = nbrLocalTimes[lastIdx];
@@ -104,8 +113,10 @@ private:
 		    	}
 		    }
 		}
+
 		//samples[nbrIndex].avgSkew  = (float)(nbrOffset[lastIdx] - nbrOffset[firstIdx]) /
 		//		(float)(nbrLocalTimes[lastIdx]- nbrLocalTimes[firstIdx]);
+
 		simpleOffsetChangeSum=0;
 		for (int i =firstIdx; i<=lastIdx ; i++){
 			//simpleCurrentLocalTimeDiff =nbrLocalTimes[(i+1) % MAX_SAMPLES] - nbrLocalTimes[i]
@@ -115,6 +126,8 @@ private:
 		}
 		samples[nbrIndex].avgSkew  = (float)(simpleOffsetChangeSum) /
 						(float)(nbrLocalTimes[lastIdx]- nbrLocalTimes[firstIdx]);
+
+
 		samples[nbrIndex].relativeFreq = 0;
 		for (i = firstIdx; i != lastIdx ; i = ((i+1) % MAX_SAMPLES)){
 			if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
@@ -131,9 +144,11 @@ private:
 			}
 		}
 		samples[nbrIndex].relativeFreq = samples[nbrIndex].relativeFreq / (numSamples-1);
+
 		if(samples[nbrIndex].relativeFreq > 1.2 || samples[nbrIndex].relativeFreq < 0.8){
 			ASSERT_SP(0);
 		}
+
 		samples[nbrIndex].recordedTimeAvg = newLocalAverage;
 		samples[nbrIndex].offsetAvg = newOffsetAverage;
 		//hal_printf("GlobalTime: Avg Drift: %lu, Avg Skew: %f \n",samples[nbrIndex].offsetAvg, samples[nbrIndex].avgSkew);

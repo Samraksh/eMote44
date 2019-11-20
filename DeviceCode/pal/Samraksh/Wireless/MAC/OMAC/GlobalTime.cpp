@@ -45,6 +45,7 @@ UINT64 Regression::Neighbor2LocalTime(UINT16 nbr, const UINT64& nbrTime){
 	else { // No rollover no negative
 		periodlength = nbrTime - lastrecordedTime;
 	}
+
 	// Calculate the time
 	lastrecordedTime = lastrecordedTime - regressgt2.samples[nbrIndex].offsetBtwNodes[regressgt2.samples[nbrIndex].lastTimeIndex];
 	if (negativeperiod) lastrecordedTime = lastrecordedTime - (((float) periodlength)  * regressgt2.samples[nbrIndex].relativeFreq);
@@ -65,6 +66,7 @@ UINT64 Regression::Local2NeighborTime(UINT16 nbr, const UINT64& curtime){
 	UINT64 periodlength;
 	bool negativeperiod = FALSE;
 	UINT64 lastlocalTime;
+
 	// Get last sample
 	if (regressgt2.samples[nbrIndex].offsetBtwNodes[regressgt2.samples[nbrIndex].lastTimeIndex] > 0) {
 		lastlocalTime = regressgt2.samples[nbrIndex].recordedTime[regressgt2.samples[nbrIndex].lastTimeIndex] - (UINT64) regressgt2.samples[nbrIndex].offsetBtwNodes[regressgt2.samples[nbrIndex].lastTimeIndex];
@@ -72,6 +74,7 @@ UINT64 Regression::Local2NeighborTime(UINT16 nbr, const UINT64& curtime){
 	else {
 		lastlocalTime = regressgt2.samples[nbrIndex].recordedTime[regressgt2.samples[nbrIndex].lastTimeIndex] + (UINT64)((regressgt2.samples[nbrIndex].offsetBtwNodes[regressgt2.samples[nbrIndex].lastTimeIndex])*-1);
 	}
+
 	//Check roll over
 	if(curtime < lastlocalTime) {
 		if( lastlocalTime - curtime > ((MAXRangeUINT64)/2)) { //Roll Over
@@ -85,6 +88,7 @@ UINT64 Regression::Local2NeighborTime(UINT16 nbr, const UINT64& curtime){
 	else { // No rollover no negative
 		periodlength = curtime - lastlocalTime;
 	}
+
 	// Calculate the time
 	lastlocalTime = regressgt2.samples[nbrIndex].recordedTime[regressgt2.samples[nbrIndex].lastTimeIndex];
 	if (negativeperiod) lastlocalTime = lastlocalTime - (((float) periodlength) / regressgt2.samples[nbrIndex].relativeFreq);
@@ -92,3 +96,8 @@ UINT64 Regression::Local2NeighborTime(UINT16 nbr, const UINT64& curtime){
 	return (lastlocalTime);*/
 	return ( samples[nbrIndex].relativeFreq * (double)curtime + samples[nbrIndex].y_intercept + samples[nbrIndex].additional_y_intercept_offset);
 }
+
+
+
+
+

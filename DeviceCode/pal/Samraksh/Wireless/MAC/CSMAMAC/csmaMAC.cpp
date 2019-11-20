@@ -669,3 +669,4 @@ UINT8 csmaMAC::GetSendBufferSize(){
 UINT8 csmaMAC::GetReceiveBufferSize(){
 	return g_receive_buffer.Size();
 }
+

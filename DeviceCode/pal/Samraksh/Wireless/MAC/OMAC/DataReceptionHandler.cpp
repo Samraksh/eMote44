@@ -540,8 +540,10 @@ void DataReceptionHandler::SendDataACK(){ // This prepares a software ACK packet
 	header->flags = (0);
 	//header->retryAttempt = 0;
 	m_ACKmsg.GetMetaData()->SetReceiveTimeStamp((UINT32)0);
+
 	UINT8* payload = m_ACKmsg.GetPayload();
 	 *payload = 66;
+
 	header->length = sizeof(IEEE802_15_4_Header_t) + 1;
 	g_OMAC.m_omac_RadioControl.Send(m_lastRXNodeId, &m_ACKmsg, header->length);*/
 

@@ -426,6 +426,7 @@ DeviceStatus NeighborTable::RecordTimeSyncSent(UINT16 address, UINT64 _LastTimeS
 /*UINT64 NeighborTable::GetLastTimeSyncRequestTime(UINT16 address){ //TODO BK: We should eventually use a class for Neighbor rather than a struct, this would enable protecting variables.
 	 UINT8 index;
 	 DeviceStatus retValue = FindIndex(address, &index);
+
 	if ( (retValue==DS_Success) && ISMAC_VALID(address)){
 		return(Neighbor[index].LastTimeSyncRequestTime);
 	}
@@ -509,3 +510,4 @@ extern "C"
 		memset(msg,0,sizeof(Message_15_4_t));
 	}
 }
+

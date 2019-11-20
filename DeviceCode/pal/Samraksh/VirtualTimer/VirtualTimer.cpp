@@ -442,3 +442,5 @@ void VirtualTimerCallback(void *arg)
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].is_callback_running = false;
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].SetAlarmForTheNextTimer();
 }
+
+

@@ -401,6 +401,7 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 	{
 		return call LocalTime.get();
 	}
+
 	async command error_t GlobalTime.getGlobalTime(uint32_t *time, am_addr_t nodeID)
 	{
  *time = call GlobalTime.getLocalTime();
@@ -411,6 +412,7 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 			return call GlobalTime.local2Global(time, nodeID);
 		}
 	}
+
 	async command error_t GlobalTime.local2Global(uint32_t *time, am_addr_t nodeID)
 	{
 		error_t result = is_synced(nodeID);
@@ -432,8 +434,10 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 				printf("Error in local2Global. should not happen \r\n");
 			}
 		}
+
 		return result;
 	}
+
 	async command error_t GlobalTime.global2Local(uint32_t *time, am_addr_t nodeID)
 	{
 		if (nodeID == TOS_NODE_ID) {

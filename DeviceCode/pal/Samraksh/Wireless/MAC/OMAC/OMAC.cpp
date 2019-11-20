@@ -1599,3 +1599,6 @@ UINT16 OMACType::GetSendPending(){
 UINT16 OMACType::GetReceivePending(){
 	return g_receive_buffer.GetNumberMessagesInBuffer();
 }
+
+
+

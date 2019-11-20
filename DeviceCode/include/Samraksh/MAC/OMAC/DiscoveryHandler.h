@@ -14,8 +14,6 @@
 #include "OmacTypes.h"
 #include "Handlers.h"
 
-
-
 enum DiscoState{
 	DISCO_INITIAL,
 	DISCO_LISTEN_SUCCESS,

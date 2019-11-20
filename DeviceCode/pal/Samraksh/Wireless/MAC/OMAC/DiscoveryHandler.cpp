@@ -402,9 +402,11 @@ void DiscoveryHandler::BeaconAckHandler(Message_15_4_t* msg, UINT8 len, NetOpSta
 		OMAC_HAL_PRINTF("Need to investigate. Status: %d \r\n", status);
 		ASSERT_SP(0);
 	}
+
 	if (msg != &m_discoveryMsgBuffer) {
 		return;
 	}
+
 #ifndef DISABLE_SIGNAL
 		//call SlotScheduler.printState();
 		//signalBeaconDone(error, call GlobalTime.getLocalTime());
