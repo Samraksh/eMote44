@@ -64,8 +64,9 @@ static void DefaultSystemClock_Config(void)
   /** Initializes the CPU, AHB and APB busses clocks
   */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI
-                              |RCC_OSCILLATORTYPE_HSE;
+                              |RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_BYPASS;
   RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
@@ -100,16 +101,18 @@ static void DefaultSystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2|RCC_PERIPHCLK_UART5
-                              |RCC_PERIPHCLK_SPI3|RCC_PERIPHCLK_SPI1
-                              |RCC_PERIPHCLK_USB|RCC_PERIPHCLK_QSPI
-                              |RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_CKPER;
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_USART2
+                              |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_SPI3
+                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_USB
+                              |RCC_PERIPHCLK_QSPI|RCC_PERIPHCLK_FMC
+                              |RCC_PERIPHCLK_CKPER;
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_D1HCLK;
   PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_D1HCLK;
   PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSE;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
   PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
   PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
