@@ -121,8 +121,8 @@ void LinkTest::Initialize()
 	myEventHandler.SetSendAckHandler(sa_fptr);
 	NeighborChangeFuncPtrType nc_fptr =  &LinkTest_NeighborChangeHandler;
 	myEventHandler.SetNeighborChangeHandler(nc_fptr);
-	//MacId = CSMAMAC;
-	MacId = OMAC;
+	MacId = CSMAMAC;
+	//MacId = OMAC;
 
 
 	VirtTimer_Initialize();

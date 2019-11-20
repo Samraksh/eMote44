@@ -28,10 +28,12 @@ BOOL Time_Driver::Initialize()
 {
 	BOOL retVal = TRUE;
 
+	CPU_Timer_Initialize_System_time();
+
 	//retVal = retVal && (VirtTimer_SetTimer(VIRT_TIMER_RTC_ONE_SEC, 0, 1000000, FALSE, TRUE, TimeHandlerRTC, LOW_DRIFT_TIMER) == TimerSupported);
 	//retVal = retVal && (VirtTimer_Start( VIRT_TIMER_RTC_ONE_SEC ) == TimerSupported);
 
-	//retVal = retVal && (VirtTimer_SetTimer(VIRT_TIMER_SLEEP, 0, CPU_Timer_GetMaxTicks(LOW_DRIFT_TIMER), FALSE, TRUE, SetCompareHandler, LOW_DRIFT_TIMER) == TimerSupported);
+	retVal = retVal && (VirtTimer_SetTimer(VIRT_TIMER_SLEEP, 0, CPU_Timer_GetMaxTicks(LOW_DRIFT_TIMER), FALSE, TRUE, SetCompareHandler, LOW_DRIFT_TIMER) == TimerSupported);
 	retVal = retVal && (VirtTimer_SetTimer(VIRT_TIMER_EVENTS, 0, CPU_Timer_GetMaxTicks(ADVTIMER_32BIT), FALSE, TRUE, SetCompareHandler, ADVTIMER_32BIT) == TimerSupported);
 
 	return retVal;
@@ -45,7 +47,7 @@ BOOL Time_Driver::Uninitialize()
 	retVal = retVal && (VirtTimer_Stop( VIRT_TIMER_EVENTS ) == TimerSupported);
 	ASSERT(retVal);
 
-	//retVal = retVal && (VirtTimer_Stop( VIRT_TIMER_SLEEP ) == TimerSupported);
+	retVal = retVal && (VirtTimer_Stop( VIRT_TIMER_SLEEP ) == TimerSupported);
 	//ASSERT(retVal);
 
 	return retVal;

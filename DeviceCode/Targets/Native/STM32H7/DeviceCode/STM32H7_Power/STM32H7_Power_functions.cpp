@@ -132,3 +132,79 @@ void HAL_AssertEx()
     __BKPT(0);
     while(true) { /*nop*/ }
 }
+
+
+#ifdef EMOTE_WAKELOCKS
+static uint32_t wakelock;
+static UINT64 waketime;
+
+void WakeLockInit(void) {
+	wakelock = 0;
+#if defined (EMOTE_WAKELOCK_STARTUP) && (EMOTE_WAKELOCK_STARTUP > 0)
+	waketime = HAL_Time_CurrentTicks() + CPU_MicrosecondsToTicks((UINT32)1000000 * EMOTE_WAKELOCK_STARTUP);
+#else
+	waketime = 0;
+#endif
+}
+
+void WakeLock(uint32_t lock) {
+#ifdef POWER_PROFILE_HACK
+	power_event_add(RTC_GetCounter(), WAKELOCK_ON, lock, -1);
+#endif
+	GLOBAL_LOCK(irq);
+	wakelock |= lock;
+}
+
+void WakeUnlock(uint32_t lock) {
+#ifdef POWER_PROFILE_HACK
+	power_event_add(RTC_GetCounter(), WAKELOCK_OFF, lock, -1);
+#endif
+	GLOBAL_LOCK(irq);
+	wakelock &= ~lock;
+}
+
+void WakeUntil(UINT64 until) {
+	UINT64 now;
+
+	GLOBAL_LOCK(irq);
+
+	// Value of 0 will force kill the wakelock
+	if (until == 0) {
+		waketime = 0;
+		return;
+	}
+
+	now = HAL_Time_CurrentTicks();
+
+	// Make sure time is valid (in the future)
+	// Make sure time is not before previous time.
+	if (until < now || until < waketime) {
+		return;
+	}
+
+	waketime = until;
+}
+
+bool GetWakeLocked(void) {
+	bool doWFI;
+	ASSERT_IRQ_MUST_BE_OFF();
+	if (wakelock) { doWFI = TRUE; }
+	else if (waketime > 0) {
+		UINT64 now = HAL_Time_CurrentTicks();
+		if (waketime >= now) {
+			doWFI = TRUE; // Wakelocked
+		} else {
+			waketime = 0;
+			doWFI = FALSE;
+		}
+	} else { doWFI = FALSE; }
+	return doWFI;
+}
+
+#else // EMOTE_WAKELOCKS
+void WakeLock(uint32_t lock) {}
+void WakeUnlock(uint32_t lock) {}
+void WakeUntil(UINT64 until) {}
+bool GetWakeLocked(void) {return false;}
+void WakeLockInit(void) {}
+#endif // EMOTE_WAKELOCKS

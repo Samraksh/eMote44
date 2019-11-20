@@ -11,7 +11,7 @@
 //#include <Samraksh/Hal_util.h>
 //#include <Samraksh/HALTimer.h>
 
-#include "OMACConstants.h"
+//#include "OMACConstants.h"
 #include "Handlers.h"
 #include "RadioControl.h"
 #include "DiscoveryHandler.h"
@@ -28,7 +28,7 @@
 #define OMAC_SCEHDULER_EASY_DEBUG 0
 
 #define MAXSCHEDULERUPDATE 5000000
-#define DISCO_SLOT_GUARD 10
+#define DISCO_SLOT_GUARD 1
 
 
 /*

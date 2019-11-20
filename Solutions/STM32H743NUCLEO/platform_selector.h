@@ -163,12 +163,14 @@
 #define LED2                            _P(B, 1)  // Blue
 #define LED3                            _P(B, 2)  // Red
 
-#define GPIO_0 _P(A,3)
-#define GPIO_1 _P(C,2)
-#define GPIO_2 _P(B,1)
-#define GPIO_3 _P(F,3)
-#define GPIO_4 _P(F,4)
-#define GPIO_5 _P(B,6)
+//#define GPIO_0 _P(A,3)
+//#define GPIO_1 _P(C,2)
+//#define GPIO_2 _P(B,1)
+//#define GPIO_3 _P(F,3)
+//#define GPIO_4 _P(F,4)
+//#define GPIO_5 _P(B,6)
+
+#define DISABLED_PIN	(GPIO_PIN)120
 
 // TinyBooter entry using GPIO
 #define TINYBOOTER_ENTRY_GPIO_PIN       USER_BUTTON               // 'User' button
@@ -182,48 +184,168 @@ const UINT8 TIMER_32BIT = ADVTIMER_32BIT;
 const UINT8 RTC_32BIT = 4;
 const UINT8 LOW_DRIFT_TIMER = RTC_32BIT;
 const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
-const UINT8 OMACClockSpecifier = ADVTIMER_32BIT; //??
+const UINT8 OMACClockSpecifier = RTC_32BIT; //??
 
 const UINT8 g_CountOfHardwareTimers = 2;
-const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = {SYSTEM_TIME, DEFAULT_TIMER };
-const UINT8 g_VirtualTimerPerHardwareTimer = 30;
-const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = {48000000, 48000000};
+const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = { DEFAULT_TIMER, LOW_DRIFT_TIMER };
+const UINT8 g_VirtualTimerPerHardwareTimer = 40;
+//const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { 48000000, 32768};
+const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { 8000000, 32768 };
 
 // timers that are run within interrupt context
 #define VIRT_TIMER_EVENTS 			1
 #define VIRT_TIMER_REALTIME 		2
+#define VIRT_TIMER_OMAC_SCHEDULER	3
 
+#define VIRT_TIMER_OMAC_RECEIVER_ACK 	5
+#define VIRT_TIMER_SLEEP 6
 // The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
 // Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
-#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 5
+#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 6
+
+#define VIRT_TIMER_SX1276_PacketLoadTimerName 7
+#define VIRT_TIMER_SX1276_PacketTxTimerName 8
+#define VIRT_TIMER_SX1276_CADTimer 9
+
+#define VIRT_TIMER_TIME 			10
+
+#define VIRT_TIMER_TIME_TEST	32
+#define VIRT_TIMER_RTC_TEST	37
 
 // timers that are run within continuations (all C# user timers are run outside an interrupt context also)
-#define VIRT_TIMER_LED_GREEN 		10
-#define VIRT_TIMER_LED_RED 			11
+#define VIRT_TIMER_LED_GREEN 		38	
+#define VIRT_TIMER_LED_RED 			39
 
 #define VIRT_TX_TIMEOUT_TIMER 12
 #define VIRT_RX_TIMEOUT_TIMER 13
 #define VIRT_RX_TIMEOUT_SYNC_WORD 14
 
-#define VIRT_TIMER_SX1276_PacketLoadTimerName 6
-#define VIRT_TIMER_SX1276_PacketTxTimerName 7
-#define VIRT_TIMER_SX1276_CADTimer 8
-
 #define VIRT_TIMER_MAC_SENDPKT 15
 #define VIRT_TIMER_MAC_BEACON 16
 #define VIRT_TIMER_MAC_FLUSHBUFFER 17
-#define VIRT_TIMER_OMAC_SCHEDULER 18
+//#define VIRT_TIMER_OMAC_SCHEDULER 18
 
 #define LocalClockMonitor_TIMER1 19
 
 #define VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE 20
 #define VIRT_TIMER_OMAC_SCHEDULER_RADIO_STOP_RETRY 21
 #define VIRT_TIMER_OMAC_RECEIVER 22
-#define VIRT_TIMER_OMAC_RECEIVER_ACK 23
+//#define VIRT_TIMER_OMAC_RECEIVER_ACK 23
 #define VIRT_TIMER_OMAC_DISCOVERY 24
 #define VIRT_TIMER_OMAC_TRANSMITTER 25
 #define VIRT_TIMER_OMAC_TIMESYNC 26
 
+#define VIRT_CONT_TEST_TIMER1 33
+#define VIRT_CONT_TEST_TIMER2 34
+
+#define VIRT_CONT_TEST_TIMER1 35
+#define VIRT_CONT_TEST_TIMER2 36
+
+
+#if defined(__MAC_OMAC__)
+#define NEIGHBORCLOCKMONITORPIN 			DISABLED_PIN
+#define LOCALCLOCKMONITORPIN 				DISABLED_PIN
+
+
+
+#define DATATX_NEXT_EVENT					DISABLED_PIN//22
+#define DATARX_NEXT_EVENT					DISABLED_PIN//23
+#define DATATX_DATA_PIN						DISABLED_PIN//24//22
+#define DATARX_HANDLE_END_OF_RX				DISABLED_PIN
+#define OMAC_CONTINUATION					DISABLED_PIN//23
+#define DATARX_SEND_SW_ACK					DISABLED_PIN//23//22
+#define OMAC_DRIVING_RADIO_SEND				DISABLED_PIN//22
+#define DATARX_EXEC_EVENT					DISABLED_PIN//22//23
+#define SI4468_HANDLE_SLEEP					DISABLED_PIN//0//23
+//#define SCHED_RX_EXEC_PIN 					(GPIO_PIN)06171015//22 //THis is a duplicate definition
+#define OMAC_DISCO_EXEC_EVENT				DISABLED_PIN//23//0
+#define EMOTE_NET_MAC_GETNEXTPACKET			DISABLED_PIN
+#define EMOTE_NET_MANAGED_CALLBACK			DISABLED_PIN//0
+#define OMAC_DATARXPIN						DISABLED_PIN//0
+#define OMAC_DRIVING_RADIO_RECV				DISABLED_PIN//22//23
+#define OMAC_DRIVING_RADIO_SLEEP			DISABLED_PIN//22//0
+#define OMAC_SCHED_POST_POST_EXEC			DISABLED_PIN//22//0
+#define OMAC_DISCO_POST_EXEC				DISABLED_PIN//23//0
+#define DATATX_RECV_SW_ACK					DISABLED_PIN//23
+#define OMAC_TIMESYNC_NEXT_EVENT			DISABLED_PIN//24
+#define DISCO_NEXT_EVENT					DISABLED_PIN
+#define DISCO_BEACON_N						DISABLED_PIN//25
+#define SCHED_NEXT_EVENT					DISABLED_PIN//0
+#define OMAC_DISCO_BEACON_ACK_HANDLER_PIN   DISABLED_PIN 
+#define OMAC_DISCO_BEACONNTIMERHANDLER_PIN  DISABLED_PIN
+
+#define OMAC_TESTING_SCHEDULER_PIN 			DISABLED_PIN//24
+#define OMAC_TESTING_VTIMER_PIN 			DISABLED_PIN
+#define VT_CALLBACK 						DISABLED_PIN					//J11_PIN7
+
+
+//Acknowledgements from radio
+#define SEND_ACK_PIN						DISABLED_PIN //29//120
+#define DATA_RX_INTERRUPT_PIN				DISABLED_PIN //120
+#define DATA_TX_ACK_PIN						DISABLED_PIN //120
+
+//Acknowledgements from other node
+#define OMAC_TX_DATAACK_PIN 				DISABLED_PIN //120 //120 //23  //120							//J11_pin3 0
+#define OMAC_RX_DATAACK_PIN 				DISABLED_PIN //120 // 120 //23  //120							//J11_pin3 0
+
+//Radio Control
+#define RADIOCONTROL_STATEPIN 				DISABLED_PIN //120 //23 //120 // 120 //120 				//J11_pin6 //This 	(GPIO_PIN)3  did not work
+
+//TX Related
+#define RADIOCONTROL_SEND_PIN 				DISABLED_PIN 				//J11_pin4
+#define RADIOCONTROL_SENDTS_PIN 			DISABLED_PIN //(<--2) 				//J11_pin5
+#define DISCO_SYNCSENDPIN 					DISABLED_PIN // 24  //120						//J12_PIN1
+#define DATATX_PIN 							DISABLED_PIN //(<--2) //29 //120 //120 //2							//J12_PIN3
+#define RC_TX_TIMESYNCREQ 					DISABLED_PIN
+#define RC_TX_DATA 							DISABLED_PIN	//29 (<--29)
+//#define DATATX_DATA_PIN				DISABLED_PIN //25
+#define DATARX_TIMESTAMP_PIN				DISABLED_PIN //29
+#define DATATX_POSTEXEC						DISABLED_PIN
+#define DATATX_RECV_HW_ACK					DISABLED_PIN //(<--4)
+#define FAST_RECOVERY_SEND					DISABLED_PIN //(<--0)
+#define DATATX_SEND_ACK_HANDLER				DISABLED_PIN
+#define OMAC_RADIOCONTROL_RADIO_SEND_TOGGLER			DISABLED_PIN //SI4468_Radio_TX_Instance //DISABLED_PIN
+#define DATATX_SendACKHandler_PIN_TOGGLER				DISABLED_PIN //(GPIO_PIN)22 //SCHED_TX_EXEC_PIN //DISABLED_PIN
+#define DATATX_ReceiveDATAACK_PIN_TOGGLER				DISABLED_PIN //DISABLED_PIN
+#define DATATX_CCA_PIN_TOGGLER				DISABLED_PIN
+#define DATATX_TIMING_ERROR_PIN_TOGGLER 	DISABLED_PIN
+#define DTH_STATE_PIN_TOGGLER				DISABLED_PIN //SCHED_TX_EXEC_PIN
+
+//RX related
+#define OMAC_RXPIN 							DISABLED_PIN //(GPIO_PIN)0 //120 //23  //120							//J11_pin3 0
+//#define OMAC_DATARXPIN 	DISABLED_PIN //0 //26	//120 //2					//J12_pin5
+#define OMAC_TIMESYNCREQRXPIN 				DISABLED_PIN //23 //30
+#define DISCO_SYNCRECEIVEPIN 				DISABLED_PIN //25 //120					//J12_PIN2
+#define DATARECEPTION_SLOTPIN 				DISABLED_PIN //30 //31 //2				//J12_PIN4
+#define DATARECEPTION_RADIOONPIN 			DISABLED_PIN //30 //31 //2				//J12_PIN4
+#define DATARX_TIMING_ERROR_PIN_TOGGLER 	DISABLED_PIN
+
+//Timesync related
+#define TIMESYNC_GENERATE_MESSAGEPIN 		DISABLED_PIN
+#define TIMESYNC_RECEIVEPIN 				DISABLED_PIN //24 			//J12_pin5
+
+//Scheduler Related
+#define SCHED_START_STOP_PIN 				DISABLED_PIN //4
+#define SCHED_RX_EXEC_PIN 				    DISABLED_PIN //(GPIO_PIN)25 //25 //4
+#define SCHED_TX_EXEC_PIN 					DISABLED_PIN //(GPIO_PIN)24 //24 //4
+#define SCHED_DISCO_EXEC_PIN 				DISABLED_PIN //0 //4
+#define SCHED_TSREQ_EXEC_PIN 				DISABLED_PIN //DISABLED_PIN //23 //4
+#define DATARX_NEXTEVENT 					DISABLED_PIN
+#define DATATX_NEXTEVENT 					DISABLED_PIN
+#define DATATX_SCHED_DATA_PKT 				DISABLED_PIN
+#define DATA_RX_END_OF_RECEPTION			DISABLED_PIN
+
+//MISC
+#define DELAY_BETWEEN_DATATX_SCHED_ACTUAL	DISABLED_PIN	//J12_pin5
+#define OMAC_DEBUG_PIN 						DISABLED_PIN			 			//J11_PIN5
+#define VTIMER_CALLBACK_LATENCY_PIN			DISABLED_PIN //(<--31)
+
+
+#define RX_RADIO_TURN_ON 					_P(D,3)//
+#define RX_RADIO_TURN_OFF					_P(D,5)//
+
+
+#endif //__MAC_OMAC__
 
 
 /* Definition for USARTx Pins */

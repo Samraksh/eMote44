@@ -61,7 +61,7 @@ struct PACK Link_t {
 	 * For SI radio, not available. Hence a value of 0 is reported.
 	 * Exponentially smoothed with lambda of 0.2.
 	 */
-	UINT8 LinkQuality;
+	//UINT8 LinkQuality;
 	/* AveDelay
 	 * : Has units of 65.535 (=10^3/(2^19/2^8)) ms. Exponentially smoothed
 	 */
@@ -70,10 +70,10 @@ struct PACK Link_t {
 	UINT8 Link_reliability_bitmap;
 
 public:
-	Link_t() : AvgRSSI(0), LinkQuality(0), AveDelay(0), Link_reliability_bitmap(0xFF)  {}
+	Link_t() : AvgRSSI(0), AveDelay(0), Link_reliability_bitmap(0xFF)  {}
 	void Initialize(){
 		AvgRSSI = 0;
-		LinkQuality = 0;
+		//LinkQuality = 0;
 		AveDelay = 0;
 		Link_reliability_bitmap = 0x00;
 	}
@@ -229,7 +229,7 @@ public:
 		MACAddress = 0;
 		status = NbrStatusError;
 		lastHeardTime = 0;
-		linkQualityMetrics.LinkQuality = 0;
+		//linkQualityMetrics.LinkQuality = 0;
 		linkQualityMetrics.AvgRSSI = 0;
 		linkQualityMetrics.AveDelay = 0;
 		availableForUpperLayers=0;

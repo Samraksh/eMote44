@@ -39,10 +39,10 @@
         <RequiredProjects Include="$(SPOCLIENT)\Solutions\STM32H743NUCLEO\DeviceCode\Radio\dotNetMF.proj" />
         <DriverLibs Include="netmf_radio.$(LIB_EXT)"/>
 	</ItemGroup>
-	<!--<ItemGroup>
+	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\CSMAMAC\dotNetMF.proj" />
         <DriverLibs Include="csma_pal.$(LIB_EXT)"/>
-	</ItemGroup>-->
+	</ItemGroup>
 	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\OMAC\dotNetMF.proj" />
         <DriverLibs Include="omac_pal.$(LIB_EXT)"/>
@@ -134,10 +134,10 @@
     	<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\Samraksh\VirtualTimer\dotNetMF.proj" />
     	<DriverLibs Include="VirtualTimer.$(LIB_EXT)" />
   	</ItemGroup>
-	<!--<ItemGroup>
+	<ItemGroup>
         <DriverLibs Include="STM32H7_RTC.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_RTC\dotNetMF.proj" />
-    </ItemGroup>-->
+    </ItemGroup>
 	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\DSP\dotNetMF.proj" />
         <DriverLibs Include="CMSIS_DSP_Driver.$(LIB_EXT)"/>

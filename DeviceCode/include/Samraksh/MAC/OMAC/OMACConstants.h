@@ -39,241 +39,7 @@
 #define TIMESTAMP_FOOTER_OFFSET -4
 #define TIMESTAMP_SIZE 4
 
-
-
-#define MAX_UINT16 	(0xFFFF)
-#define MAX_UINT32 	(0xFFFFFFFF)
-#define MAX_UINT64 	(0xFFFFFFFFFFFFFFFF)
-#define MID_UINT64  (0x7FFFFFFFFFFFFFFF)
-
-#define MAX_DATA_PCKT_SIZE 100
 #define MAX_PCKT_SIZE 128
-
-
-
-
-/*
- *
- */
-enum OMACSchedulerState_t{
-  I_IDLE,
-  I_DATA_RCV_PENDING, //waiting to receive
-  I_DATA_SEND_PENDING, //pending to send
-  I_TIMESYNC_PENDING,
-  I_DISCO_PENDING,
-  I_DWELL_SEND, //BK: What is this?
-  I_RADIO_STOP_RETRY,
-  I_FAILSAFE_STOP,
-  I_POST_EXECUTE
-} ;
-
-/*
- *
- */
-typedef enum {
-  NULL_HANDLER,
-  CONTROL_BEACON_HANDLER,
-  DATA_RX_HANDLER,
-  DATA_TX_HANDLER,
-  TIMESYNC_HANDLER
-} HandlerType_t;
-
-/*
- *
- */
-typedef enum {
-  OMAC_NORMAL_SEND,
-  OMAC_SEND_PRELOAD,
-  OMAC_FIRST_SEND
-} OMacAction_t;
-
-/*
- *
- */
-typedef struct PACK DiscoveryMsg
-{
-	//UINT32 msg_identifier;
-	//seed to generate the pseduo-random wakeup schedule
-	UINT16 nextSeed;
-	UINT16 mask;
-	//use to compute the offset of neighbor's current slot w.r.t. the start of the next frame
-	//UINT64 nextwakeupSlot;
-	UINT32 nextwakeupSlot0;
-	UINT32 nextwakeupSlot1;
-	//the wakeup interval of the neighbor
-	UINT32 seedUpdateIntervalinSlots;
-	//fields below are just for convenience. not transmitted over the air
-	//UINT16 nodeID;
-
-	//UINT32 localTime0;
-	//UINT32 localTime1;
-
-	//UINT32 lastwakeupSlotUpdateTimeinTicks0;
-	//UINT32 lastwakeupSlotUpdateTimeinTicks1;
-} DiscoveryMsg_t;
-
-typedef struct{
-	UINT8 RSSI;
-	UINT8 LinkQuality;
-	UINT8 Delay;
-}MsgLinkQualityMetrics_t;
-
-#define DataMsgOverhead sizeof(UINT8)
-typedef struct DataMsg_t
-{
-	//UINT32 msg_identifier;
-	UINT8 size;
-	UINT8 payload[MAX_DATA_PCKT_SIZE];
-} DataMsg_t;
-
-/*
- * After TEP 133, the message timestamp contains the difference between
- * event time and the time the message was actually sent out. TimeSyncP
- * sends the local time associated with this globalTime to the
- * TimeStamping mechanism, which then calculates the difference.
- *
- * On the receiving side, the difference is applied to the local
- * timestamp. The receiving timestamp thus represents the time on the
- * receiving clock when the remote globalTime was taken.
- */
-struct PACK TimeSyncMsg
-{
-
-//  UINT32 globalTime0;
-//  UINT32 globalTime1;
-
-  //the time to startup the radio could be different for different nodes.
-  //use this neighbor info along with local info to compute this difference
-  //UINT16 radioStartDelay;
-//  float skew;
-  //UINT32 timesyncIdentifier;
-  UINT32 localTime0;
-  UINT32 localTime1;
-  //bool request_TimeSync;
- // UINT16 nodeID;
-  //UINT32 seqNo;
-
-};
-
-struct PACK TimeSyncRequestMsg
-{
-  //UINT32 timesyncIdentifier;
-  bool request_TimeSync;
-};
-
-
-
-
-/*
- *
- */
-typedef struct DataBeacon {
-  UINT16 nodeID;
-} DataBeacon_t;
-
-/*
- *
- */
-typedef struct OMacHeader {
-  UINT8 flag;
-} OMacHeader;
-
-//Overflow provisioned class
-template<class Base_T>
-class OFProv:Base_T{
-public:
-	bool isThereOverflow(const Base_T& rhs){
-		if(rhs>*this){
-			if(rhs - *this <= MID_UINT64) return false;
-			else return true;
-		}
-		else{
-			if(*this - rhs <= MID_UINT64) return false;
-			else return true;
-		}
-	}
-	bool operator<(const Base_T& rhs){
-		if (rhs == *this) return false;
-		else if(isThereOverflow(rhs)){
-			if (rhs<*this) return true;
-			else return false;
-		}
-		else{
-			if (rhs<*this) return true;
-			else return false;
-		}
-	}
-	bool operator>(const Base_T& rhs){
-		if (rhs == *this) return false;
-		else if(isThereOverflow(rhs)){
-			if (rhs>*this) return true;
-			else return false;
-		}
-		else{
-			if (rhs>*this) return true;
-			else return false;
-		}
-	};
-	bool operator<=(const Base_T& rhs){
-		if (*this == rhs) return true;
-		return (*this < *rhs);
-	}
-	bool operator>=(const Base_T& rhs){
-		if (*this == rhs) return true;
-		return (*this > *rhs);
-	}
-};
-
-typedef OFProv<UINT64> OMACMicroSeconds;
-typedef OFProv<UINT64> OMACTicks;
-
-
-/*
-#if defined(CURRENT_RADIONAME) && CURRENT_RADIONAME==RADIONAME_SI4468
-
-	#define RETRANS_DELAY_DUE_TO_MISSING_ACK	12.8*MILLISECINMICSEC	//A 64-byte packet takes 64*8*25 usec to be transmitted (12800 usec);
-																		//At 40kbps, a bit takes 25 usec
-	#define DELAY_IN_RECEIVING_ACK				3.6*MILLISECINMICSEC		//Delay in Rx generating an ack; SI4468 does not support H/w acks;
-																		//A 3-byte s/w ack (along with additional 10 bytes added by radio firmware) takes 2600 usec
-																		//Due to software delays (walking up and down the invocation call stack), an addition 1 ms is added
-
-	#define MAX_PACKET_TX_DURATION_MICRO 		27.6*MILLISECINMICSEC	//128 byte packet takes 25600 usec, but in reality time taken is 27600 usec (138 bytes)
-	#define ACK_RX_MAX_DURATION_MICRO 			8*MILLISECINMICSEC		//2x of ACK_DELAY. Indicates how long should tx wait to get back an ack from rx.
-	#define ACK_TX_MAX_DURATION_MICRO 			8*MILLISECINMICSEC
-	#define DISCO_BEACON_TX_MAX_DURATION_MICRO	10*MILLISECINMICSEC		//39 byte packet takes 7.8 ms; (16 bytes for DISCO + 13 bytes for header + 10 bytes added by radio)
-	#define DISCO_PACKET_TX_TIME_MICRO 			10*MILLISECINMICSEC
-	#define DISCO_SLOT_PERIOD_MICRO 			8*MILLISECINMICSEC
-	#define HIGH_DISCO_PERIOD_IN_SLOTS 			9000
-
-#elif defined(CURRENT_RADIONAME) && CURRENT_RADIONAME==RADIONAME_RF231
-
-#if defined(RF231_HARDWARE_ACK)
-	#define DELAY_IN_RECEIVING_HW_ACK				0.4*MILLISECINMICSEC		//(C)Delay in Rx generating a h/w ack
-	#define DELAY_IN_RECEIVING_SW_ACK				0*MILLISECINMICSEC
-	#define RETRANS_DELAY_DUE_TO_MISSING_HW_ACK		0*MILLISECINMICSEC
-	#define RETRANS_DELAY_DUE_TO_MISSING_SW_ACK		0*MILLISECINMICSEC
-	#define ACK_TX_MAX_DURATION_MICRO 				0*MILLISECINMICSEC
-#else
-	#define DELAY_IN_RECEIVING_HW_ACK				0*MILLISECINMICSEC
-	#define DELAY_IN_RECEIVING_SW_ACK				0.6*MILLISECINMICSEC		//(C)Delay in Rx generating a s/w ack
-	#define RETRANS_DELAY_DUE_TO_MISSING_HW_ACK		0*MILLISECINMICSEC
-	#define RETRANS_DELAY_DUE_TO_MISSING_SW_ACK		0.2*MILLISECINMICSEC
-	#define ACK_TX_MAX_DURATION_MICRO 				4*MILLISECINMICSEC
-#endif
-
-	#define DELAY_IN_RECEIVING_ACK				DELAY_IN_RECEIVING_HW_ACK+DELAY_IN_RECEIVING_SW_ACK
-	#define RETRANS_DELAY_DUE_TO_MISSING_ACK	RETRANS_DELAY_DUE_TO_MISSING_HW_ACK+RETRANS_DELAY_DUE_TO_MISSING_SW_ACK
-	#define MAX_PACKET_TX_DURATION_MICRO 		5*MILLISECINMICSEC		//At 256kbps, a bit takes 3.9 usec to be transmitted; A 128 byte packet takes 4000 usec;
-	#define ACK_RX_MAX_DURATION_MICRO 			20*MILLISECINMICSEC
-	#define DISCO_BEACON_TX_MAX_DURATION_MICRO	1.2*MILLISECINMICSEC		//35 byte packet takes 1 ms; (16 bytes for DISCO + 13 bytes for header + 6 bytes added by radio)
-	#define DISCO_PACKET_TX_TIME_MICRO 			1*MILLISECINMICSEC
-	#define DISCO_SLOT_PERIOD_MICRO 			8*MILLISECINMICSEC
-	#define HIGH_DISCO_PERIOD_IN_SLOTS 			9000
-#else
-	#error "Radioname not defined"
-#endif
-*/
-
 
 #define MAXUPDATESEEDITERS 2000
 
@@ -310,7 +76,7 @@ typedef OFProv<UINT64> OMACTicks;
 
 #define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_RF231	284
 #define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SI 1718
-#define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SX1276 88926
+#define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SX1276 46208
 
 //#define PROCESSING_DELAY_BEFORE_TX_MICRO (581) //DELAY_FROM_OMAC_TX_TO_RF231_TX //581
 #define DELAY_FROM_DTH_TX_TO_RADIO_DRIVER_TX_RF231 581
@@ -393,9 +159,9 @@ typedef OFProv<UINT64> OMACTicks;
 #define LFCLOCKID LOW_DRIFT_TIMER
 #define OMACClockSpecifier LOW_DRIFT_TIMER
 //#define OMACClockFreq 32
-//#define OMACClocktoSystemClockFreqRatio 244.140625
+#define OMACClocktoSystemClockFreqRatio 244.140625
 #define OMACClockFreq 16
-#define OMACClocktoSystemClockFreqRatio 488.281250
+//#define OMACClocktoSystemClockFreqRatio 488.281250
 //#define OMACClockSpecifier HFCLOCKID
 //#define OMACClockFreq 8000
 //#define OMACClocktoSystemClockFreqRatio 1
@@ -412,7 +178,10 @@ typedef OFProv<UINT64> OMACTicks;
 ////GUARDTIME_MICRO should be calculated in conjuction with SLOT_PERIOD_MILLI
 //// GUARDTIME_MICRO = (SLOT_PERIOD_MILLI - PacketTime)/2 - SWITCHING_DELAY_MICRO
 ////PacketTime = 125byte * 8 bits/byte / (250*10^3 bits/sec) = 4sec
-#define GUARDTIME_MICRO 200000
+
+///#define GUARDTIME_MICRO 2000//JH:why guardtime is 200ms?
+#define GUARDTIME_MICRO 5000
+
 #else
 //#define FORCE_REQUESTTIMESYNC_INTICKS 80000000					//Translates to 120 secs @8Mhz. Receiver centric time threshold to request for a TImeSync msg.
 #define FORCE_REQUESTTIMESYNC_INMICS 100000000					//Translates to 120 secs @8Mhz. Receiver centric time threshold to request for a TImeSync msg.
@@ -427,12 +196,12 @@ typedef OFProv<UINT64> OMACTicks;
 #define OMAC_SCHEDULER_MIN_REACTION_TIME_IN_TICKS 4000
 #define OMAC_SCHEDULER_MIN_REACTION_TIME_IN_MICRO 500
 
-#define FAILSAFETIME_MICRO 60000000000
+#define FAILSAFETIME_MICRO 60000000//60000000000
 
 #define WAKEUPPERIODINTICKS 8000000
 
 #define TIMEITTAKES2TXDISCOPACKETINMICSEC 4096
-#define DISCOPERIODINMILLI 15
+#define DISCOPERIODINMILLI 45
 
 //FCF table:
 //15 14 13  12  11  10  9  8  7  6  5  4  3  2  1  0 (bits)
@@ -451,79 +220,9 @@ typedef OFProv<UINT64> OMACTicks;
 #define SRC_PAN_ID	0xAAAA
 #define DEST_PAN_ID	0x5555
 
-enum {
-  TICKS_PER_MILLI     = 8000,
-  TICKS_PER_MICRO     = 8,
-  BITS_PER_BYTE = 8,
+//extern UINT16  CONTROL_BEACON_INTERVAL_SLOT = 7500;
 
-#ifdef SHORT_SLOT
-#warning *** USING 8ms SLOT ***
-  SLOT_PERIOD_MILLI     = 8,    /*modify this along with SLOT_PERIOD_BITS*/
-  SLOT_PERIOD_BITS    = 3 + 13,  /*13 = # of bits of TICKS_PER_MILLI, 4 = # of bits in SLOT_PERIOD_MILLI*/
-#else
-  SLOT_PERIOD_MILLI     = 16,     /*modify this along with SLOT_PERIOD_BITS*/
-  SLOT_PERIOD_BITS    = 4 + 13,  /*13 = # of bits of TICKS_PER_MILLI, assuming its a 10Mhz clock, 4 = # of bits in SLOT_PERIOD_MILLI*/
-#endif
-  SLOT_PERIOD_TICKS   = SLOT_PERIOD_MILLI * TICKS_PER_MILLI,
-  SLOT_PERIOD   = SLOT_PERIOD_MILLI,
-  DWELL_TIME        = 10,
-  /* sender margin compensates for time sync jitter, packet preload delay
-   * and radio startup jitter*/
-  SENDER_MARGIN_IN_MILLI = 3,
-  SENDER_MARGIN     = SENDER_MARGIN_IN_MILLI * TICKS_PER_MILLI,
-  TRANSITION_MARGIN   = SENDER_MARGIN_IN_MILLI * TICKS_PER_MILLI,
-  MINIMUM_BACKOFF_WINDOW  = 64, /*in the unit of 1/32 ms*/
-  RADIO_BACKOFF_WINDOW  = 64, /*in the unit of 1/32 ms*/
-  RANDOM_SCHEDULE_WINDOW  = 0x0,
-  /* receiver's wait time before the first packet arrives. It will not affect efficiency much
-   * if the percentage of failed rendezvous is small because receivers go back to sleep upon
-   * receiving the packet tagged as the last packet in the queue*/
-  WAIT_TIME_AFTER_DATA_BEACON = (RADIO_BACKOFF_WINDOW + MINIMUM_BACKOFF_WINDOW) / TICKS_PER_MILLI + 12,
-  WAIT_TIME_AFTER_PRELOAD = SLOT_PERIOD_MILLI,
-  //8 minutes is the optimum time window for linear regression
-  //the maximum number of times we tx a packet when previous
-  //attempts fail due to congestion
-  MAX_RETRY_CNT     = 10,
-  // number of entries per neighbor
-  MAX_ENTRIES             = 8,
-  MAX_POOL_SIZE     = 32,
-  MAX_CTRL_MSG_POOL_SIZE  = 8,
-  //the number of consecutive messages sent during dwell time
-  //DWELL_COUNT       = DEFAULT_DWELL_COUNT,
-  DWELL_COUNT       = 3,
-  DATA_ALARM_MAX_DURATION = 5,
-  DELAY_AVG_FACTOR    = 9,
-  //copy  from RIMAC implementation, should acknolwedge them
-  //the number of cca detections needed to declare collision
-  OMAC_COLLISION_CCA_THRESHOLD = 0,
-  MAX_NON_SLEEP_STATE   = 10,
-  MAX_NBR_SIZE      = 8,
-  AM_DATA_BEACON      = 0x2E,
-  AM_TIMESYNCMSG      = 0x3E,
-  TIMESYNCMSG_LEN     = sizeof(TimeSyncMsg) - sizeof(UINT32) - sizeof(UINT16),
-  INVALID_TIMESTAMP   = 0xFFFFFFFF,
-  INVALID_ADDRESS     = 0xFFFF,
-  INVALID_INDEX       = 0xFF,
-  // time to declare itself the root if no msg was received (in sync periods)
-  ROOT_TIMEOUT            = 5,
-  // after becoming the root ignore other roots messages (in send period)
-  IGNORE_ROOT_MSG         = 4,
-  // of entries to become synchronized
-  ENTRY_VALID_LIMIT       = 8,
-  // if time sync error is bigger than this clear the table
-  ENTRY_THROWOUT_LIMIT    = 200,
-  // to detect whether my clock or my neighbor's clock has wrapped
-  FLAG_TIMESTAMP_VALID  = (UINT8)1 << 3,
-  FLAG_REQUEST_BEACON   = (UINT8)1 << 4,
-  FLAG_DWELL_TIME     = (UINT8)1 << 6,
-  OMAC_HEADER_LEN     = sizeof(OMacHeader),
-  SEND_PIGGYBACK_BEACON = 1
-    //TODO: needs random mechanism for DATA_INTERVAL
-};
-
-UINT16  CONTROL_BEACON_INTERVAL_SLOT = 7500;
-
-UINT32 ArbiterP_Timing;
+extern UINT32 ArbiterP_Timing;
 
 /*
  * Prime numbers used in determining DISCO period of a node
@@ -534,39 +233,7 @@ UINT32 ArbiterP_Timing;
 
 #define DISCOVERY_SIZE_OF_PRIME_NUMBER_POOL 7
 
-//UINT16 CONTROL_P1[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
-//UINT16 CONTROL_P2[] = {8429, 8419, 8623, 8443, 8627, 8447, 8467};
-//UINT16 CONTROL_P3[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
-//UINT16 CONTROL_P4[] = {8429, 8419, 8623, 8443, 8627, 8447, 8467};
 
-//UINT16 CONTROL_P1[] = {911, 727, 787, 769, 773, 853, 797};
-//UINT16 CONTROL_P2[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
-//UINT16 CONTROL_P3[] = {911, 727, 787, 769, 773, 853, 797};
-//UINT16 CONTROL_P4[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
-
-//Expected Disco Time (2 disco receptions) 28.21hours,  Typical MaxDiscoTime Time (2 disco receptions) 37.62h, MaxDiscoTime = 151.6hours
-UINT16 CONTROL_P3[] = {2099, 2111, 2113, 2129, 2131, 2137, 2153};
-UINT16 CONTROL_P4[] = {8627, 8623, 8467, 8447, 8443, 8429, 8419};
-//UINT16 CONTROL_P1[] = {197, 157, 151, 163, 211, 113, 127};
-//UINT16 CONTROL_P2[] = {911, 727, 787, 769, 773, 853, 797};
-
-//UINT16 CONTROL_P3[] = {197, 157, 151, 163, 211, 113, 127};
-//UINT16 CONTROL_P4[] = {911, 727, 787, 769, 773, 853, 797};
-//UINT16 CONTROL_P1[] = {19, 17, 13, 37, 11, 5, 7};
-//UINT16 CONTROL_P2[] = {67, 43, 53, 47, 61, 59};
-
-//UINT16 CONTROL_P1[] = {47, 37, 43, 37, 53, 29, 31};
-//UINT16 CONTROL_P2[] = {227, 181, 197, 191, 211, 199};
-
-//Expected disco time(2 disco receptions) 2.63 mins, Typical MaxDiscoTime Time (2 disco receptions) 3.51 mins, Non typical MaxDiscoTime = 11.46 mins
-#if defined(PLATFORM_ARM_Austere) || defined(PLATFORM_ARM_EmoteDotNow)
-UINT16 CONTROL_P1[] = { 67,  71,  79,  83,  89,  97, 101};
-UINT16 CONTROL_P2[] = {257, 251, 241, 239, 233, 229, 227};
-//UINT16 CONTROL_P2[] = {911, 727, 787, 769, 773, 853, 797};
-#else //#if defined(PLATFORM_ARM_EmoteDotNow)
-UINT16 CONTROL_P1[] = {2099, 2111, 2113, 2129, 2131, 2137, 2153};
-UINT16 CONTROL_P2[] = {8627, 8623, 8467, 8447, 8443, 8429, 8419};
-#endif
 //Define total size of a Disco packet with piggybacking
 #if OMAC_DEBUG_SEND_EXTENDEDMACINfo
 

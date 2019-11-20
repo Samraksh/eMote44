@@ -75,16 +75,16 @@ UINT64 OMACTimeSync::NextEvent(){
 		);
 		if(sn != NULL) {
 			y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
-			Send(sn->MACAddress);
-//			if(sn->IsInitializationTimeSamplesNeeded()){ //If the node needs initialization
-//				Send(sn->MACAddress);
-//			}
-//			else if(y - sn->LastTimeSyncSendTime >= m_messagePeriod){
-//				Send(sn->MACAddress);
-//			}
-//			else{
-//				break;
-//			}
+///			Send(sn->MACAddress);
+			if(sn->IsInitializationTimeSamplesNeeded()){ //If the node needs initialization
+				Send(sn->MACAddress);
+			}
+			else if(y - sn->LastTimeSyncSendTime >= m_messagePeriod){
+				Send(sn->MACAddress);
+			}
+			else{
+				break;
+			}
 		}
 		else{
 			break;
@@ -189,7 +189,7 @@ BOOL OMACTimeSync::Send(RadioAddress_t address){
 		rs = g_OMAC.Send(address, MFM_OMAC_TIMESYNCREQ, tsreqmsg, sizeof(TimeSyncRequestMsg));
 		if(!rs){
 #ifdef OMAC_DEBUG_PRINTF
-			OMAC_HAL_PRINTF("OMACTimeSync::Send failed. Addr=%d", address);
+			//OMAC_HAL_PRINTF("OMACTimeSync::Send failed. Addr=%d\r\n", address);
 #endif
 			//	return rs;
 		}
@@ -202,7 +202,8 @@ BOOL OMACTimeSync::Send(RadioAddress_t address){
 		}
 #endif
 #ifdef OMAC_DEBUG_PRINTF
-		OMAC_HAL_PRINTF("TS Send: %d, LTime: %lld  \r\n",m_seqNo, y);
+		//OMAC_HAL_PRINTF("TS Send: %d, LTime: %lld  \r\n",m_seqNo, y);
+		//OMAC_HAL_PRINTF("TS Send: %d, LTime: %s  \r\n",m_seqNo, l2s(y,0));
 #endif
 #ifdef OMAC_DEBUG_GPIO
 		CPU_GPIO_SetPinState( TIMESYNC_GENERATE_MESSAGEPIN, FALSE );
@@ -273,10 +274,18 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 	if(ReceiveTS > rcv_ltime){
 		l_offset = ReceiveTS - rcv_ltime;
 		l_offset = l_offset*-1;
+		//hal_printf("\r1:ReceiveTS=%s",l2s(ReceiveTS/8,0));
+		//hal_printf("\r1:rcv=%s",l2s(rcv_ltime/8,0));
+		hal_printf("\r1:offset=-%s\r\n",l2s((ReceiveTS - rcv_ltime)/8,0));
 	}
 	else{
-		l_offset = rcv_ltime - ReceiveTS;
+		l_offset = rcv_ltime - ReceiveTS;	
+		//hal_printf("\r2:ReceiveTS=%s",l2s(ReceiveTS/8,0));
+		//hal_printf("\r2:rcv=%s",l2s(rcv_ltime/8,0));
+		hal_printf("\r2:offset=%s\r\n",l2s((rcv_ltime - ReceiveTS)/8,0));
 	}
+	
+	//l_offset = 0;
 	//	if((m_globalTime.regressgt2.LastRecordedTime(msg_src) >= rcv_ltime)){
 	//		return DS_Fail;
 	//	}
@@ -392,7 +401,6 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 	{
 		return call LocalTime.get();
 	}
-
 	async command error_t GlobalTime.getGlobalTime(uint32_t *time, am_addr_t nodeID)
 	{
  *time = call GlobalTime.getLocalTime();
@@ -403,7 +411,6 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 			return call GlobalTime.local2Global(time, nodeID);
 		}
 	}
-
 	async command error_t GlobalTime.local2Global(uint32_t *time, am_addr_t nodeID)
 	{
 		error_t result = is_synced(nodeID);
@@ -425,10 +432,8 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 				printf("Error in local2Global. should not happen \r\n");
 			}
 		}
-
 		return result;
 	}
-
 	async command error_t GlobalTime.global2Local(uint32_t *time, am_addr_t nodeID)
 	{
 		if (nodeID == TOS_NODE_ID) {

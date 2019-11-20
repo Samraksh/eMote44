@@ -70,11 +70,12 @@ static void DefaultSystemClock_Config(void)
 	RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOWIDE;
 	RCC_OscInitStruct.PLL.PLLFRACN = 0;*/
 
-	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
+	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE| RCC_OSCILLATORTYPE_LSE;
 	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
 	RCC_OscInitStruct.HSIState = RCC_HSI_DIV1;
 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT; 
 	RCC_OscInitStruct.HSI48State = RCC_HSI48_ON; 
+	RCC_OscInitStruct.LSEState = RCC_LSE_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
 	RCC_OscInitStruct.PLL.PLLM = 8;
@@ -108,13 +109,16 @@ static void DefaultSystemClock_Config(void)
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2 | RCC_PERIPHCLK_UART5
 												|RCC_PERIPHCLK_SPI3 | RCC_PERIPHCLK_SPI1
 												|RCC_PERIPHCLK_USB | RCC_PERIPHCLK_QSPI
-												|RCC_PERIPHCLK_FMC|RCC_PERIPHCLK_CKPER;
+												|RCC_PERIPHCLK_FMC| RCC_PERIPHCLK_CKPER
+												| RCC_PERIPHCLK_RTC ;
 	PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_D1HCLK;
 	PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_CLKP;
 	PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSE;
 	PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
 	PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
 	PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_HSI48;
+	PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
+
 	if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
 	{
 		Error_Handler();

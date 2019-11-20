@@ -10,7 +10,7 @@
 #define OMAC_H_
 
 //#define TWO_NODES_TX_RX
-//#define OMAC_DEBUG_GPIO
+#define OMAC_DEBUG_GPIO
 #define OMAC_DEBUG_PRINTF
 
 #define OMAC_DEBUG_PRINTF_EXTENDEDMACINfo 0
@@ -38,7 +38,7 @@
 #define OMAC_DEBUG_PRINTF_DISCO_RX 1
 #define OMAC_RECEIVE_DEBUGGING_FOR_MF 0
 
-#define OMAC_DEBUG_PRINTF_TS_RX 0
+#define OMAC_DEBUG_PRINTF_TS_RX 1
 #define OMAC_DEBUG_PRINTF_TSREQ_TX 0
 
 #define OMAC_DEBUG_PRINTF_FAILSAFE_STOP 0
@@ -73,7 +73,7 @@
 #include <Samraksh/Buffer.h>
 #include <Samraksh/Neighbors.h>
 
-#include "OMACConstants.h"
+#include "OmacTypes.h"
 #include "OMACClock.h"
 #include "Scheduler.h"
 #include "Handlers.h"
@@ -103,6 +103,11 @@
 extern Buffer_15_4_t g_receive_buffer;
 extern NeighborTable g_NeighborTable;
 
+static void x64toa(unsigned long long val, char *buf, unsigned radix, int is_neg);
+char* _i64toa(long long val, char *buf, int radix);
+char* _ui64toa(unsigned long long val, char *buf, int radix);
+char* l2s(long long v,int sign);
+
 /*
  *
  */
@@ -129,23 +134,13 @@ class OMACType: public MAC<Message_15_4_t, MACConfig>{
 	//Underlying radio variables
 	static const UINT8 NumberRadios = 1;
 
-
-
-
-
-
-
-
-
-
 	//Protocol variables
 	//-------------------------------
-	static const UINT32 GUARDTIME_MICRO_OMAC = GUARDTIME_MICRO;
-	static const UINT16 OMAC_TIME_ERROR = 3*MILLISECINMICSEC;
-
-	static const UINT16 DELAY_DUE_TO_CCA_MICRO = CCA_PERIOD_MICRO;
+	static UINT32 GUARDTIME_MICRO_OMAC;// = GUARDTIME_MICRO;
+	static UINT16 OMAC_TIME_ERROR;// = 3*MILLISECINMICSEC;
+	static UINT16 DELAY_DUE_TO_CCA_MICRO;// = CCA_PERIOD_MICRO;
 private:
-	static const UINT16 RETRY_FUDGE_FACTOR = 0.3*MILLISECINMICSEC;
+	static UINT16 RETRY_FUDGE_FACTOR;// = 0.3*MILLISECINMICSEC;
 
   private:
 	UINT32 RETRY_RANDOM_BACKOFF_DELAY_MICRO;

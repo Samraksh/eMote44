@@ -5,11 +5,8 @@
  _____) ) ____| | | || |_| ____( (___| | | |
 (______/|_____)_|_|_| \__)_____)\____)_| |_|
     (C)2013 Semtech
-
 Description: Bleeper board GPIO driver implementation
-
 License: Revised BSD License, see LICENSE.TXT file include in the project
-
 Maintainer: Miguel Luis and Gregory Cristian
 */
 /**
@@ -33,6 +30,8 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 #ifndef __CPU_RTC_H__
 #define __CPU_RTC_H__
+
+#include <tinyhal.h>
 
 #ifdef __cplusplus
  extern "C" {
@@ -72,7 +71,7 @@ typedef uint32_t TimerTime_t;
  * @param none
  * @retval none
  */
-void CPU_RTC_Init( void );
+void CPU_RTC_Init( HAL_CALLBACK_FPN ISR, UINT32 ISR_Param);
 
 /*!
  * @brief Stop the Alarm
@@ -154,14 +153,14 @@ int16_t CPU_RTC_getMcuWakeUpTime( void );
  * @retval returns time in timer ticks
  */
 uint32_t CPU_RTC_ms2Tick( TimerTime_t timeMilliSec );
-
+uint32_t CPU_RTC_us2Tick( TimerTime_t timeMilliSec );
 /*!
  * @brief converts time in ticks to time in ms
  * @param [IN] time in timer ticks
  * @retval returns time in timer milliseconds
  */
 TimerTime_t CPU_RTC_Tick2ms( uint32_t tick );
-
+TimerTime_t CPU_RTC_Tick2us( uint32_t tick );
 /*!
  * \brief Computes the temperature compensation for a period of time on a
  *        specific temperature.

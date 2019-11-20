@@ -107,7 +107,10 @@
     	<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\Samraksh\VirtualTimer\dotNetMF.proj" />
     	<DriverLibs Include="VirtualTimer.$(LIB_EXT)" />
   	</ItemGroup>
-	
+	<ItemGroup>
+        <DriverLibs Include="STM32H7_RTC.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_RTC\dotNetMF.proj" />
+    </ItemGroup>
     <ItemGroup>
 	    <DriverLibs Include="STM32H7_SPI.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_spi\dotNetMF.proj" />      

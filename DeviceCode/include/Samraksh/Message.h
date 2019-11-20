@@ -190,7 +190,8 @@ enum PayloadTypeNative{
 
 
 //IEEE802.15.4 Message structure
-#define IEEE802_15_4_FRAME_LENGTH 128
+///#define IEEE802_15_4_FRAME_LENGTH 128 
+#define IEEE802_15_4_FRAME_LENGTH 64 //JH: For LoRa, reduce the payload size
 
 //All fields up to 'network' are 802.15.4 specification fields, network is a option field for 6LowPAN compatibility
 //mac_id is Samraksh's Radio API to demultiplex radio packets
@@ -233,8 +234,8 @@ typedef union{
 typedef struct PACK IEEE802_15_4_Header {
   //UINT16 fcf;
   IEEE802_15_4_Header_FCF_t fcf;
-  UINT8 dsn;
-  UINT16 destpan;
+ // UINT8 dsn;
+  //UINT16 destpan;
   UINT16 dest;
   //UINT16 srcpan;
   UINT16 src;
@@ -265,8 +266,8 @@ typedef struct PACK IEEE802_15_4_Header {
 
   void Clear(){
 	  fcf.fcfWordValue = 0;
-	  dsn = 0;
-	  destpan = 0;
+	  //dsn = 0;
+	  //destpan = 0;
 	  dest = 0;
 	  src = 0;
 	  length = 0;
@@ -322,9 +323,9 @@ typedef struct PACK IEEE802_15_4_Metadata{
 	UINT8 mac_id;
 	UINT8 type;
 	UINT8 flags;*/
-	UINT8 network;  // optionally included with 6LowPAN layer
+	//UINT8 network;  // optionally included with 6LowPAN layer
 	UINT8 Rssi;
-	UINT8 Lqi;
+	//UINT8 Lqi;
 	UINT32 ReceiveTimeStamp0;
 	UINT32 ReceiveTimeStamp1;
 	UINT8 RetryAttempts;
@@ -339,9 +340,9 @@ typedef struct PACK IEEE802_15_4_Metadata{
 		RetryAttempts = 0;	//Retry attempt per packet
 		ReceiveTimeStamp1 = 0;
 		ReceiveTimeStamp0 = 0;
-		Lqi = 0;
+		//Lqi = 0;
 		Rssi = 0;
-		network = 0;
+		//network = 0;
 		PacketID = 0;
 	}
 	/*UINT8 GetLength(){
@@ -369,24 +370,24 @@ typedef struct PACK IEEE802_15_4_Metadata{
 	void SetFlags(UINT8 flags) {
 		this->flags = flags;
 	}*/
-	UINT8 GetNetwork() const{
+/*	UINT8 GetNetwork() const{
 		return this->network;
 	}
 	void SetNetwork(UINT8 network){
 		this->network = network;
-	}
+	}*/
 	UINT8 GetRssi() const{
 		return Rssi;
 	}
 	void SetRssi(UINT8 Rssi){
 		this->Rssi = Rssi;
 	}
-	UINT8 GetLqi() const{
+/*	UINT8 GetLqi() const{
 		return Lqi;
 	}
 	void SetLqi(UINT8 Lqi){
 		this->Lqi = Lqi;
-	}
+	}*/
 	UINT64 GetReceiveTimeStamp() const{
 		UINT64 rtn;
 		rtn=((UINT64)ReceiveTimeStamp1)<<32;
@@ -427,10 +428,14 @@ const int crc_size = 2;			//used in Radio driver's RF231Radio::Send_TimeStamped
 const int timestamp_size = 4;	//used in Radio driver's RF231Radio::Send_TimeStamped
 //IEEE802_15_4_MAX_PAYLOAD cannot go beyond 106 (14 for IEEE802_15_4_Header_t added with CRC (2 bytes) and timestamp (4 bytes) in radio driver makes it 126 which is IEEE802_15_4_FRAME_LENGTH).
 //IEEE802_15_4_MAX_PAYLOAD below is 101 bytes.
+
+//#define IEEE802_15_4_MAX_PAYLOAD (IEEE802_15_4_FRAME_LENGTH-sizeof(IEEE802_15_4_Header_t)-sizeof(IEEE802_15_4_Metadata_t))
 #define IEEE802_15_4_MAX_PAYLOAD (IEEE802_15_4_FRAME_LENGTH-sizeof(IEEE802_15_4_Header_t)-sizeof(IEEE802_15_4_Footer_t)-sizeof(IEEE802_15_4_Metadata_t))
 //#define IEEE802_15_4_MAX_PAYLOAD (IEEE802_15_4_FRAME_LENGTH-sizeof(IEEE802_15_4_Header_t)-sizeof(IEEE802_15_4_Footer_t)-sizeof(IEEE802_15_4_Metadata_t)-crc_size-timestamp_size)
 
 typedef Message<IEEE802_15_4_Header_t,IEEE802_15_4_MAX_PAYLOAD,IEEE802_15_4_Footer_t,IEEE802_15_4_Metadata_t> IEEE802_15_4_Message_t;
+//typedef Message<IEEE802_15_4_Header_t,IEEE802_15_4_MAX_PAYLOAD,IEEE802_15_4_Metadata_t> IEEE802_15_4_Message_t;
+
 //typedef Message<IEEE802_15_4_Header_t,IEEE802_15_4_MAX_PAYLOAD,IEEE802_15_4_Footer_t> IEEE802_15_4_Message_t;
 
 class IEEE802_15_4_Message_t2 : public IEEE802_15_4_Message_t{

@@ -94,6 +94,8 @@ void DataReceptionHandler::Initialize(UINT8 radioID, UINT8 macID){
 	CPU_GPIO_SetPinState( DATARX_HANDLE_END_OF_RX, FALSE );
 	CPU_GPIO_EnableOutputPin(DATARX_EXEC_EVENT, TRUE);
 	CPU_GPIO_SetPinState( DATARX_EXEC_EVENT, FALSE );
+		
+	
 #endif
 	RadioID = radioID;
 	MacID = macID;
@@ -106,7 +108,7 @@ void DataReceptionHandler::Initialize(UINT8 radioID, UINT8 macID){
 	UpdateSeedandCalculateWakeupSlot(m_nextwakeupSlot, m_nextSeed, m_mask, m_seedUpdateIntervalinSlots, g_OMAC.m_omac_scheduler.GetSlotNumber() );
 
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.LISTEN_PERIOD_FOR_RECEPTION_HANDLER , TRUE, FALSE, PublicDataRxCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
+	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.LISTEN_PERIOD_FOR_RECEPTION_HANDLER/2 , TRUE, FALSE, PublicDataRxCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
 	if(CPU_Radio_GetRadioAckType() == SOFTWARE_ACK){
 		rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_RECEIVER_ACK, 0, 0 , TRUE, FALSE, PublicDataRxSendAckCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
 	}
@@ -154,6 +156,12 @@ UINT64 DataReceptionHandler::NextEvent(){
 	OMAC_HAL_PRINTF("\r\n[LT: %llu - %lu NT: %llu - %lu] DataReceptionHandler::NextEvent() nextWakeupTimeInMicSec = %llu AbsnextWakeupTimeInMicSec= %llu - %lu \r\n", g_OMAC.m_Clock.ConvertTickstoMicroSecs(curTicks), g_OMAC.m_omac_scheduler.GetSlotNumberfromTicks(curTicks), g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.Local2NeighborTime(g_OMAC.Neighbor2beFollowed, curTicks)), g_OMAC.m_omac_scheduler.GetSlotNumberfromTicks(g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.Local2NeighborTime(g_OMAC.Neighbor2beFollowed, curTicks)), nextEventsMicroSec, g_OMAC.m_Clock.ConvertTickstoMicroSecs(curTicks)+nextEventsMicroSec, (g_OMAC.m_Clock.ConvertTickstoMicroSecs(curTicks)+nextEventsMicroSec)/SLOT_PERIOD_MILLI/MILLISECINMICSEC );
 #endif
 #endif
+
+//#ifdef OMAC_DEBUG_PRINTF
+	//OMAC_HAL_PRINTF("DataReceptionHandler::NextEvent curTicks: %llu; NextEventTimeinTicks: %llu; m_nextwakeupSlot: %lu; TicksTillNextEvent: %llu; nextEventsMicroSec: %llu\r\n", curTicks, NextEventTimeinTicks, m_nextwakeupSlot, TicksTillNextEvent, nextEventsMicroSec);
+	//OMAC_HAL_PRINTF("\r\n[LT: %s - %s NT: %s - %s] DataReceptionHandler::NextEvent() nextWakeupTimeInMicSec = %s AbsnextWakeupTimeInMicSec= %s - %s \r\n",g_OMAC.m_Clock.ConvertTickstoMicroSecs(curTicks), g_OMAC.m_omac_scheduler.GetSlotNumberfromTicks(curTicks), g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.Local2NeighborTime(g_OMAC.Neighbor2beFollowed, curTicks)), g_OMAC.m_omac_scheduler.GetSlotNumberfromTicks(g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.Local2NeighborTime(g_OMAC.Neighbor2beFollowed, curTicks)), nextEventsMicroSec, g_OMAC.m_Clock.ConvertTickstoMicroSecs(curTicks)+nextEventsMicroSec, (g_OMAC.m_Clock.ConvertTickstoMicroSecs(curTicks)+nextEventsMicroSec)/SLOT_PERIOD_MILLI/MILLISECINMICSEC );
+//#endif
+
 #ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( DATARX_NEXT_EVENT, FALSE );
 #endif
@@ -189,7 +197,7 @@ void DataReceptionHandler::ExecuteEvent(){
 #ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, TRUE );
 	CPU_GPIO_SetPinState( DATARX_NEXT_EVENT, TRUE );
-	CPU_GPIO_SetPinState( DATARX_EXEC_EVENT, FALSE );
+	CPU_GPIO_SetPinState( DATARX_EXEC_EVENT, TRUE );
 #endif
 
 
@@ -216,8 +224,9 @@ void DataReceptionHandler::ExecuteEvent(){
 	m_receptionstate = DRS_EXECUTE_START;
 	//static int failureCount = 0;
 	DeviceStatus e = DS_Fail;
-	e = g_OMAC.m_omac_RadioControl.StartRx();
 
+	e = g_OMAC.m_omac_RadioControl.StartRx();
+	
 	if (e == DS_Success){
 
 #if OMAC_WAKEUP_DEBUGGING_FOR_MF
@@ -274,7 +283,7 @@ void DataReceptionHandler::ExecuteEvent(){
 
 		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_RECEIVER);
 		g_OMAC.m_omac_scheduler.m_DataReceptionHandler.is_VIRT_TIMER_OMAC_RECEIVER_in_use = false;
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.LISTEN_PERIOD_FOR_RECEPTION_HANDLER, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.LISTEN_PERIOD_FOR_RECEPTION_HANDLER/2, TRUE, OMACClockSpecifier );
 #if	OMAC_DRH_TIMER_TARGET_TIME_CORRECTION
 		m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( g_OMAC.LISTEN_PERIOD_FOR_RECEPTION_HANDLER);
 #endif
@@ -349,7 +358,7 @@ void DataReceptionHandler::HandleRadioInterrupt(){ // This is the beginning of a
 		CPU_GPIO_SetPinState( DATA_RX_INTERRUPT_PIN, FALSE );
 		CPU_GPIO_SetPinState( DATA_RX_INTERRUPT_PIN, TRUE );*/
 	}
-	rm = VirtTimer_Change(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.MAX_PACKET_RX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+	rm = VirtTimer_Change(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.MAX_PACKET_RX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
 #if	OMAC_DRH_TIMER_TARGET_TIME_CORRECTION
 	m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( g_OMAC.MAX_PACKET_RX_DURATION_MICRO);
 #endif
@@ -415,9 +424,6 @@ void DataReceptionHandler::HandleEndofReception(UINT16 address){
 		CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 		CPU_GPIO_SetPinState( DATARECEPTION_SLOTPIN, !CPU_GPIO_GetPinState(DATARECEPTION_SLOTPIN) );
 #endif
-
-
-
 
 		VirtualTimerReturnMessage rm;
 		// m_isreceiving = false;
@@ -534,10 +540,8 @@ void DataReceptionHandler::SendDataACK(){ // This prepares a software ACK packet
 	header->flags = (0);
 	//header->retryAttempt = 0;
 	m_ACKmsg.GetMetaData()->SetReceiveTimeStamp((UINT32)0);
-
 	UINT8* payload = m_ACKmsg.GetPayload();
 	 *payload = 66;
-
 	header->length = sizeof(IEEE802_15_4_Header_t) + 1;
 	g_OMAC.m_omac_RadioControl.Send(m_lastRXNodeId, &m_ACKmsg, header->length);*/
 
@@ -549,6 +553,9 @@ void DataReceptionHandler::SendDataACK(){ // This prepares a software ACK packet
 		i++;
 	}
 	softwareAckHeader.dest = m_lastRXNodeId;
+	#ifdef OMAC_DEBUG_PRINTF
+		OMAC_HAL_PRINTF("DataReceptionHandler::Send RX\r\n");
+	#endif
 	DeviceStatus rs = g_OMAC.m_omac_RadioControl.Send(m_lastRXNodeId, (Message_15_4_t*)&softwareAckHeader, sizeof(softwareACKHeader));
 	if(rs != DS_Success){
 		m_receptionstate = DRS_TX_FAIL;
@@ -570,7 +577,7 @@ void DataReceptionHandler::SendDataACK(){ // This prepares a software ACK packet
 		m_receptionstate = DRS_TX_START;
 		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_RECEIVER);
 		g_OMAC.m_omac_scheduler.m_DataReceptionHandler.is_VIRT_TIMER_OMAC_RECEIVER_in_use = false;
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.ACK_TX_MAX_DURATION_MICRO, TRUE,OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_RECEIVER, 0, g_OMAC.ACK_TX_MAX_DURATION_MICRO/2, TRUE,OMACClockSpecifier );
 #if	OMAC_DRH_TIMER_TARGET_TIME_CORRECTION
 		m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( g_OMAC.ACK_TX_MAX_DURATION_MICRO);
 #endif
@@ -628,7 +635,11 @@ void DataReceptionHandler::PostExecuteEvent(){
 	m_receptionstate = DRS_TX_POST_EXECUTE;
 	//Scheduler's PostExecution stops the radio
 	DeviceStatus returnVal = DS_Success;
+
+
+	
 	returnVal = g_OMAC.m_omac_RadioControl.Stop();
+
 #if OMAC_WAKEUP_DEBUGGING_FOR_MF
 	hal_printf("Z\r\n");
 #endif

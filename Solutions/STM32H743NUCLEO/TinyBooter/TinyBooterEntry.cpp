@@ -13,7 +13,6 @@
 
 #include <tinyhal.h>
 #include <TinyBooterEntry.h>
-
 #include <Samraksh/VirtualTimer.h>
 
 // boot loader doesn't use the CMSIS-RTOS kernel, so sleep goes direct
@@ -113,18 +112,7 @@ bool WaitForTinyBooterUpload( INT32 &timeout_ms )
     return enterBooterMode;
 }
 
-void Timer_Green_Handler(void *arg)
-{
-	static bool state = FALSE;
-	if (state)
-		state = FALSE;
-	else
-		state = TRUE;
-	CPU_GPIO_EnableOutputPin(LED1, state);
-	hal_printf("Blink \r\n");
-	//CPU_GPIO_SetPinState(GPIO_0, TRUE);
-	//CPU_GPIO_SetPinState(GPIO_0, FALSE);
-}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // The TinyBooter_OnStateChange method is an event handler for state changes in 
@@ -133,6 +121,8 @@ void Timer_Green_Handler(void *arg)
 ////////////////////////////////////////////////////////////////////////////////
 void TinyBooter_OnStateChange( TinyBooterState state, void* data, void ** retData )
 {
+	
+
     switch(state)
     {
         ////////////////////////////////////////////////////////////////////////////////////
@@ -140,11 +130,8 @@ void TinyBooter_OnStateChange( TinyBooterState state, void* data, void ** retDat
         ////////////////////////////////////////////////////////////////////////////////////
         case State_EnterBooterMode:
             // Turn on all user LEDs
-			CPU_GPIO_EnableOutputPin(LED1, FALSE);
-			//BSP_LED_Init(LED_GREEN);
-			//BSP_LED_On(LED_GREEN); 
-            //CPU_GPIO_EnableOutputPin(LED2, TRUE);
-            CPU_GPIO_EnableOutputPin(LED3, FALSE);
+            
+	
 			//I2S_Internal_Initialize();
 			//I2S_Test();
 	
@@ -305,4 +292,3 @@ BOOL TinyBooter_GetReleaseInfo(MfReleaseInfo& releaseInfo)
                     );
     return TRUE;
 }
-

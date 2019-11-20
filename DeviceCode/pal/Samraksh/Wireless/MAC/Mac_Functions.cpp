@@ -277,7 +277,7 @@ DeviceStatus MAC_GetNextPacket(UINT8 **managedBuffer)
 
 	(*managedBuffer)[2 + Size] = (*temp)->GetHeader()->payloadType;
 	(*managedBuffer)[3 + Size] = (*temp)->GetMetaData()->GetRssi();
-	(*managedBuffer)[4 + Size] = (*temp)->GetMetaData()->GetLqi();
+	//(*managedBuffer)[4 + Size] = (*temp)->GetMetaData()->GetLqi();
 	(*managedBuffer)[5 + Size] = (*temp)->GetHeader()->src;
 	(*managedBuffer)[6 + Size] = ((*temp)->GetHeader()->src & 0Xff00) >> 8;
 	(*managedBuffer)[7 + Size] = ((*temp)->GetHeader()->dest == MAC_BROADCAST_ADDRESS) ? 0 : 1;
@@ -477,13 +477,13 @@ DeviceStatus MAC_GetNeighborStatus(UINT16 macAddress, UINT8 *buffer)
 			buffer[0] = g_NeighborTable.Neighbor[i].MACAddress & 0xff;
 			buffer[1] = (g_NeighborTable.Neighbor[i].MACAddress & 0xff00) >> 8;
 			buffer[2] = (g_NeighborTable.Neighbor[i].SendLink.AvgRSSI);
-			buffer[3] = (g_NeighborTable.Neighbor[i].SendLink.LinkQuality);
+			//buffer[3] = (g_NeighborTable.Neighbor[i].SendLink.LinkQuality);
 			buffer[4] = (g_NeighborTable.Neighbor[i].SendLink.AveDelay);
 			buffer[5] = (g_NeighborTable.Neighbor[i].ReceiveLink.AvgRSSI);
-			buffer[6] = (g_NeighborTable.Neighbor[i].ReceiveLink.LinkQuality);
-			buffer[7] = (g_NeighborTable.Neighbor[i].ReceiveLink.AveDelay);
-			buffer[8] = (g_NeighborTable.Neighbor[i].neighborStatus & 0x0F) || ( ((g_NeighborTable.Neighbor[i].IsAvailableForUpperLayers) & 0x0F) << 4)  ;
-			buffer[9] = (g_NeighborTable.Neighbor[i].NumInitializationMessagesSent);
+			//buffer[6] = (g_NeighborTable.Neighbor[i].ReceiveLink.LinkQuality);
+			buffer[6] = (g_NeighborTable.Neighbor[i].ReceiveLink.AveDelay);
+			buffer[7] = (g_NeighborTable.Neighbor[i].neighborStatus & 0x0F) || ( ((g_NeighborTable.Neighbor[i].IsAvailableForUpperLayers) & 0x0F) << 4)  ;
+			buffer[8] = (g_NeighborTable.Neighbor[i].NumInitializationMessagesSent);
 #if defined(__MAC_OMAC__)
 			buffer[10] =  g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.regressgt2.NumberOfRecordedElements(g_NeighborTable.Neighbor[i].MACAddress);
 #endif
@@ -624,5 +624,4 @@ BOOL MACLayer_UnInitialize(){
 UINT8 MACLayer_NumberMacsSupported(){
 	return FALSE;
 }
-
 

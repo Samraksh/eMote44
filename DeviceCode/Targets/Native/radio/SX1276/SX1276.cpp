@@ -1042,29 +1042,36 @@ void SX1276SetRx( uint32_t timeout )
                 SX1276Write( REG_LR_IRQFLAGSMASK, //RFLR_IRQFLAGS_RXTIMEOUT |
                                                   //RFLR_IRQFLAGS_RXDONE |
                                                   //RFLR_IRQFLAGS_PAYLOADCRCERROR |
-                                                  RFLR_IRQFLAGS_VALIDHEADER |
+                                                  //RFLR_IRQFLAGS_VALIDHEADER |
                                                   RFLR_IRQFLAGS_TXDONE |
-                                                  RFLR_IRQFLAGS_CADDONE |
+                                                  RFLR_IRQFLAGS_CADDONE //|
                                                   //RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
-                                                  RFLR_IRQFLAGS_CADDETECTED );
+                                                  //RFLR_IRQFLAGS_CADDETECTED 
+												  );
 
-                // DIO0=RxDone, DIO2=FhssChangeChannel, DIO3=ValidHeader
-                SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK & RFLR_DIOMAPPING1_DIO2_MASK ) | RFLR_DIOMAPPING1_DIO0_00 | RFLR_DIOMAPPING1_DIO2_00 );
-            }
+                // DIO0=RxDone, DIO1=CadDetected, DIO2=FhssChangeChannel, DIO3=ValidHeader  
+             	SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
+				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK ) | RFLR_DIOMAPPING1_DIO1_10 ); 
+				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO2_MASK ) | RFLR_DIOMAPPING1_DIO2_00 );
+				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_01 );
+ 			}
             else
             {
                 SX1276Write( REG_LR_IRQFLAGSMASK, //RFLR_IRQFLAGS_RXTIMEOUT |
                                                   //RFLR_IRQFLAGS_RXDONE |
                                                   //RFLR_IRQFLAGS_PAYLOADCRCERROR |
-                                                  RFLR_IRQFLAGS_VALIDHEADER |
+                                                  //RFLR_IRQFLAGS_VALIDHEADER |
                                                   RFLR_IRQFLAGS_TXDONE |
                                                   RFLR_IRQFLAGS_CADDONE |
-                                                  RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL |
-                                                  RFLR_IRQFLAGS_CADDETECTED );
+                                                  RFLR_IRQFLAGS_FHSSCHANGEDCHANNEL //|
+                                                  //RFLR_IRQFLAGS_CADDETECTED 
+												  );
 
-                // DIO0=RxDone
-                SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
-            }
+                // DIO0=RxDone, DIO1=CadDetected, DIO3=ValidHeader
+           		SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
+				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK ) | RFLR_DIOMAPPING1_DIO1_10 ); 
+				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_01 );
+             }
             SX1276Write( REG_LR_FIFORXBASEADDR, 0 );
             SX1276Write( REG_LR_FIFOADDRPTR, 0 );
         }
@@ -1114,7 +1121,7 @@ void SX1276SetTx( uint32_t timeout )
     ///TimerSetValue( &VIRT_TX_TIMEOUT_TIMER, timeout );
 	VirtTimer_Stop(VIRT_TX_TIMEOUT_TIMER);
 	VirtTimer_Change(VIRT_TX_TIMEOUT_TIMER, 0, timeout*1e3, TRUE);
-    
+  
 	switch( SX1276.Settings.Modem )
     {
     case MODEM_FSK:
@@ -1168,7 +1175,9 @@ void SX1276SetTx( uint32_t timeout )
         }
         break;
     }
-
+	
+	
+	
     SX1276.Settings.State = RF_TX_RUNNING;
     ///TimerStart( &VIRT_TX_TIMEOUT_TIMER );
 	VirtTimer_Start(VIRT_TX_TIMEOUT_TIMER);	
@@ -1196,8 +1205,8 @@ void SX1276StartCad( void )
                                         //RFLR_IRQFLAGS_CADDETECTED
                                         );
 
-            // DIO3=CADDone
-            SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_00 );
+            // DIO1=CadDetected, DIO3=CADDone
+            SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_10 | RFLR_DIOMAPPING1_DIO3_00 );
 
             SX1276.Settings.State = RF_CAD;
             SX1276SetOpMode( RFLR_OPMODE_CAD );
@@ -1261,22 +1270,21 @@ void SX1276Reset( void )
 {
     GPIO_InitTypeDef initStruct = { 0 };
 
-    initStruct.Mode = GPIO_MODE_OUTPUT_PP;
+    initStruct.Mode =GPIO_MODE_OUTPUT_PP;
     initStruct.Pull = GPIO_NOPULL;
-    initStruct.Speed = GPIO_SPEED_LOW;
+    initStruct.Speed = GPIO_SPEED_HIGH;
 
     // Set RESET pin to 0
-	CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 0 );
     CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
-
+    CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 0 );
 
     // Wait 1 ms
     ///DelayMs( 1 );
 	HAL_Delay(1); ////
     // Configure RESET as input
-    ///initStruct.Mode = GPIO_NOPULL;  
-    ///CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
-    CPU_GPIO_Write( RADIO_RESET_PORT, RADIO_RESET_PIN, 1 ); 
+    initStruct.Mode = GPIO_NOPULL;
+    CPU_GPIO_Init( RADIO_RESET_PORT, RADIO_RESET_PIN, &initStruct );
+
     // Wait 6 ms
     ///DelayMs( 6 );
 	HAL_Delay(6);////
@@ -1288,7 +1296,7 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
       
-      ///SX1276BoardSetAntSwLowPower( true );
+      SX1276BoardSetAntSwLowPower( true );
       
       ///LoRaBoardCallbacks->SX1276BoardSetXO( RESET ); 
     }
@@ -1296,7 +1304,7 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       ///LoRaBoardCallbacks->SX1276BoardSetXO( SET ); 
       
-      ///SX1276BoardSetAntSwLowPower( false );
+      SX1276BoardSetAntSwLowPower( false );
       
       SX1276BoardSetAntSw( opMode );
       
@@ -1505,12 +1513,6 @@ void SX1276OnTimeoutIrq( void* context )
         SX1276.Settings.State = RF_IDLE;
         if( ( RadioEvents != NULL ) && ( RadioEvents->TxTimeout != NULL ) )
         {
-			if (CPU_GPIO_Read(RADIO_DIO_0_PORT, RADIO_DIO_0_PIN) == 0) {
-				CPU_GPIO_Write( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 1);
-				hal_printf("TX TIMEOUT From timer 1\n\r");
-					
-			}
-			else hal_printf("TX TIMEOUT From timer 0\n\r");
             RadioEvents->TxTimeout( );
         }
         break;
@@ -1717,7 +1719,8 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 SX1276.Settings.State = RF_IDLE;
                 if( ( RadioEvents != NULL ) && ( RadioEvents->TxDone != NULL ) )
                 {
-                    RadioEvents->TxDone( );
+						
+					RadioEvents->TxDone( );
                 }
                 break;
             }
@@ -1906,7 +1909,7 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		//hal_printf("DIO3IRQ\n\r");
  	   	if( SX1276.Settings.State == RF_RX_RUNNING){ //BK: Adding interrupt for packet detected
     		if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_VALIDHEADER ) == RFLR_IRQFLAGS_VALIDHEADER ){ //BK:Adding callback for
-				hal_printf("Valid Header\n\r");
+				//hal_printf("Valid Header\n\r");
 				// Clear Irq
 				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_VALIDHEADER | RFLR_IRQFLAGS_VALIDHEADER );
 				if( ( RadioEvents != NULL ) && ( RadioEvents->ValidHeaderDetected != NULL ) )
@@ -1918,7 +1921,7 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		
         if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
         {
-			hal_printf("CAD Detected\r\n");
+			//hal_printf("CAD Detected\r\n");
             // Clear Irq
             SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
@@ -1996,7 +1999,7 @@ void SX1276BoardIoInit( void )
   
   initStruct.Mode = GPIO_MODE_IT_RISING;
   initStruct.Pull = GPIO_PULLDOWN;
-  initStruct.Speed = GPIO_SPEED_LOW;
+  initStruct.Speed = GPIO_SPEED_HIGH;
 
   CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
   CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
@@ -2008,10 +2011,10 @@ void SX1276BoardIoIrqInit( )
 {
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, IRQ_HIGH_PRIORITY, irqHandlers[0] );
   //CPU_GPIO_EnableInputPin( SI446X_pin_setup.nirq_mf_pin, FALSE, si446x_spi2_handle_interrupt, GPIO_INT_EDGE_LOW, RESISTOR_DISABLED);
-	CPU_GPIO_EnableInputPin(_P(B,5), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(B,6), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(B,7), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(B,8), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,15), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,14), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,13), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(F,12), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
 
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 2, SX1276OnDio0Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, 2, SX1276OnDio1Irq );
@@ -2123,7 +2126,7 @@ static void SX1276AntSwInit( void )
 
   initStruct.Mode =GPIO_MODE_OUTPUT_PP;
   initStruct.Pull = GPIO_NOPULL;
-  initStruct.Speed = GPIO_SPEED_LOW;
+  initStruct.Speed = GPIO_SPEED_HIGH;
   
   CPU_GPIO_Init( RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, &initStruct  ); 
   CPU_GPIO_Write( RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, RADIO_ANT_SWITCH_SET_RX);
@@ -2136,7 +2139,7 @@ static void SX1276AntSwDeInit( void )
   initStruct.Mode = GPIO_MODE_OUTPUT_PP ;
   
   initStruct.Pull = GPIO_NOPULL;
-  initStruct.Speed = GPIO_SPEED_LOW;
+  initStruct.Speed = GPIO_SPEED_HIGH;
 
   CPU_GPIO_Init(  RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, &initStruct ); 
   CPU_GPIO_Write( RADIO_ANT_SWITCH_PORT, RADIO_ANT_SWITCH_PIN, 0);

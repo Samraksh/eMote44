@@ -232,9 +232,9 @@ BOOL csmaMAC::SendTimeStamped(UINT16 dest, UINT8 dataType, void* msg, int Size, 
 	finalSeqNumber = GetMyAddress() ^ 0xAA;
 	finalSeqNumber += ((GetMyAddress() >> 8) ^ 0x55);
 	finalSeqNumber += seqNumber;
-	header->dsn = finalSeqNumber;
+	//header->dsn = finalSeqNumber;
 	//header->srcpan = 0x0001;
-	header->destpan = DEST_PAN_ID;
+	//header->destpan = DEST_PAN_ID;
 	/*if(GetRadioAddress() == 6846){
 		header->dest = 0x0DB1;
 	}
@@ -253,7 +253,7 @@ BOOL csmaMAC::SendTimeStamped(UINT16 dest, UINT8 dataType, void* msg, int Size, 
 	UINT8 length = Size + sizeof(IEEE802_15_4_Header_t);
 	header->length = length;
 	//metadata->SetNetwork(MyConfig.Network);
-	metadata->SetNetwork(0);
+	//metadata->SetNetwork(0);
 	header->macName = this->macName;
 	header->payloadType = dataType;
 	header->flags = (TIMESTAMPED_FLAG);
@@ -304,9 +304,9 @@ BOOL csmaMAC::Send(UINT16 dest, UINT8 dataType, void* msg, int Size){
 	finalSeqNumber = GetMyAddress() ^ 0xAA;
 	finalSeqNumber += ((GetMyAddress() >> 8) ^ 0x55);
 	finalSeqNumber += seqNumber;
-	header->dsn = finalSeqNumber;
+	//header->dsn = finalSeqNumber;
 	//header->srcpan = 0x0001;
-	header->destpan = DEST_PAN_ID;
+	//header->destpan = DEST_PAN_ID;
 	/*if(GetRadioAddress() == 6846){
 		header->dest = 0x0DB1;
 	}
@@ -325,7 +325,7 @@ BOOL csmaMAC::Send(UINT16 dest, UINT8 dataType, void* msg, int Size){
 	UINT8 length = Size + sizeof(IEEE802_15_4_Header_t);
 	header->length = length;
 	//metadata->SetNetwork(MyConfig.Network);
-	metadata->SetNetwork(0);
+	//metadata->SetNetwork(0);
 	header->macName = this->macName;
 	header->payloadType = dataType;
 	header->flags = (0);
@@ -509,7 +509,7 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 				neighborTableCommonParameters_One_t.status = Alive;
 				neighborTableCommonParameters_One_t.lastHeardTime = HAL_Time_CurrentTicks();
 				neighborTableCommonParameters_One_t.linkQualityMetrics.AvgRSSI = rcv_meta->GetRssi();
-				neighborTableCommonParameters_One_t.linkQualityMetrics.LinkQuality = rcv_meta->GetLqi();
+				//neighborTableCommonParameters_One_t.linkQualityMetrics.LinkQuality = rcv_meta->GetLqi();
 				neighborTableCommonParameters_One_t.availableForUpperLayers=TRUE;
 
 				neighborTableCommonParameters_two_t.nextSeed = 0;
@@ -540,7 +540,7 @@ Message_15_4_t* csmaMAC::ReceiveHandler(Message_15_4_t* msg, int Size){
 				neighborTableCommonParameters_One_t.MACAddress = rcv_msg_hdr->src;
 				neighborTableCommonParameters_One_t.status = Alive;
 				neighborTableCommonParameters_One_t.lastHeardTime = HAL_Time_CurrentTicks();
-				neighborTableCommonParameters_One_t.linkQualityMetrics.LinkQuality = rcv_meta->GetLqi();
+				//neighborTableCommonParameters_One_t.linkQualityMetrics.LinkQuality = rcv_meta->GetLqi();
 				neighborTableCommonParameters_One_t.linkQualityMetrics.AvgRSSI = rcv_meta->GetRssi();
 				g_NeighborTable.UpdateNeighbor(&neighborTableCommonParameters_One_t);
 			}
@@ -669,4 +669,3 @@ UINT8 csmaMAC::GetSendBufferSize(){
 UINT8 csmaMAC::GetReceiveBufferSize(){
 	return g_receive_buffer.Size();
 }
-

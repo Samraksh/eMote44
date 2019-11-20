@@ -7,7 +7,6 @@
 #define __regtest
 
 #include <tinyhal.h>
-#include "OMACTest.h"
 
 
 void Keep_Linker_Happy() {
@@ -16,27 +15,9 @@ void Keep_Linker_Happy() {
 }
 
 
-HAL_DECLARE_CUSTOM_HEAP( CLR_RT_Memory::Allocate, CLR_RT_Memory::Release, CLR_RT_Memory::ReAllocate ); 
+//HAL_DECLARE_NULL_HEAP();
 
 void PostManagedEvent( UINT8 category, UINT8 subCategory, UINT16 data1, UINT32 data2 )
 {
 }
 
-void ApplicationEntryPoint()
-{
-    BOOL result;
-    
-
-    do
-    {
-    	OMACTest omacTest();
-    	OMACTest_Initialize();
-
-    	//dsTestObject.Execute(TEST_INITIALIZATION);
-
-    } while(false); // run only once!
-
-    while(true){
-    	::Events_WaitForEvents(0, 100);
-    }
-}

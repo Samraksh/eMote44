@@ -40,12 +40,12 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
   <PropertyGroup />
   <ItemGroup>
-    <HFiles Include="DeviceCode/Include/Samraksh/MAC.h" />
+  <!--  <HFiles Include="DeviceCode/Include/Samraksh/MAC.h" />
     <HFiles Include="DeviceCode/Include/Samraksh/Radio_decl.h" />
     <HFiles Include="DeviceCode/Include/Samraksh/Message.h" />
     <HFiles Include="DeviceCode/Include/Samraksh/Hal_util.h" />
     <HFiles Include="DeviceCode/Include/Samraksh/Buffer.h" />
-    <HFiles Include="DeviceCode/Include/Samraksh/GlobalTime.h" />
+    <HFiles Include="DeviceCode/Include/Samraksh/GlobalTime.h" />-->
     <HFiles Include="DeviceCode/Include/Samraksh/MAC/OMAC/OMAC.h" />
 	<Compile Include="OMAC.cpp" />
     <HFiles Include="DeviceCode/Include/Samraksh/MAC/OMAC/OMACConstants.h" />
@@ -65,7 +65,8 @@
     <!--HFiles Include="PacketTimeSync_15_4.h" /-->
     <!--HFiles Include="CMaxTimeSync.h" /-->    
     <Compile Include="OMACTimeSync.cpp" />
-    
+    <Compile Include="GlobalTime.cpp" />
+    <Compile Include="OMACClock.cpp" />
     <!--<HFiles Include="FTSPTimeSync.h" />    
     <Compile Include="FTSPTimeSync.cpp" /-->
     

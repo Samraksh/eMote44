@@ -11,8 +11,9 @@
 #include <Samraksh/Message.h>
 //#include <Samraksh/HALTimer.h>
 #include <Samraksh/VirtualTimer.h>
-#include "OMACConstants.h"
+#include "OmacTypes.h"
 #include "Handlers.h"
+
 
 
 enum DiscoState{

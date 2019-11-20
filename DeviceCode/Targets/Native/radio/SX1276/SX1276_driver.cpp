@@ -23,10 +23,12 @@ UINT16 preloadedMsgSize;
 
 // This somehow gets put in the radio function. Out of scope for now, but fix me later.
 static void GetCPUSerial(uint8_t * ptr, unsigned num_of_bytes ){
-	unsigned Device_Serial0;unsigned Device_Serial1; unsigned Device_Serial2;
-	Device_Serial0 = *(unsigned*)(0x1FF0F420);
-	Device_Serial1 = *(unsigned*)(0x1FF0F424);
-	Device_Serial2 = *(unsigned*)(0x1FF0F428);
+	uint32_t Device_Serial0;
+	uint32_t Device_Serial1; 
+	uint32_t Device_Serial2;
+	Device_Serial0 = (*(uint32_t*)0x1FF1E800);// *(uint32_t*)(0x1FF0F420);
+	Device_Serial1 = (*(uint32_t*)0x1FF1E804);// *(uint32_t*)(0x1FF0F424);
+	Device_Serial2 = (*(uint32_t*)0x1FF1E808);// *(uint32_t*)(0x1FF0F428);
 
 	if(num_of_bytes==12){
 	    ptr[0] = (uint8_t)(Device_Serial0 & 0x000000FF);
@@ -58,7 +60,9 @@ void SX1276_HAL_TxDone(){
 
 	ns = NetworkOperations_Success;
 	radioAckStatus = NetworkOperations_Success;
+	
 	SX1276_HAL_TurnOnRx();
+
 	(Radio_event_handler.GetSendAckHandler())(static_cast<void*>(SX1276_Packet_GetPayload()), SX1276_Packet_GetSize(), ns, radioAckStatus);
 
 	SX1276_Packet_ClearPayload();
@@ -85,7 +89,7 @@ void SX1276_HAL_RxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr
 		  // Reset the radio
 		return;
 	}
-	hal_printf("RX Done \r\n");
+	//hal_printf("RX Done \r\n");
 	Message_15_4_t* pckt_ptr = reinterpret_cast<Message_15_4_t*>(payload);
 	if(received_ts_ticks == UNSET_TS)
 		received_ts_ticks = HAL_Time_CurrentTicks();
@@ -155,6 +159,7 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 	events.FhssChangeChannel 	= SX1276_HAL_FhssChangeChannel;
 	events.CadDone 				= SX1276_HAL_CadDone; 
 	events.DataStatusCallback 	= SX1276_HAL_DataStatusCallback;
+	events.ValidHeaderDetected  = SX1276_HAL_ValidHeaderDetected;
 
 	{
 		//Get cpu serial and hash it to use as node id. THIS IS NOT A DRIVER FUNCTION and NOT A MAC FUNCTION. CREATE A NAMING SERVICE
@@ -166,10 +171,10 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 		for (int i=0; i< 6; i++){
 			tempNum=tempNum ^ temp[i]; //XOR 72-bit number to generate 16-bit hash
 		}
-		//SX1276_HAL_SetAddress(tempNum);
-		SX1276_HAL_SetAddress(25084);
+		SX1276_HAL_SetAddress(tempNum);
+		//SX1276_HAL_SetAddress(25084);
 
-		hal_printf("Address: %d\r\n", DBGMCU->IDCODE);
+		//hal_printf("Address: %d\r\n", tempNum);
 	}
 	
 	received_ts_ticks = UNSET_TS;
@@ -515,5 +520,3 @@ ClockIdentifier_t SX1276_Packet_GetClockId() {
 	return m_packet.clock_id;
 }
 
-
-	

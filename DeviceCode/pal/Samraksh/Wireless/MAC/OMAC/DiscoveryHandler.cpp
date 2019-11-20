@@ -22,6 +22,41 @@ extern OMACType g_OMAC;
 UINT16 DiscoveryHandler::m_period1 = 0;
 UINT16 DiscoveryHandler::m_period2 = 0;
 
+//UINT16 CONTROL_P1[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
+//UINT16 CONTROL_P2[] = {8429, 8419, 8623, 8443, 8627, 8447, 8467};
+//UINT16 CONTROL_P3[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
+//UINT16 CONTROL_P4[] = {8429, 8419, 8623, 8443, 8627, 8447, 8467};
+
+//UINT16 CONTROL_P1[] = {911, 727, 787, 769, 773, 853, 797};
+//UINT16 CONTROL_P2[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
+//UINT16 CONTROL_P3[] = {911, 727, 787, 769, 773, 853, 797};
+//UINT16 CONTROL_P4[] = {2131, 2099, 2129, 2111, 2153, 2113, 2137};
+
+//Expected Disco Time (2 disco receptions) 28.21hours,  Typical MaxDiscoTime Time (2 disco receptions) 37.62h, MaxDiscoTime = 151.6hours
+UINT16 CONTROL_P3[] = {2099, 2111, 2113, 2129, 2131, 2137, 2153};
+UINT16 CONTROL_P4[] = {8627, 8623, 8467, 8447, 8443, 8429, 8419};
+//UINT16 CONTROL_P1[] = {197, 157, 151, 163, 211, 113, 127};
+//UINT16 CONTROL_P2[] = {911, 727, 787, 769, 773, 853, 797};
+
+//UINT16 CONTROL_P3[] = {197, 157, 151, 163, 211, 113, 127};
+//UINT16 CONTROL_P4[] = {911, 727, 787, 769, 773, 853, 797};
+UINT16 CONTROL_P1[] = {19, 17, 13, 37, 11, 5, 7};
+UINT16 CONTROL_P2[] = {67, 43, 53, 47, 61, 59};
+
+//UINT16 CONTROL_P1[] = {47, 37, 43, 37, 53, 29, 31};
+//UINT16 CONTROL_P2[] = {227, 181, 197, 191, 211, 199};
+
+//Expected disco time(2 disco receptions) 2.63 mins, Typical MaxDiscoTime Time (2 disco receptions) 3.51 mins, Non typical MaxDiscoTime = 11.46 mins
+//#if defined(PLATFORM_ARM_Austere) || defined(PLATFORM_ARM_EmoteDotNow)
+//UINT16 CONTROL_P1[] = { 67,  71,  79,  83,  89,  97, 101};
+//UINT16 CONTROL_P2[] = {257, 251, 241, 239, 233, 229, 227};
+//UINT16 CONTROL_P2[] = {911, 727, 787, 769, 773, 853, 797};
+//#else //#if defined(PLATFORM_ARM_EmoteDotNow)
+//UINT16 CONTROL_P1[] = {2099, 2111, 2113, 2129, 2131, 2137, 2153};
+//UINT16 CONTROL_P2[] = {8627, 8623, 8467, 8447, 8443, 8429, 8419};
+//#endif
+
+
 /*
  *
  */
@@ -57,6 +92,13 @@ void DiscoveryHandler::Initialize(UINT8 radioID, UINT8 macID){
 	CPU_GPIO_SetPinState( OMAC_DISCO_BEACON_ACK_HANDLER_PIN, FALSE );
 	CPU_GPIO_EnableOutputPin(OMAC_DISCO_BEACONNTIMERHANDLER_PIN, TRUE);
 	CPU_GPIO_SetPinState( OMAC_DISCO_BEACONNTIMERHANDLER_PIN, FALSE );
+	
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_ON, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_OFF, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+
+
 #endif
 
 	m_state = DISCO_INITIAL;
@@ -70,10 +112,10 @@ void DiscoveryHandler::Initialize(UINT8 radioID, UINT8 macID){
 	OMAC_HAL_PRINTF("prime 1: %d\tprime 2: %d\r\n",m_period1, m_period2);
 #endif
 #ifdef OMAC_DEBUG_PRINTF
-	OMAC_HAL_PRINTF("Estimated disco interval : %llu secs\r\n", (UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000);
+	OMAC_HAL_PRINTF("Estimated disco interval : %s secs\r\n", l2s((UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000,0));
 #endif
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_SLOT_PERIOD_MICRO, TRUE, FALSE, PublicBeaconNCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
+	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_SLOT_PERIOD_MICRO/2, TRUE, FALSE, PublicBeaconNCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
 	//rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY_POST_EXEC, 0, DISCO_BEACON_TX_MAX_DURATION_MICRO, TRUE, FALSE, PublicDiscoPostExec, OMACClockSpecifier); //1 sec Timer in micro seconds
 	//ASSERT_SP(rm == TimerSupported);
 }
@@ -158,7 +200,10 @@ void DiscoveryHandler::ExecuteEvent(){
 #endif
 
 	DeviceStatus e = DS_Fail;
+	
+
 	e = g_OMAC.m_omac_RadioControl.StartRx();
+
 	if (e == DS_Success){
 		m_state = DISCO_LISTEN_SUCCESS;
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 1, TRUE, OMACClockSpecifier );
@@ -166,6 +211,8 @@ void DiscoveryHandler::ExecuteEvent(){
 		CPU_GPIO_SetPinState( OMAC_DISCO_EXEC_EVENT, FALSE );
 		CPU_GPIO_SetPinState(  DISCO_NEXT_EVENT, FALSE );
 #endif
+
+	
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -196,6 +243,7 @@ void DiscoveryHandler::PostExecuteEvent(){
 	DeviceStatus  ds = DS_Success;
 	m_state = WAITING_FOR_SLEEP;
 	ds = g_OMAC.m_omac_RadioControl.Stop();
+
 	if (ds == DS_Success) {
 		m_state = SLEEP_SUCCESSFUL;
 		g_OMAC.m_omac_scheduler.PostExecution();
@@ -204,13 +252,14 @@ void DiscoveryHandler::PostExecuteEvent(){
 		OMAC_HAL_PRINTF(" \r\n OMACScheduler::PostPostExecution() Radio stop failure! m_num_sleep_retry_attempts = %u  \r\n", m_num_sleep_retry_attempts);
 		if(m_num_sleep_retry_attempts < MAX_SLEEP_RETRY_ATTEMPTS){
 			++m_num_sleep_retry_attempts;
-			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, RADIO_STOP_RETRY_PERIOD_IN_MICS, TRUE, OMACClockSpecifier );
+			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, RADIO_STOP_RETRY_PERIOD_IN_MICS/2, TRUE, OMACClockSpecifier );
 			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 			if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 				PostExecuteEvent();
 			}
 		}
 		else{ // Radio does not stop proceed anyway
+
 			g_OMAC.m_omac_scheduler.PostExecution();
 		}
 	}
@@ -244,6 +293,8 @@ DeviceStatus DiscoveryHandler::Beacon(RadioAddress_t dst, Message_15_4_t* msgPtr
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, TRUE );
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, FALSE );
 #endif
+
+
 	DeviceStatus DS = DS_Fail;
 	UINT64 y = 0;
 	bool canISend = true;
@@ -311,12 +362,15 @@ void DiscoveryHandler::BeaconAckHandler(Message_15_4_t* msg, UINT8 len, NetOpSta
 	OMAC_CPU_GPIO_SetPinState(OMAC_DISCO_BEACON_ACK_HANDLER_PIN, FALSE);
 	OMAC_CPU_GPIO_SetPinState(SCHED_DISCO_EXEC_PIN, FALSE);
 	OMAC_CPU_GPIO_SetPinState(SCHED_DISCO_EXEC_PIN, TRUE);
+
 	switch(m_state){
 	case BEACON1_SEND_START:
 		m_state = BEACON1_SEND_DONE;
+		
 		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  1, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
+		
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
 		}
@@ -348,11 +402,9 @@ void DiscoveryHandler::BeaconAckHandler(Message_15_4_t* msg, UINT8 len, NetOpSta
 		OMAC_HAL_PRINTF("Need to investigate. Status: %d \r\n", status);
 		ASSERT_SP(0);
 	}
-
 	if (msg != &m_discoveryMsgBuffer) {
 		return;
 	}
-
 #ifndef DISABLE_SIGNAL
 		//call SlotScheduler.printState();
 		//signalBeaconDone(error, call GlobalTime.getLocalTime());
@@ -379,7 +431,10 @@ void DiscoveryHandler::Beacon1(){
 		ds = Beacon(RADIO_BROADCAST_ADDRESS, &m_discoveryMsgBuffer);
 	}
 	if(ds == DS_Success) {
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 44337/2, TRUE, OMACClockSpecifier );// g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+		
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -387,7 +442,7 @@ void DiscoveryHandler::Beacon1(){
 	}
 	else {
 		m_state = BEACON1_SKIPPED;
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO , TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -408,7 +463,9 @@ void DiscoveryHandler::BeaconN(){
 		ds = Beacon(RADIO_BROADCAST_ADDRESS, &m_discoveryMsgBuffer);
 	}
 	if(ds == DS_Success) {
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+		///rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+	
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -416,7 +473,7 @@ void DiscoveryHandler::BeaconN(){
 	}
 	else {
 		m_state = BEACON2_SKIPPED;
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -452,15 +509,19 @@ void DiscoveryHandler::BeaconNTimerHandler(){
 	case FAILSAFE_STOPPING:
 		break;
 	case DISCO_LISTEN_SUCCESS:
+
 		Beacon1();
 		break;
 	case BEACON1_SEND_START:
-		hal_printf("DiscoveryHandler::Beacon1 transmission send ACK is missing \r\n");
+		//hal_printf("DiscoveryHandler::Beacon1 transmission send ACK is missing \r\n");
 #ifdef OMAC_DEBUG_PRINTF
-		OMAC_HAL_PRINTF("DiscoveryHandler::Beacon1 transmission send ACK is missing \r\n");
+	//	OMAC_HAL_PRINTF("DiscoveryHandler::Beacon1 transmission send ACK is missing \r\n");
 #endif
 		if(!g_OMAC.isSendDone){
-			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+	
+			//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+		
 			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 			if(rm == TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 				break;
@@ -560,7 +621,7 @@ DeviceStatus DiscoveryHandler::Receive(RadioAddress_t source, DiscoveryMsg_t* di
 	neighborTableCommonParameters_One_t.status = Alive;
 	neighborTableCommonParameters_One_t.lastHeardTime = localTime;
 	neighborTableCommonParameters_One_t.linkQualityMetrics.AvgRSSI = msgLinkQualityMetrics->RSSI;
-	neighborTableCommonParameters_One_t.linkQualityMetrics.LinkQuality = msgLinkQualityMetrics->LinkQuality;
+	//neighborTableCommonParameters_One_t.linkQualityMetrics.LinkQuality = msgLinkQualityMetrics->LinkQuality;
 	neighborTableCommonParameters_two_t.nextSeed = discoMsg->nextSeed;
 	neighborTableCommonParameters_two_t.mask = discoMsg->mask;
 	neighborTableCommonParameters_two_t.nextwakeupSlot = nextwakeupSlot;
@@ -617,9 +678,9 @@ DeviceStatus DiscoveryHandler::Send(RadioAddress_t address, Message_15_4_t* msg,
 	finalSeqNumber += ((g_OMAC.GetMyAddress() >> 8) ^ 0x55);
 	finalSeqNumber += seqNumber;
 	//header->dsn = finalSeqNumber;
-	header->dsn = OMAC_DISCO_SEQ_NUMBER;
+	//header->dsn = OMAC_DISCO_SEQ_NUMBER;
 	//header->srcpan = SRC_PAN_ID;
-	header->destpan = DEST_PAN_ID;
+	//header->destpan = DEST_PAN_ID;
 	/*if(g_OMAC.GetMyAddress() == 6846){
 		header->dest = 0x0DB1;
 	}
@@ -673,7 +734,7 @@ void DiscoveryHandler::TempIncreaseDiscoRate(){
 #if OMAC_DEBUG_PRINTF_HIGH_DISCO_MODE
 	hal_printf("DiscoveryHandler::switching to fast disco mode \r\n");
 	hal_printf("prime 1: %d\tprime 2: %d g_OMAC.m_omac_RadioControl.stayOn : %d \r\n",m_period1, m_period2, g_OMAC.m_omac_RadioControl.stayOn);
-	hal_printf("Estimated disco interval : %llu secs\r\n", (UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000);
+	hal_printf("Estimated disco interval : %s secs\r\n", l2s((UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000,0));
 #endif
 
 }
@@ -685,7 +746,7 @@ void DiscoveryHandler::PermanentlyDecreaseDiscoRate(){
 #if OMAC_DEBUG_PRINTF_HIGH_DISCO_MODE
 	hal_printf("DiscoveryHandler::switching to slow disco mode \r\n");
 	hal_printf("prime 1: %d\tprime 2: %d\r\n",m_period1, m_period2);
-	hal_printf("Estimated disco interval : %llu secs\r\n", (UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000);
+	hal_printf("Estimated disco interval : %s secs\r\n", l2s((UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000,0));
 #endif
 	highdiscorate = false;
 }

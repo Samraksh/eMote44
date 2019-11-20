@@ -47,7 +47,11 @@ DeviceStatus RadioControl_t::Initialize(){
 	CPU_GPIO_SetPinState( OMAC_DRIVING_RADIO_RECV, FALSE );
 	CPU_GPIO_EnableOutputPin(OMAC_DRIVING_RADIO_SLEEP, TRUE);
 	CPU_GPIO_SetPinState( OMAC_DRIVING_RADIO_SLEEP, FALSE );
-
+	
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_ON, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	
+	
 #endif
 #if OMAC_DEBUG_PRINTF_RADIOCONTROL_SEND
 	packet_seq_num = 0;
@@ -84,9 +88,9 @@ DeviceStatus RadioControl_t::Preload(RadioAddress_t address, Message_15_4_t * ms
 	finalSeqNumber = g_OMAC.GetMyAddress() ^ 0xAA;
 	finalSeqNumber += ((g_OMAC.GetMyAddress() >> 8) ^ 0x55);
 	finalSeqNumber += seqNumber;
-	header->dsn = finalSeqNumber;
+	//header->dsn = finalSeqNumber;
 	//header->srcpan = SRC_PAN_ID;
-	header->destpan = DEST_PAN_ID;
+	//header->destpan = DEST_PAN_ID;
 	/*if(g_OMAC.GetMyAddress() == 6846){
 		header->dest = 0x0DB1;
 	}
@@ -151,9 +155,6 @@ DeviceStatus RadioControl_t::Send(RadioAddress_t address, Message_15_4_t* msg, U
 		IEEE802_15_4_Header_t *header = msg->GetHeader();
 		IEEE802_15_4_Metadata* metadata = msg->GetMetaData();
 
-
-
-
 		header->length = (size);
 
 
@@ -172,6 +173,7 @@ DeviceStatus RadioControl_t::Send(RadioAddress_t address, Message_15_4_t* msg, U
 			UINT64 y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
 			UINT64 time_elapsed_since_TS = y - msg->GetMetaData()->GetReceiveTimeStamp();
 			UINT64 event_time = HAL_Time_CurrentTicks() - time_elapsed_since_TS;
+			///UINT64 event_time = HAL_Time_CurrentTicks() - msg->GetMetaData()->GetReceiveTimeStamp();
 			//msg->GetMetaData()->SetReceiveTimeStamp((INT64)event_time);
 			if((g_OMAC.isSendDone)){//||(g_OMAC.radioName != SI4468_SPI2)){
 				//Reset flag just before sending
@@ -186,6 +188,7 @@ DeviceStatus RadioControl_t::Send(RadioAddress_t address, Message_15_4_t* msg, U
 
 
 #endif
+
 				returnMsg = (Message_15_4_t *) CPU_Radio_Send_TimeStamped(g_OMAC.radioName, msg, size, (UINT32)event_time);
 
 #ifdef OMAC_DEBUG_GPIO
@@ -198,9 +201,6 @@ DeviceStatus RadioControl_t::Send(RadioAddress_t address, Message_15_4_t* msg, U
 #endif
 
 			}
-			else{
-				goto endOfSend;
-			}
 		}
 		else {
 			if((g_OMAC.isSendDone)){//||(g_OMAC.radioName != SI4468_SPI2)){
@@ -208,12 +208,12 @@ DeviceStatus RadioControl_t::Send(RadioAddress_t address, Message_15_4_t* msg, U
 				g_OMAC.isSendDone = false;
 #ifdef OMAC_DEBUG_GPIO
 				CPU_GPIO_SetPinState( OMAC_DRIVING_RADIO_SEND, TRUE );
-#endif
+#endif	
+
+
+
 				returnMsg = (Message_15_4_t *) CPU_Radio_Send(g_OMAC.radioName, msg, size);
-			}
-			else{
-				goto endOfSend;
-			}
+			}			
 		}
 
 #ifdef OMAC_DEBUG_GPIO
@@ -241,7 +241,7 @@ DeviceStatus RadioControl_t::Send(RadioAddress_t address, Message_15_4_t* msg, U
 		else{
 			g_OMAC.isSendDone=true;
 		}
-		endOfSend:
+		
 
 		//MS fix for lockup on send failure.
 		//This part means the radio rejected our packet.
@@ -483,5 +483,3 @@ DeviceStatus RadioControl_t::StartRx(){
 		return returnVal;
 	}
 }
-
-

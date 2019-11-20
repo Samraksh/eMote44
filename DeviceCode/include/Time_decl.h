@@ -195,6 +195,7 @@ UINT64  CPU_TicksToTime               ( UINT32 Ticks32, UINT16 Timer = 1 );
 
 //TODO: move the items below to a new header file. these are samraksh specific.
 
+BOOL CPU_Timer_Initialize_System_time();
 BOOL CPU_Timer_Initialize(UINT16 Timer = 0, BOOL IsOneShot = FALSE, UINT32 Prescaler = 0, HAL_CALLBACK_FPN ISR = NULL);
 BOOL CPU_Timer_UnInitialize(UINT16 Timer);
 
@@ -225,4 +226,3 @@ extern const UINT8 TIMER2_16BIT;
 extern const UINT8 LOW_DRIFT_TIMER;
 
 #endif // _DRIVERS_TIME_DECL_H_
-
