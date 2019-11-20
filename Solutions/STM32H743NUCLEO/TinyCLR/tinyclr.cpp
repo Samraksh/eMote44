@@ -63,8 +63,8 @@ void Timer_RTC_Handler(void *arg)
 	*/
 	//hal_printf("test\n");
 
-	CPU_GPIO_SetPinState(GPIO_0, TRUE);
-	CPU_GPIO_SetPinState(GPIO_0, FALSE);
+//	CPU_GPIO_SetPinState(GPIO_0, TRUE);
+//	CPU_GPIO_SetPinState(GPIO_0, FALSE);
 //	CPU_GPIO_SetPinState(GPIO_1, TRUE);
 //	CPU_GPIO_SetPinState(GPIO_1, FALSE);
 //	CPU_GPIO_SetPinState(GPIO_2, TRUE);
@@ -80,8 +80,8 @@ void Timer_RTC_Handler(void *arg)
 
 void Timer_1_Handler(void *arg)
 {
-	CPU_GPIO_SetPinState(GPIO_1, TRUE);
-	CPU_GPIO_SetPinState(GPIO_1, FALSE);
+//	CPU_GPIO_SetPinState(GPIO_1, TRUE);
+//	CPU_GPIO_SetPinState(GPIO_1, FALSE);
 	//	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	//CPU_GPIO_SetPinState(GPIO_0, FALSE);
 	//CPU_Timer_CurrentTicks(RTC_32BIT);
@@ -114,8 +114,8 @@ void ApplicationEntryPoint()
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 500000, FALSE, FALSE, Timer_Red_Handler);
 	//VirtTimer_Start(VIRT_TIMER_LED_RED);
 
-	CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
-	CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);
+//	CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
+//	CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);
 /*	CPU_GPIO_EnableOutputPin(GPIO_2, FALSE);
 	CPU_GPIO_EnableOutputPin(GPIO_3, FALSE);
 	CPU_GPIO_EnableOutputPin(GPIO_4, FALSE);
