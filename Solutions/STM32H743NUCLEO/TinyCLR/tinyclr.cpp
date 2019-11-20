@@ -105,7 +105,7 @@ void ApplicationEntryPoint()
 
 	//CPU_GPIO_EnableOutputPin(LED1, TRUE);
 	//CPU_GPIO_EnableOutputPin(LED2, TRUE);
-	CPU_GPIO_EnableOutputPin(LED3, TRUE);
+	//CPU_GPIO_EnableOutputPin(LED3, TRUE);
 	//CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
 	//CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);	
 	/*CPU_GPIO_EnableOutputPin(GPIO_2, FALSE);*/
@@ -137,15 +137,15 @@ void ApplicationEntryPoint()
 		CPU_GPIO_SetPinState(GPIO_5, FALSE);
 	}
 */
-	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 500000, FALSE, FALSE, Timer_1_Handler);
-	VirtTimer_Start(VIRT_TIMER_TIME_TEST);
-	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 800000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
-	VirtTimer_Start(VIRT_TIMER_RTC_TEST);
+	//VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 500000, FALSE, FALSE, Timer_1_Handler);
+	//VirtTimer_Start(VIRT_TIMER_TIME_TEST);
+	//VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 800000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
+	//VirtTimer_Start(VIRT_TIMER_RTC_TEST);
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, RTC_32BIT);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
 	//I2S_Internal_Initialize();
 	//I2S_Test();
-    hal_printf(" CLR 30 ");
+    //hal_printf(" CLR 30 ");
     ClrStartup( clrSettings );
 
 #if !defined(BUILD_RTM)
