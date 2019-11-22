@@ -1,70 +1,42 @@
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
-//
-//  Copyright (c) Microsoft Corporation. All rights reserved.
-//  Implementation for STM32F4: Copyright (c) Oberon microsystems, Inc.
-//
-//  *** USB OTG Full Speed Device Mode Driver ***
-//
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/*
+This is as straight-forward a rip of the CubeMX USB CDC Device example code as I could make.
+Some minor edits for porting.
+
+This does NOT implement the true NETMF USB PAL, only to get usb-serial working for basic comms
+My hunch is that the delta to get the real PAL working isn't much, if you know what you are doing.
+
+NPS 2019-11-22
+*/
 
 #include <tinyhal.h>
-#include <pal\com\usb\USB.h>
+#include "usb_device.h"
 
-#include "usbd_def.h"
-#include "usbd_core.h"
-#include "usbd_desc.h"
-#include "usbd_cdc.h"
-#include "usbd_cdc_if.h"
-/**
-  * @brief  This function handles USB-On-The-Go FS/HS global interrupt request.
-  * @param  None
-  * @retval None
-  */
-  
+volatile int test_delete_me = 0;
+
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
- 
 
 extern "C" void OTG_FS_IRQHandler(void)
 {
   HAL_PCD_IRQHandler(&hpcd_USB_OTG_FS);
 }
 
-USBD_HandleTypeDef hUsbDeviceFS;
+extern "C" uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len); // for debugging
 
-USB_CONTROLLER_STATE * CPU_USB_GetState( int Controller )
-{
+void test_usb(void) {
+	USBD_StatusTypeDef ret;
+	char s[] = "Hello Nathan!\r\n";
+	do {
+	ret = (USBD_StatusTypeDef)CDC_Transmit_FS((uint8_t *)s, hal_strlen_s(s));
+	} while (ret != USBD_OK);
+	__NOP();
 }
-
 
 
 HRESULT CPU_USB_Initialize( int Controller )
 {
-	//GLOBAL_LOCK (irq);
-	
-	/* Init Device Library */
-	//hal_printf(" 48 USB.cpp \n");
-	//HAL_Delay(10u);
-	USBD_Init(&hUsbDeviceFS, &FS_Desc, DEVICE_FS);
-
-	/* Add Supported Class */
-	//hal_printf(" 52 USB.cpp \n");
-	USBD_RegisterClass(&hUsbDeviceFS, &USBD_CDC);
-
-	/* Add CDC Interface Class */
-	//hal_printf(" 56 USB.cpp \n");
-	USBD_CDC_RegisterInterface(&hUsbDeviceFS, &USBD_Interface_fops_FS);
-
-	/* Start Device Process */
-	//hal_printf(" 60 USB.cpp \n");
-	USBD_Start(&hUsbDeviceFS);
-
-	HAL_PWREx_EnableUSBVoltageDetector();
-	
+	MX_USB_DEVICE_Init();
+	if (test_delete_me) test_usb();
 	return S_OK;
 }
 
@@ -73,36 +45,9 @@ HRESULT CPU_USB_Uninitialize( int Controller )
 	return S_OK;
 }
 
-BOOL CPU_USB_StartOutput( USB_CONTROLLER_STATE* State, int ep )
-{
-    return TRUE;
-}
-
-BOOL CPU_USB_RxEnable( USB_CONTROLLER_STATE* State, int ep )
-{
-	return TRUE;
-}
-
-BOOL CPU_USB_GetInterruptState( ) 
-{
-    return FALSE;
-}
-
-BOOL CPU_USB_ProtectPins( int Controller, BOOL On )
-{
-    return TRUE;
-}
-
-void *USBD_static_malloc(uint32_t size)
-{
-  static uint8_t mem[sizeof(USBD_CDC_HandleTypeDef)];
-  return mem;
-}
-
-void Error_Handler(void)
-{
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
-
-  /* USER CODE END Error_Handler_Debug */
+extern "C" void USB_Error_Handler(void);
+void USB_Error_Handler(void) {
+#ifdef DEBUG
+	__BKPT();
+#endif
 }

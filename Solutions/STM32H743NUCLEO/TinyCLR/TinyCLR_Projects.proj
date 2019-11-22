@@ -345,9 +345,13 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
-        <DriverLibs Include="usb_pal.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USB\dotNetMF.proj" />
+        <DriverLibs Include="usb_pal_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USB\stubs\dotNetMF.proj" />
     </ItemGroup>
+    <!-- <ItemGroup> -->
+        <!-- <DriverLibs Include="usb_pal.$(LIB_EXT)" /> -->
+        <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USB\dotNetMF.proj" /> -->
+    <!-- </ItemGroup> -->
     <ItemGroup>
         <DriverLibs Include="i2c_pal.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\I2C\dotNetMF.proj" />
@@ -440,10 +444,10 @@
       <DriverLibs Include="IO_Init_STM32H743NUCLEO.$(LIB_EXT)" />
       <RequiredProjects Include="$(SPOCLIENT)\Solutions\STM32H743NUCLEO\DeviceCode\Init\dotnetmf.proj" />
     </ItemGroup>
-    <ItemGroup>
-      <DriverLibs Include="usb_pal_config_STM32H743NUCLEO.$(LIB_EXT)" />
-      <RequiredProjects Include="$(SPOCLIENT)\Solutions\STM32H743NUCLEO\DeviceCode\USB\dotnetmf.proj" />
-    </ItemGroup>
+    <!-- <ItemGroup> -->
+      <!-- <DriverLibs Include="usb_pal_config_STM32H743NUCLEO.$(LIB_EXT)" /> -->
+      <!-- <RequiredProjects Include="$(SPOCLIENT)\Solutions\STM32H743NUCLEO\DeviceCode\USB\dotnetmf.proj" /> -->
+    <!-- </ItemGroup> -->
     <ItemGroup>
         <DriverLibs Include="native_double_pal.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\Double\dotNetMF.proj" />
