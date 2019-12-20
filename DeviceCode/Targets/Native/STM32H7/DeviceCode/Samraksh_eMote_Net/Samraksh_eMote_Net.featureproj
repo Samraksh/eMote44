@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FeatureName>Samraksh_eMote_Net</FeatureName>
+    <Guid>{07cf843e-9744-4850-9611-0ca5d1b3342e}</Guid>
+    <Description>&lt;Add Feature Description Here&gt;</Description>
+    <Groups />
+    <SAMRAKSH_EMOTE_NET_FEATUREPROJ>True</SAMRAKSH_EMOTE_NET_FEATUREPROJ>
+  </PropertyGroup>
+  <ItemGroup>
+    <DriverLibs Include="Samraksh_eMote_Net.$(LIB_EXT)" />
+    <InteropFeature Include="Samraksh_eMote_Net" />
+    <InteropFeature Include="MACCallback" />
+    <InteropFeature Include="OMACCallback" />
+	<InteropFeature Include="CSMACallback" />
+    <InteropFeature Include="RadioCallback_802_15_4" />
+    <!--<MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_eMote_Net.pe" />-->
+    <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_eMote_Net\dotnetmf.proj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,21 @@
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Directory>DeviceCode\Targets\Native\Interop\Samraksh_eMote_DSP</Directory>
+    <AssemblyName>Samraksh_eMote_DSP</AssemblyName>
+  </PropertyGroup>
+  <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+<ItemGroup>
+<HFile Include="SamrakshEmoteDSP.h" />
+<Compile Include="SamrakshEmoteDSP.cpp" />
+<Compile Include="SamrakshEmoteDSP_Samraksh_eMote_DSP_Statistics_mshl.cpp" />
+<HFile Include="SamrakshEmoteDSP_Samraksh_eMote_DSP_Statistics.h" />
+<Compile Include="SamrakshEmoteDSP_Samraksh_eMote_DSP_Statistics.cpp" />
+<Compile Include="SamrakshEmoteDSP_Samraksh_eMote_DSP_Transforms_mshl.cpp" />
+<HFile Include="SamrakshEmoteDSP_Samraksh_eMote_DSP_Transforms.h" />
+<Compile Include="SamrakshEmoteDSP_Samraksh_eMote_DSP_Transforms.cpp" />
+</ItemGroup>
+<Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
+</Project>

@@ -1,0 +1,18 @@
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Directory>DeviceCode\Targets\Native\Interop\Samraksh_eMote_ProgramManager</Directory>
+    <AssemblyName>Samraksh_eMote_ProgramManager</AssemblyName>
+  </PropertyGroup>
+  <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+<ItemGroup>
+<HFile Include="Samraksh_eMote_ProgramManager.h" />
+<Compile Include="Samraksh_eMote_ProgramManager.cpp" />
+<Compile Include="Samraksh_eMote_ProgramManager_Samraksh_eMote_ProgramManager_ProgramManager_mshl.cpp" />
+<HFile Include="Samraksh_eMote_ProgramManager_Samraksh_eMote_ProgramManager_ProgramManager.h" />
+<Compile Include="Samraksh_eMote_ProgramManager_Samraksh_eMote_ProgramManager_ProgramManager.cpp" />
+</ItemGroup>
+<Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
+</Project>
