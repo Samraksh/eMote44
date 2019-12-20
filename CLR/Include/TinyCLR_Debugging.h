@@ -1030,6 +1030,7 @@ struct CLR_DBG_Debugger
 	// upon reboot or continuation of debugging (usually by getting a PING debug message)
 	// Since we are loading new code and then restarting, suppressing these actions should not break anything.
 	static bool debuggerErasedFlash;
+	static bool fNoCompaction;
     //--//
 
     static void Debugger_Discovery();

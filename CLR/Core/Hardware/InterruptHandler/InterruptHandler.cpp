@@ -118,7 +118,37 @@ HRESULT CLR_HW_Hardware::TransferAllInterruptsToApplicationQueue()
             {
                 m_interruptData.m_HalQueue.Pop();
             }
+			//remove any queued interrupts for this port
+    		TINYCLR_FOREACH_NODE(CLR_RT_ApplicationInterrupt,interrupt,g_CLR_HW_Hardware.m_interruptData.m_applicationQueue)
+    		{
+            		interrupt->Unlink();
+
+            		--g_CLR_HW_Hardware.m_interruptData.m_queuedInterrupts;
+
+					CLR_RT_ApplicationInterrupt* appInterrupt = interrupt;
+   					CLR_RT_HeapBlock_NativeEventDispatcher::InterruptPortInterrupt& interrupt = appInterrupt->m_interruptPortInterrupt;
+
+    				FreeManagedEvent((interrupt.m_data1 >>  8) & 0xff, //category
+                     (interrupt.m_data1      ) & 0xff, //subCategory
+                      interrupt.m_data1 >> 16        , //data1
+                      interrupt.m_data2              );
+
+    				interrupt.m_data1 = 0;
+    				interrupt.m_data2 = 0;
+
+   					CLR_RT_Memory::Release( appInterrupt );
+
+    				g_CLR_HW_Hardware.SpawnDispatcher();
+    		}
+    		TINYCLR_FOREACH_NODE_END();
         }
+		// Ideally we would generate an Out of Memory exception here because at this point we are no longer out of memory due to our above recovery and so we will not throw an exception later
+		// TinyCLR_SET_AND_LEAVE does not work because it just sets hr to be CLR_E_OUT_OF_MEMORY (which it already is)
+		// TINYCLR_SET_AND_LEAVE(CLR_E_OUT_OF_MEMORY);
+		// The following seems to lock us up (maybe it keeps jumping us to TINYCLR_CLEANUP()?)
+		//(void)Library_corlib_native_System_Exception::CreateInstance( g_CLR_RT_ExecutionEngine.m_currentThread->m_currentException, g_CLR_RT_WellKnownTypes.m_OutOfMemoryException, CLR_E_OUT_OF_MEMORY, g_CLR_RT_ExecutionEngine.m_currentThread->CurrentFrame() );
+		// For now we will print a warning message. The fault recovery and warning message is better than before but an exception thrown is needed
+		hal_printf("### Warning: System out of memory. Interrupt queue has been purged to recover memory.\r\n");
     }    
     
     TINYCLR_CLEANUP_END();

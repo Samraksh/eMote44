@@ -105,6 +105,7 @@ HRESULT CLR_DBG_Debugger::CreateInstance()
 
     int iDebugger = 0;
 	debuggerErasedFlash = false;
+	CLR_EE_DBG_RESTORE(NoCompaction,fNoCompaction);
 
     g_CLR_DBG_Debuggers = (CLR_DBG_Debugger*)&g_scratchDebugger[ 0 ];
 
@@ -830,9 +831,22 @@ bool CLR_DBG_Debugger::Monitor_EraseMemory( WP_Message* msg, void* owner )
 
     if (m_deploymentStorageDevice == NULL) return false;
 
+	GLOBAL_LOCK(irq);
     fRet = dbg->AccessMemory( cmd->m_address, cmd->m_length, NULL, AccessMemory_Erase );
 
 	ShutdownDrivers();
+	// performing garbage collection and compaction here can be used to force hard faults that occur during
+	// deployment after the Flash has been erased.
+	//g_CLR_RT_ExecutionEngine.PerformGarbageCollection();
+
+	// Here we are remembering what state the Compaction variable is in to use again after deployment is over
+	fNoCompaction = CLR_EE_DBG_IS(NoCompaction);
+	// Here we are telling the CLR to not do any garbage compaction because this causes a hard fault after
+	// the Flash has been erased
+	CLR_EE_DBG_SET(NoCompaction);
+
+	// for debugging purposes
+	//g_CLR_RT_ExecutionEngine.PerformHeapCompaction   ();
 
     dbg->m_messaging->ReplyToCommand( msg, fRet, false );
 
