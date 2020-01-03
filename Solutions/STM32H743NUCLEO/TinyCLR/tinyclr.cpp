@@ -114,11 +114,11 @@ void ApplicationEntryPoint()
 
 	VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 500000, FALSE, FALSE, Timer_Green_Handler);
 	VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 1000000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 1000000, FALSE, FALSE, Timer_Red_Handler);
 	VirtTimer_Start(VIRT_TIMER_LED_RED);
 
-	CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
-	CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);
+	//CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
+	//CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);
 /*	CPU_GPIO_EnableOutputPin(GPIO_2, FALSE);
 	CPU_GPIO_EnableOutputPin(GPIO_3, FALSE);
 	CPU_GPIO_EnableOutputPin(GPIO_4, FALSE);
@@ -140,12 +140,10 @@ void ApplicationEntryPoint()
 		CPU_GPIO_SetPinState(GPIO_5, FALSE);
 	}
 */
-	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 200000, FALSE, FALSE, Timer_1_Handler); 
-	// 600 0.5987
-	// 900 0.8981
-	VirtTimer_Start(VIRT_TIMER_TIME_TEST);
-	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 600000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
-	VirtTimer_Start(VIRT_TIMER_RTC_TEST);
+	//VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 200000, FALSE, FALSE, Timer_1_Handler); 
+	//VirtTimer_Start(VIRT_TIMER_TIME_TEST);
+	//VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 600000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
+	//VirtTimer_Start(VIRT_TIMER_RTC_TEST);
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, RTC_32BIT);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
 	//I2S_Internal_Initialize();
