@@ -68,12 +68,7 @@
     #error wrong 32 bit timer (2 or 5)
 #endif 
 
-// 32 bit timer on APB1
-#if SYSTEM_APB1_CLOCK_HZ == SYSTEM_CYCLE_CLOCK_HZ
-#define TIM_CLK_HZ SYSTEM_APB1_CLOCK_HZ
-#else
 #define TIM_CLK_HZ (SYSTEM_APB1_CLOCK_HZ * 2)
-#endif
 
 TIM_HandleTypeDef    TimHandle2_SystemTime;
 TIM_HandleTypeDef    TimHandle5;
