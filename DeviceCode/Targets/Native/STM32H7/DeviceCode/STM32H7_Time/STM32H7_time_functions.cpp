@@ -83,7 +83,7 @@ UINT32 callBackISR_Param;
 
 UINT64 m_systemTime = 0;
 
-const UINT64 TIMER_5_TIME_CUSHION = 500;  // 15 us
+const UINT64 TIMER_5_TIME_CUSHION = 500;  // 5 us
 const UINT64 TIMER_5_MAX_ALLOWABLE_WAIT = 0xFFFEFFFF;
 
 static bool ignoreFirstInterrupt = FALSE;
@@ -155,7 +155,7 @@ UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 UINT64 CPU_TicksToTime( UINT64 Ticks, UINT16 Timer )
 {
     UINT8 i;
-	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT32 timerFrequency = TIM_CLK_HZ;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
 		if (Timer == g_HardwareTimerIDs[i]){
@@ -172,7 +172,7 @@ UINT64 CPU_TicksToTime( UINT64 Ticks, UINT16 Timer )
 
 UINT64 CPU_TicksToTime( UINT32 Ticks32, UINT16 Timer )
 {
-    UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+    UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -198,7 +198,7 @@ UINT64 CPU_TicksToTime( UINT32 Ticks32, UINT16 Timer )
 
 UINT64 CPU_MillisecondsToTicks( UINT64 mSec, UINT16 Timer )
 {
-    UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+    UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -213,7 +213,7 @@ UINT64 CPU_MillisecondsToTicks( UINT64 mSec, UINT16 Timer )
 
 UINT64 CPU_MillisecondsToTicks( UINT32 mSec, UINT16 Timer )
 {
-    UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+    UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -232,7 +232,7 @@ UINT64 CPU_MillisecondsToTicks( UINT32 mSec, UINT16 Timer )
 
 UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uSec, UINT16 Timer )
 {
-	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -246,7 +246,7 @@ UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uS
 
 UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uSec, UINT16 Timer )
 {
-	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -264,7 +264,7 @@ UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uS
 
 UINT32 CPU_MicrosecondsToSystemClocks( UINT32 uSec )
 {
-    uSec *= (SYSTEM_CLOCK_HZ/CLOCK_COMMON_FACTOR);
+    uSec *= (TIM_CLK_HZ/CLOCK_COMMON_FACTOR);
     uSec /= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
 
     return uSec;
@@ -272,7 +272,7 @@ UINT32 CPU_MicrosecondsToSystemClocks( UINT32 uSec )
 
 int CPU_MicrosecondsToSystemClocks( int uSec )
 {
-    uSec *= (SYSTEM_CLOCK_HZ/CLOCK_COMMON_FACTOR);
+    uSec *= (TIM_CLK_HZ/CLOCK_COMMON_FACTOR);
     uSec /= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
 
     return uSec;
@@ -283,7 +283,7 @@ int CPU_MicrosecondsToSystemClocks( int uSec )
 int CPU_SystemClocksToMicroseconds( int Ticks )
 {
     Ticks *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
-    Ticks /= (SYSTEM_CLOCK_HZ/CLOCK_COMMON_FACTOR);
+    Ticks /= (TIM_CLK_HZ/CLOCK_COMMON_FACTOR);
 
     return Ticks;
 }
@@ -291,7 +291,7 @@ int CPU_SystemClocksToMicroseconds( int Ticks )
 UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 {
 
-	UINT64 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT64 timerFrequency = TIM_CLK_HZ; // SYSTEM_TIME defaults to this
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -306,7 +306,7 @@ UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
 {
 	UINT32 ret;
-	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT64 timerFrequency = TIM_CLK_HZ; // SYSTEM_TIME defaults to this
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
@@ -390,7 +390,7 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 			compareValue = (now + TIMER_5_TIME_CUSHION);
 		}  
 		
-		UINT64 totalCompareTime = compareValue - now;
+		volatile UINT64 totalCompareTime = compareValue - now;
 		if ( totalCompareTime > TIMER_5_MAX_ALLOWABLE_WAIT ){ 
 			compareValue = TIMER_5_MAX_ALLOWABLE_WAIT; 
 		} 
@@ -423,7 +423,7 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 			totalCompareTime = CPU_Timer_GetMaxTicks(RTC_32BIT); 
 		}
 		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME);		
-		CPU_RTC_SetAlarm(timerRtc*2);
+		CPU_RTC_SetAlarm(timerRtc);
 		
 	}
 }
@@ -491,8 +491,8 @@ BOOL CPU_Timer_Initialize_System_time(){
 	TimHandle2_SystemTime.Instance = TIM2;
 
 	TimHandle2_SystemTime.Init.Period            = 0xFFFFFFFF;
-	TimHandle2_SystemTime.Init.Prescaler         = 1;
-	TimHandle2_SystemTime.Init.ClockDivision     = 0;
+	TimHandle2_SystemTime.Init.Prescaler         = 0; // This has a built in +1
+	TimHandle2_SystemTime.Init.ClockDivision     = 1;
 	TimHandle2_SystemTime.Init.CounterMode       = TIM_COUNTERMODE_UP;
 	TimHandle2_SystemTime.Init.RepetitionCounter = 0;
 
@@ -526,8 +526,8 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 		TimHandle5.Instance = TIM5;
 
 		TimHandle5.Init.Period            = 10000000;
-		TimHandle5.Init.Prescaler         = 1;
-		TimHandle5.Init.ClockDivision     = 0;
+		TimHandle5.Init.Prescaler         = 0;	// This has a built in +1
+		TimHandle5.Init.ClockDivision     = 1;
 		TimHandle5.Init.CounterMode       = TIM_COUNTERMODE_UP;
 		TimHandle5.Init.RepetitionCounter = 0;
 
@@ -635,7 +635,7 @@ void HAL_Time_Sleep_MicroSeconds_InterruptEnabled( UINT32 uSec )
 {
     // iterations must be signed so that negative iterations will result in the minimum delay
 
-    uSec *= (SYSTEM_CYCLE_CLOCK_HZ / CLOCK_COMMON_FACTOR);
+    uSec *= (TIM_CLK_HZ / CLOCK_COMMON_FACTOR);
     uSec /= (ONE_MHZ               / CLOCK_COMMON_FACTOR);
 
     // iterations is equal to the number of CPU instruction cycles in the required time minus
@@ -667,7 +667,7 @@ void CPU_GetDriftParameters  ( INT32* a, INT32* b, INT64* c )
 // timeToAdd is in 100-nanosecond (ns) increments. This is a Microsoft thing.
 void CPU_AddClockTime(UINT16 Timer, UINT64 timeToAdd)
 {
-	UINT32 timerFrequency = SYSTEM_CLOCK_HZ;
+	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT64 ticksToAdd = 0;
 	UINT8 i;
 

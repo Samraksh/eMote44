@@ -103,16 +103,13 @@ void ApplicationEntryPoint()
     clrSettings.WaitForDebugger            = false;
     clrSettings.EnterDebuggerLoopAfterExit = true;
 
-	//CPU_GPIO_EnableOutputPin(LED1, TRUE);
-	//CPU_GPIO_EnableOutputPin(LED2, TRUE);
-	//CPU_GPIO_EnableOutputPin(LED3, TRUE);
-	//CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
-	//CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);	
-	/*CPU_GPIO_EnableOutputPin(GPIO_2, FALSE);*/
-	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 500000, FALSE, FALSE, Timer_Green_Handler);
-	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 500000, FALSE, FALSE, Timer_Red_Handler);
-	//VirtTimer_Start(VIRT_TIMER_LED_RED);
+	CPU_GPIO_EnableOutputPin(LED1, TRUE);
+    CPU_GPIO_EnableOutputPin(LED3, TRUE);
+
+	VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 500000, FALSE, FALSE, Timer_Green_Handler);
+	VirtTimer_Start(VIRT_TIMER_LED_GREEN);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 1000000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	VirtTimer_Start(VIRT_TIMER_LED_RED);
 
 //	CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
 //	CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);

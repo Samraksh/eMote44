@@ -53,10 +53,10 @@
 // System Clock
 //#define SYSTEM_CLOCK_HZ                  400000000  // 400 MHz
 //#define SYSTEM_CYCLE_CLOCK_HZ            400000000  // 400 MHz
-#define SYSTEM_CLOCK_HZ                  96000000  // 96 MHz
-#define SYSTEM_CYCLE_CLOCK_HZ            96000000  // 96 MHz
-#define SYSTEM_APB1_CLOCK_HZ             100000000  // 100 MHz
-#define SYSTEM_APB2_CLOCK_HZ             100000000  // `00 MHz
+#define SYSTEM_CLOCK_HZ                  200000000  // 200 MHz
+#define SYSTEM_CYCLE_CLOCK_HZ            200000000  // 200 MHz
+#define SYSTEM_APB1_CLOCK_HZ             25000000  // 25 MHz
+#define SYSTEM_APB2_CLOCK_HZ             50000000  // 50 MHz
 
 
 // System Clock
@@ -194,7 +194,7 @@ const UINT8 g_CountOfHardwareTimers = 2;
 const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = { DEFAULT_TIMER, LOW_DRIFT_TIMER };
 const UINT8 g_VirtualTimerPerHardwareTimer = 40;
 //const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { 48000000, 32768};
-const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { 8000000, 32768 };
+const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 32768 };
 
 // timers that are run within interrupt context
 #define VIRT_TIMER_EVENTS 			1
