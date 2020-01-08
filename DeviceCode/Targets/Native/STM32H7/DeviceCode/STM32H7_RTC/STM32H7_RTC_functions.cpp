@@ -168,7 +168,7 @@ void HAL_RTC_MspInit(RTC_HandleTypeDef *hrtc)
   //HAL_NVIC_SetPriority(TAMP_STAMP_IRQn, 0x0F, 0);
   //HAL_NVIC_EnableIRQ(TAMP_STAMP_IRQn);
   
-  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 0x0F, 0);
+  HAL_NVIC_SetPriority(RTC_Alarm_IRQn, 2, 0);
   HAL_NVIC_EnableIRQ(RTC_Alarm_IRQn);
 }
 
