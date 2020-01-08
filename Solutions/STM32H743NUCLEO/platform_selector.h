@@ -167,14 +167,14 @@
 #define LED2                            _P(B, 1)  // Blue
 #define LED3                            _P(B, 2)  // Red
 
-//#define GPIO_0 _P(A,3)
-//#define GPIO_1 _P(C,2)
+#define DISABLED_PIN	(GPIO_PIN)120
+
+#define GPIO_0 DISABLED_PIN//_P(A,4)
+#define GPIO_1 DISABLED_PIN//_P(C,10)
 //#define GPIO_2 _P(B,1)
 //#define GPIO_3 _P(F,3)
 //#define GPIO_4 _P(F,4)
 //#define GPIO_5 _P(B,6)
-
-#define DISABLED_PIN	(GPIO_PIN)120
 
 // TinyBooter entry using GPIO
 #define TINYBOOTER_ENTRY_GPIO_PIN       USER_BUTTON               // 'User' button

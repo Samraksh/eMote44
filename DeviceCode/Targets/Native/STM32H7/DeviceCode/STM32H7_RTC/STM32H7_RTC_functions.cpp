@@ -329,12 +329,12 @@ uint32_t CPU_RTC_GetTimerElapsedTime( void )
  * @param none
  * @retval RTC Timer value in ticks
  */
-uint32_t CPU_RTC_GetTimerValue( void )
+uint64_t CPU_RTC_GetTimerValue( void )
 {
   RTC_TimeTypeDef RTC_TimeStruct;
   RTC_DateTypeDef RTC_DateStruct;
   
-  uint32_t CalendarValue = (uint32_t) CPU_RTC_GetCalendarValue(&RTC_DateStruct, &RTC_TimeStruct );
+  uint64_t CalendarValue = (uint64_t) CPU_RTC_GetCalendarValue(&RTC_DateStruct, &RTC_TimeStruct );
 
 //    RTC_DateTypeDef sdatestructureget;
 //	RTC_TimeTypeDef stimestructureget;

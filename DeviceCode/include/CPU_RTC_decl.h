@@ -104,7 +104,7 @@ uint32_t CPU_RTC_GetTimerElapsedTime( void );
  * @brief Get the RTC timer value
  * @retval none
  */
-uint32_t CPU_RTC_GetTimerValue( void );
+uint64_t CPU_RTC_GetTimerValue( void );
 
 /*!
  * @brief Set the RTC timer Reference
