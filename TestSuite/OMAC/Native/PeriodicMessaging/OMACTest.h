@@ -14,9 +14,17 @@
 #include <Samraksh/Message.h>
 #include <Samraksh/Radio_decl.h>
 
+typedef struct {
+	UINT16 MACAddress;
+	UINT16 SendCount;
+	UINT16 ReceiveCount;
+	UINT16 ConvTime;
+}OMACTest_Neighbor_List_t;
+
 
 class OMACTest{
 public:
+	OMACTest_Neighbor_List_t OMACTest_Neighbor_List[10]; 
 	UINT64 sequence_number;
 	UINT64 sent_packet_count;
 	UINT64 rx_packet_count;

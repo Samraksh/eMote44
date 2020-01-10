@@ -278,7 +278,7 @@ public:
 		}
 		samples[nbrIndex].nbrID = nbr;
 		previndex = samples[nbrIndex].lastTimeIndex;
-		if(samples[nbrIndex].lastTimeIndex = INITIAL_LAST_TIME_INDEX){
+		if(samples[nbrIndex].lastTimeIndex == INITIAL_LAST_TIME_INDEX){
 			samples[nbrIndex].lastTimeIndex = MAX_SAMPLES-1;
 			previndex = MAX_SAMPLES-1;
 		}

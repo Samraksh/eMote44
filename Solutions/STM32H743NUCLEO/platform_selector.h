@@ -169,8 +169,8 @@
 
 #define DISABLED_PIN	(GPIO_PIN)120
 
-#define GPIO_0 DISABLED_PIN//_P(A,4)
-#define GPIO_1 DISABLED_PIN//_P(C,10)
+#define GPIO_0 _P(A,4)
+#define GPIO_1 _P(C,10)
 //#define GPIO_2 _P(B,1)
 //#define GPIO_3 _P(F,3)
 //#define GPIO_4 _P(F,4)
@@ -214,10 +214,10 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_TIMER_TIME 			10
 
 #define VIRT_TIMER_TIME_TEST	32
-#define VIRT_TIMER_RTC_TEST	37
+#define VIRT_TIMER_RTC_TEST	38
 
 // timers that are run within continuations (all C# user timers are run outside an interrupt context also)
-#define VIRT_TIMER_LED_GREEN 		38	
+#define VIRT_TIMER_LED_GREEN 		37	
 #define VIRT_TIMER_LED_RED 			39
 
 #define VIRT_TX_TIMEOUT_TIMER 12
@@ -345,9 +345,8 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VTIMER_CALLBACK_LATENCY_PIN			DISABLED_PIN //(<--31)
 
 
-#define RX_RADIO_TURN_ON 					DISABLED_PIN //_P(D,3)//
-#define RX_RADIO_TURN_OFF					DISABLED_PIN //_P(D,5)//
-
+#define RX_RADIO_TURN_ON 					DISABLED_PIN //_P(A,4)//
+#define RX_RADIO_TURN_OFF					DISABLED_PIN //_P(C,10)//
 
 #endif //__MAC_OMAC__
 

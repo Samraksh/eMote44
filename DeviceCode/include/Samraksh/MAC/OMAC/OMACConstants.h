@@ -159,12 +159,13 @@
 #define LFCLOCKID LOW_DRIFT_TIMER
 #define OMACClockSpecifier LOW_DRIFT_TIMER
 //#define OMACClockFreq 32
-#define OMACClocktoSystemClockFreqRatio 244.140625
-#define OMACClockFreq 16
+//#define OMACClocktoSystemClockFreqRatio 244.140625
+//#define OMACClockFreq 16
 //#define OMACClocktoSystemClockFreqRatio 488.281250
 //#define OMACClockSpecifier HFCLOCKID
 //#define OMACClockFreq 8000
 //#define OMACClocktoSystemClockFreqRatio 1
+#define OMACClocktoSystemClockFreqRatio 1525.879
 
 #define INITIALIZATION_TIMESYNC_INTERVAL_INMICS 10000000   // Controls the interval during the neighbor intiialization period after a discovery. This interval is faster than the regular intervals in order to fill the neighbor's timesync table with the samples from the current node.
 
@@ -174,7 +175,7 @@
 //#define FORCE_REQUESTTIMESYNC_INTICKS 80000000					//Translates to 120 secs @8Mhz. Receiver centric time threshold to request for a TImeSync msg.
 #define FORCE_REQUESTTIMESYNC_INMICS 6100000000					//Translates to 120 secs @8Mhz. Receiver centric time threshold to request for a TImeSync msg.
 //#define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST        10000000		//Translates to 10 secs @8Mhz. Sender centric time threshold to send a TImeSync msg.
-#define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST_INMICS  600000000		//z. Sender centric time threshold to send a TImeSync msg.
+#define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST_INMICS  300000000		//z. Sender centric time threshold to send a TImeSync msg.
 ////GUARDTIME_MICRO should be calculated in conjuction with SLOT_PERIOD_MILLI
 //// GUARDTIME_MICRO = (SLOT_PERIOD_MILLI - PacketTime)/2 - SWITCHING_DELAY_MICRO
 ////PacketTime = 125byte * 8 bits/byte / (250*10^3 bits/sec) = 4sec
@@ -196,7 +197,7 @@
 #define OMAC_SCHEDULER_MIN_REACTION_TIME_IN_TICKS 4000
 #define OMAC_SCHEDULER_MIN_REACTION_TIME_IN_MICRO 500
 
-#define FAILSAFETIME_MICRO 60000000//60000000000
+#define FAILSAFETIME_MICRO 6000000 //60000000//60000000000
 
 #define WAKEUPPERIODINTICKS 8000000
 
