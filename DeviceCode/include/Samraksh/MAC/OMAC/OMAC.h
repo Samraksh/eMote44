@@ -41,7 +41,7 @@
 #define OMAC_DEBUG_PRINTF_TS_RX 1
 #define OMAC_DEBUG_PRINTF_TSREQ_TX 0
 
-#define OMAC_DEBUG_PRINTF_FAILSAFE_STOP 0
+#define OMAC_DEBUG_PRINTF_FAILSAFE_STOP 1
 
 #define OMAC_DEBUG_PRINTF_RADIOCONTROL_SEND 0
 #ifdef OMAC_DEBUG_PRINTF_RADIOCONTROL_SEND
@@ -304,9 +304,9 @@ private:
 	DeviceStatus SetOMACParametersBasedOnRadioName(UINT8 radioID);
 	BOOL Send(UINT16 dest, UINT8 dataType, void* msg, int size);
 	//BOOL SendTimeStamped(RadioAddress_t dest, UINT8 dataType, Message_15_4_t* msg, int Size, UINT32 eventTime);
-	BOOL SendTimeStamped(UINT16 dest, UINT8 dataType, void* msg, int Size, UINT32 eventTime);
+	BOOL SendTimeStamped(UINT16 dest, UINT8 dataType, void* msg, int Size, UINT64 eventTime);
 	PacketID_T EnqueueToSend(UINT16 address, UINT8 dataType, void* msg, int size);
-	PacketID_T EnqueueToSendTimeStamped(UINT16 address, UINT8 dataType, void* msg, int size, UINT32 eventTime);
+	PacketID_T EnqueueToSendTimeStamped(UINT16 address, UINT8 dataType, void* msg, int size, UINT64 eventTime);
 
 	DeviceStatus GetPacketWithIndex(UINT8 **managedBuffer, UINT8 size, PacketID_T index);
 	DeviceStatus GetPacketSizeWithIndex( UINT8* buffersizeptr, PacketID_T index);

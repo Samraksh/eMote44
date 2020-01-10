@@ -357,7 +357,7 @@ DeviceStatus OMACType::SetOMACParametersBasedOnRadioName(UINT8 radioName){
 			MAX_PACKET_TX_DURATION_MICRO = 56559;//((UINT32)IEEE802_15_4_FRAME_LENGTH*(UINT32)BITS_PER_BYTE*(UINT32)TX_TIME_PER_BIT_IN_MICROSEC) + TX_BUFFER;
 			MAX_PACKET_RX_DURATION_MICRO = 46208;//MAX_PACKET_TX_DURATION_MICRO;
 			ACK_RX_MAX_DURATION_MICRO = 15488;//MAX_PACKET_TX_DURATION_MICRO; //(sizeof(softwareACKHeader)*BITS_PER_BYTE*(UINT32)TX_TIME_PER_BIT_IN_MICROSEC) + RX_BUFFER;	//8*MILLISECINMICSEC;
-			DISCO_PACKET_TX_TIME_MICRO = 43000;//(sizeof(DiscoveryMsg_t)*BITS_PER_BYTE*(UINT32)TX_TIME_PER_BIT_IN_MICROSEC) + DISCO_BUFFER;	//10*MILLISECINMICSEC;
+			DISCO_PACKET_TX_TIME_MICRO = 80000;//(sizeof(DiscoveryMsg_t)*BITS_PER_BYTE*(UINT32)TX_TIME_PER_BIT_IN_MICROSEC) + DISCO_BUFFER;	//10*MILLISECINMICSEC;
 			DISCO_BEACON_TX_MAX_DURATION_MICRO = 10*MILLISECINMICSEC;
 			DISCO_SLOT_PERIOD_MICRO = DISCOPERIODINMILLI *MILLISECINMICSEC;
 			HIGH_DISCO_PERIOD_IN_SLOTS = HIGH_DISCO_PERIOD_IN_SLOTS_CONSTANT;
@@ -816,11 +816,11 @@ Message_15_4_t* OMACType::ReceiveHandler(Message_15_4_t* msg, int Size){
 		if(msg->GetHeader()->flags & TIMESTAMPED_FLAG){
 			UINT64 temp = g_OMAC.TIME_RX_TIMESTAMP_OFFSET_MICRO;
 			senderDelay = PacketTimeSync_15_4::SenderDelay(msg,Size) + g_OMAC.m_Clock.ConvertMicroSecstoTicks(temp);
-			UINT64 test_tick_value;
-			test_tick_value = (HAL_Time_CurrentTicks() - msg->GetMetaData()->GetReceiveTimeStamp());
-			rx_time_stamp = g_OMAC.m_Clock.GetCurrentTimeinTicks() - g_OMAC.m_Clock.ConvertMicroSecstoTicks(CPU_TicksToMicroseconds(test_tick_value, SYSTEM_TIME));
+			//UINT64 test_tick_value;
+			//test_tick_value = (HAL_Time_CurrentTicks() - msg->GetMetaData()->GetReceiveTimeStamp());
+			//rx_time_stamp = g_OMAC.m_Clock.GetCurrentTimeinTicks() - g_OMAC.m_Clock.ConvertMicroSecstoTicks(CPU_TicksToMicroseconds(test_tick_value, SYSTEM_TIME));
 			
-			///rx_time_stamp = g_OMAC.m_Clock.GetCurrentTimeinTicks() - (HAL_Time_CurrentTicks() - msg->GetMetaData()->GetReceiveTimeStamp());
+			rx_time_stamp = g_OMAC.m_Clock.GetCurrentTimeinTicks() - (HAL_Time_CurrentTicks() - msg->GetMetaData()->GetReceiveTimeStamp());
 			Size = Size + TIMESTAMP_OFFSET;
 		}
 
@@ -1149,7 +1149,7 @@ PacketID_T OMACType::EnqueueToSend(UINT16 address, UINT8 dataType, void* msg, in
 }
 
 
-PacketID_T OMACType::EnqueueToSendTimeStamped(UINT16 address, UINT8 dataType, void* msg, int size, UINT32 eventTime){
+PacketID_T OMACType::EnqueueToSendTimeStamped(UINT16 address, UINT8 dataType, void* msg, int size, UINT64 eventTime){
 	PacketID_T rv = INVALID_PACKET_ID;
 	if(!Initialized){
 #if OMAC_DEBUG_PACKET_REJECTION
@@ -1265,7 +1265,7 @@ DeviceStatus OMACType::DeletePacketWithIndexInternal(PacketID_T index){
  * Store packet in the send buffer and return; Scheduler will pick it up later and send it
  */
 ////BOOL OMACType::SendTimeStamped(RadioAddress_t address, UINT8 dataType, Message_15_4_t* msg, int size, UINT32 eventTime)
-BOOL OMACType::SendTimeStamped(UINT16 address, UINT8 dataType, void* msg, int size, UINT32 eventTime){
+BOOL OMACType::SendTimeStamped(UINT16 address, UINT8 dataType, void* msg, int size, UINT64 eventTime){
 	if(!Initialized){
 #if OMAC_DEBUG_PACKET_REJECTION
 		hal_printf("OMACType::SendTimeStamped Pckt Reject Initialized destID = %u dataType = %u  \r\n", address, dataType);

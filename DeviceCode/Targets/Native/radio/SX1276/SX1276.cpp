@@ -246,7 +246,12 @@ void memcpy1( uint8_t *dst, const uint8_t *src, uint16_t size )
 uint32_t SX1276Init( RadioEvents_t *events )
 {
     RadioEvents = events;
-
+	
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_ON, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_OFF, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	
     // Initialize driver timeout timers
 	VirtTimer_SetTimer(VIRT_TX_TIMEOUT_TIMER, 0, 10, TRUE, FALSE, SX1276OnTimeoutIrq);
 	VirtTimer_SetTimer(VIRT_RX_TIMEOUT_TIMER, 0, 10, FALSE, FALSE, SX1276OnTimeoutIrq);
@@ -271,14 +276,6 @@ uint32_t SX1276Init( RadioEvents_t *events )
     SX1276SetModem( MODEM_FSK );
 
     SX1276.Settings.State = RF_IDLE;
-
-    if (SX1276Read(REG_LR_VERSION) != 0x12) {
-    	//while(1){
-    		//__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG.
-    		hal_printf("%0x%.2x : Something went terribly wrong in SPI Initialization = \n\r",SX1276Read(REG_LR_VERSION));
-			__asm__("BKPT"); // Something is terribly wrong. TODO: DELETE ME. SANITY CHECK FOR DEBUG
-    	//}
-    }
 
     return ( uint32_t )SX1276BoardGetWakeTime( ) + RADIO_WAKEUP_TIME;// BOARD_WAKEUP_TIME;
 }
@@ -832,7 +829,7 @@ void SX1276Send( uint8_t *buffer, uint8_t size, UINT32 eventTime)
 {
     uint32_t txTimeout = 0;
 
-	//Do timestamping if a eventime is given
+    //Do timestamping if a eventime is given
 	if(eventTime > 0){
 		UINT32 timestamp = HAL_Time_CurrentTicks() & 0xFFFFFFFF; // Lower bits only
 		UINT32 eventOffset = timestamp - eventTime;
@@ -902,8 +899,9 @@ void SX1276Send( uint8_t *buffer, uint8_t size, UINT32 eventTime)
 				HAL_Delay(1);////
             }
 			
-            // Write payload buffer
+	        // Write payload buffer
             SX1276WriteFifo( buffer, size );
+				
             txTimeout = SX1276.Settings.LoRa.TxTimeout;
         }
         break;
@@ -1206,7 +1204,7 @@ void SX1276StartCad( void )
                                         );
 
             // DIO1=CadDetected, DIO3=CADDone
-            SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_10 | RFLR_DIOMAPPING1_DIO3_00 );
+            SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO1_10 | RFLR_DIOMAPPING1_DIO3_00 );
 
             SX1276.Settings.State = RF_CAD;
             SX1276SetOpMode( RFLR_OPMODE_CAD );
@@ -1296,7 +1294,7 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
       
-      SX1276BoardSetAntSwLowPower( true );
+      //SX1276BoardSetAntSwLowPower( true );
       
       ///LoRaBoardCallbacks->SX1276BoardSetXO( RESET ); 
     }
@@ -1304,9 +1302,9 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       ///LoRaBoardCallbacks->SX1276BoardSetXO( SET ); 
       
-      SX1276BoardSetAntSwLowPower( false );
+      //SX1276BoardSetAntSwLowPower( false );
       
-      SX1276BoardSetAntSw( opMode );
+      //SX1276BoardSetAntSw( opMode );
       
       SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
     }
@@ -1793,6 +1791,7 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 					}
 					break;
 				}
+
             default:
                 break;
             }
@@ -1820,7 +1819,21 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 break;
             }
             break;
-        default:
+/*		case RF_CAD: 
+// Once the calculation is finished the modrem generated the CadDone interrupt.
+// If the correlation was successful, CadDetected is generated simultaneously
+			if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
+			{
+				hal_printf("CAD Detected\r\n");
+				// Clear Irq
+				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE);
+				if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
+				{
+					RadioEvents->CadDone( true );
+				}
+			}
+			break;*/
+		default:
             break;
     }
 }
@@ -1911,24 +1924,23 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
     		if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_VALIDHEADER ) == RFLR_IRQFLAGS_VALIDHEADER ){ //BK:Adding callback for
 				//hal_printf("Valid Header\n\r");
 				// Clear Irq
-				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_VALIDHEADER | RFLR_IRQFLAGS_VALIDHEADER );
+				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_VALIDHEADER );
 				if( ( RadioEvents != NULL ) && ( RadioEvents->ValidHeaderDetected != NULL ) )
 				{
 					RadioEvents->ValidHeaderDetected( );
 				}
 			}
 		}
-		
-        if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
-        {
-			//hal_printf("CAD Detected\r\n");
-            // Clear Irq
-            SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE );
-            if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
-            {
-                RadioEvents->CadDone( true );
-            }
-        }
+		else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
+		{
+			hal_printf("CAD Detected\r\n");
+			// Clear Irq
+			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE);
+			if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
+			{
+				RadioEvents->CadDone( true );
+			}
+		}			
         else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDONE ) == RFLR_IRQFLAGS_CADDONE )
         {
 			//hal_printf("CAD Done\r\n");
@@ -1991,50 +2003,21 @@ void SX1276BoardSetXO( uint8_t state )
 {
 }
 
-void SX1276BoardIoInit( void )
-{
-  GPIO_InitTypeDef initStruct={0};
-  
-  ///SX1276BoardInit( &BoardCallbacks );
-  
-  initStruct.Mode = GPIO_MODE_IT_RISING;
-  initStruct.Pull = GPIO_PULLDOWN;
-  initStruct.Speed = GPIO_SPEED_HIGH;
-
-  CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
-}
 
 void SX1276BoardIoIrqInit( )
 {
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, IRQ_HIGH_PRIORITY, irqHandlers[0] );
   //CPU_GPIO_EnableInputPin( SI446X_pin_setup.nirq_mf_pin, FALSE, si446x_spi2_handle_interrupt, GPIO_INT_EDGE_LOW, RESISTOR_DISABLED);
-	CPU_GPIO_EnableInputPin(_P(F,15), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(F,14), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(F,13), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(F,12), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,5), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,6), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,7), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,8), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
 
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 2, SX1276OnDio0Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, 2, SX1276OnDio1Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, 2, SX1276OnDio2Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, 2, SX1276OnDio3Irq );
 }
-
-void SX1276BoardIoDeInit( void )
-{
-  GPIO_InitTypeDef initStruct={0};
-
-  initStruct.Mode = GPIO_MODE_IT_RISING ;
-  initStruct.Pull = GPIO_PULLDOWN;
-  
-  CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
-}
-
 
 void SX1276BoardSetRfTxPower( int8_t power )
 {
@@ -2111,15 +2094,15 @@ void SX1276BoardSetAntSwLowPower( bool status )
 
         if( status == false )
         {
-            SX1276AntSwInit( );
+          //  SX1276AntSwInit( );
         }
         else
         {
-            SX1276AntSwDeInit( );
+           // SX1276AntSwDeInit( );
         }
     }
 }
-
+/*
 static void SX1276AntSwInit( void )
 {
   GPIO_InitTypeDef initStruct={0};
@@ -2160,7 +2143,7 @@ void SX1276BoardSetAntSw( uint8_t opMode )
         break;
     }
 }
-
+*/
 bool SX1276BoardCheckRfFrequency( uint32_t frequency )
 {
     // Implement check. Currently all frequencies are supported

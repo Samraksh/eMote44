@@ -38,7 +38,7 @@ void PublicDataTxCallback(void * param){
 			//SOFT_BREAKPOINT();
 		}
 		UINT64 rem_time_micros = g_OMAC.m_Clock.ConvertTickstoMicroSecs( g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.m_scheduledTimer_in_ticks - g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.m_curTime_in_ticks);
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, rem_time_micros/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, rem_time_micros, TRUE, OMACClockSpecifier );
 		if(rm != TimerSupported) {
 			//SOFT_BREAKPOINT();
 		}
@@ -127,7 +127,7 @@ void DataTransmissionHandler::Initialize(){
 	//m_TXMsg = (DataMsg_t*)m_TXMsgBuffer.GetPayload() ;
 
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, FALSE, PublicDataTxCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
+	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, FALSE, PublicDataTxCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
 	ASSERT_SP(rm == TimerSupported);
 	//rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_TRANSMITTER_POST_EXEC, 0, ACK_RX_MAX_DURATION_MICRO, TRUE, FALSE, PublicDataTxPostExecCallback, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
@@ -438,10 +438,6 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 	//140 usec is the time taken for CCA to return a result
 	if(EXECUTE_WITH_CCA) y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
 
-
-
-
-
 	while(EXECUTE_WITH_CCA){
 		//If retrying, don't do CCA, but perform random backoff and transmit
 		if(m_currentSlotRetryAttempt > 0){
@@ -473,6 +469,11 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 			canISend = false;
 			break;
 		}
+		else { 
+#ifdef OMAC_DEBUG_PRINTF
+			OMAC_HAL_PRINTF("transmission CAD not detected!\r\n");
+#endif
+		} 
 		canISend = true;
 
 		if(m_currentSlotRetryAttempt == 0){
@@ -503,7 +504,7 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 			++i;
 			DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
 			if(DS != DS_Success){
-				//OMAC_HAL_PRINTF("transmission detected (inside backoff)!\r\n");
+				OMAC_HAL_PRINTF("transmission detected (inside backoff)!\r\n");
 				canISend = false;
 				break;
 			}
@@ -572,7 +573,7 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 			//SOFT_BREAKPOINT();
 		}
 
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
 #if OMAC_DTH_TIMER_TARGET_TIME_CORRECTION||OMAC_DTH_DEBUG_UNEXPECTED_POST_EX
 		m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( g_OMAC.MAX_PACKET_TX_DURATION_MICRO);
 		m_scheduledTimer_in_ticks2 = m_scheduledTimer_in_ticks;
@@ -953,7 +954,7 @@ void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radi
 #ifdef OMAC_DEBUG_PRINTF
 			OMAC_HAL_PRINTF("Waiting RX ACK \r\n");
 #endif
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, 100000, TRUE, OMACClockSpecifier );//g_OMAC.ACK_RX_MAX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_RX_DURATION_MICRO + g_OMAC.ACK_RX_MAX_DURATION_MICRO, TRUE, OMACClockSpecifier );
 #if OMAC_DTH_TIMER_TARGET_TIME_CORRECTION||OMAC_DTH_DEBUG_UNEXPECTED_POST_EX
 		m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( g_OMAC.ACK_RX_MAX_DURATION_MICRO);
 #endif

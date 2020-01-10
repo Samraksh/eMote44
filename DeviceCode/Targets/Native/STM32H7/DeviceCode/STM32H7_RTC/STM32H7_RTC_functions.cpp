@@ -39,6 +39,64 @@ Maintainer: Miguel Luis and Gregory Cristian
 //#define RTC_ASYNCH_PREDIV  0x7F
 //#define RTC_SYNCH_PREDIV   0x7FFF
 
+static void x64toa2(unsigned long long val, char *buf, unsigned radix, int is_neg)
+{
+  char *p;
+  char *firstdig;
+  char temp;
+  unsigned digval;
+  p = buf; *p=0,p[1]='\0',p;
+  if (val==0||radix<2||radix>32||radix&1) return; 
+  if ( is_neg )  *p++ = '-', val = (unsigned long long)(-(long long)val);
+  firstdig = p;
+  if(radix--==10)
+    do { // optimized for fixed division
+    digval = (unsigned) (val % 10);
+    val /= 10;
+    *p++ = (char) (digval + '0');
+    } while (val > 0);
+  else do { temp=radix;
+    digval = (unsigned) (val & radix );
+    while(temp) val>>=1,temp>>=1;
+    *p++ = digval>9?(char)(digval + 'W'):(char) (digval + '0');
+  } while (val>0);
+  *p-- = '\0';
+
+  do { // reverse string
+    temp = *p;
+    *p = *firstdig;
+    *firstdig = temp;
+    --p;
+    ++firstdig;
+  } while (firstdig < p);
+}
+
+//----------------------------------------------------------------------------
+char* _i64toa2(long long val, char *buf, int radix)
+{
+  x64toa2((unsigned long long)val, buf, radix, (radix == 10 && val < 0));
+  return buf;
+}
+
+//----------------------------------------------------------------------------
+char* _ui64toa2(unsigned long long val, char *buf, int radix)
+{
+  x64toa2(val, buf, radix, 0);
+  return buf;
+}
+
+char* l2s2(long long v,int sign) { 
+	char r,s;
+	static char buff[33];  
+	r=sign>>8; 
+	s=sign;
+	if(!r) r=10; 
+	if(r!=10||s&&v>=0) s=0; 
+	if(r<8) r=0;
+	x64toa2(v,buff,r,s); 
+	return buff;
+}
+
 HAL_CALLBACK_FPN callBackISR;
 UINT32 rtcCallBackISR_Param;
 static int pinState = 0;
@@ -379,8 +437,12 @@ void CPU_RTC_IrqHandler ( void )
   
   // enable low power at irq
   //LPM_SetStopMode(LPM_RTC_Id , LPM_Enable );
+ 
+ // hal_printf("\r\n RTC = %s\r\n", l2s2(CPU_Timer_CurrentTicks(SYSTEM_TIME)/50,0));
   
- //  CPU_GPIO_SetPinState(GPIO_1, FALSE);
+  //CPU_GPIO_SetPinState(GPIO_1, TRUE);
+ // CPU_GPIO_SetPinState(GPIO_1, FALSE);
+	
   // Clear the EXTI's line Flag for RTC Alarm 
   __HAL_RTC_ALARM_EXTI_CLEAR_FLAG();
   
@@ -479,6 +541,9 @@ static void CPU_RTC_StartWakeUpAlarm( uint32_t timeoutValue )
 
 	timeoutValue = 100;
   }
+  
+
+  
   //timeoutValue = 100000;
   //hal_printf("%02d:%02d:%02d ",RTC_TimeStruct.Hours, RTC_TimeStruct.Minutes, RTC_TimeStruct.Seconds);
   //timeoutValue = (int)(timeoutValue/1000);
