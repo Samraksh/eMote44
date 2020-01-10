@@ -70,6 +70,9 @@
 
 #define TIM_CLK_HZ (SYSTEM_APB1_CLOCK_HZ * 2)
 
+#define GPIO_0 _P(B,12)
+#define GPIO_1 _P(B,13)
+
 TIM_HandleTypeDef    TimHandle2_SystemTime;
 TIM_HandleTypeDef    TimHandle5;
 
@@ -83,6 +86,10 @@ const UINT64 TIMER_5_MAX_ALLOWABLE_WAIT = 0xFFFEFFFF;
 
 static bool ignoreFirstInterrupt = FALSE;
 static bool timer5running = FALSE;
+
+HAL_CALLBACK_FPN earlyRtcCallBackISR;
+UINT32 earlyRtcCallBackISR_Param;
+static HAL_CONTINUATION RTC_interrupt_continuation;
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -407,18 +414,20 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 	} 
 	else if(Timer == RTC_32BIT)
 	{
-		//volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
-		uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
-		if (compareValue < (now + minTimeout)){
-			compareValue = (now + minTimeout);
+		//uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
+		uint32_t minTimeout = 500;
+		if (compareValue < now ){
+			compareValue = now + 1;
 		}  
 		
 		UINT64 totalCompareTime = compareValue - now;
-		if ( totalCompareTime > CPU_Timer_GetMaxTicks(RTC_32BIT) ){ 
-			totalCompareTime = CPU_Timer_GetMaxTicks(RTC_32BIT); 
-		}
 		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME);		
-		CPU_RTC_SetAlarm(timerRtc);
+		if (timerRtc <  minTimeout){
+			//timerRtc = minTimeout;
+			RTC_interrupt_continuation.Enqueue();
+		} else {
+			CPU_RTC_SetAlarm(timerRtc);
+		}
 		
 	}
 }
@@ -507,6 +516,14 @@ BOOL CPU_Timer_Initialize_System_time(){
 	return TRUE;
 }
 
+void Early_RTC_Irq_Handler(void *arg){
+			CPU_GPIO_SetPinState(GPIO_1, TRUE);
+			CPU_GPIO_SetPinState(GPIO_1, FALSE);
+	earlyRtcCallBackISR(&earlyRtcCallBackISR_Param);
+	return;
+}
+
+
 BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CALLBACK_FPN ISR)
 {
 	// Dont allow initializing of timers with NULL as the callback function
@@ -537,6 +554,12 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 		callBackISR_Param = RTC_32BIT;
 		//hal_printf("init rtc 32bit\r\n"); // serial console is not up yet
 		CPU_RTC_Init(ISR, callBackISR_Param);
+
+		earlyRtcCallBackISR = ISR;
+		earlyRtcCallBackISR_Param = callBackISR_Param;
+
+		// this will handle firing the RTC callback if timeout is too short
+		RTC_interrupt_continuation.InitializeCallback(Early_RTC_Irq_Handler, NULL);
 	}
 
 	

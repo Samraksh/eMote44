@@ -592,19 +592,12 @@ static void CPU_RTC_StartWakeUpAlarm( uint32_t timeoutValue )
 static uint64_t CPU_RTC_GetCalendarValue( RTC_DateTypeDef* RTC_DateStruct, RTC_TimeTypeDef* RTC_TimeStruct )
 {
   uint64_t calendarValue = 0;
-  uint32_t first_read;
   uint32_t correction;
   uint32_t seconds;
   
   /* Get Time and Date*/
-  HAL_RTC_GetTime( &RtcHandle, RTC_TimeStruct, RTC_FORMAT_BIN );
- 
-   /* make sure it is correct due to asynchronus nature of RTC*/
-  do {
-    first_read = RTC_TimeStruct->SubSeconds;
-    HAL_RTC_GetDate( &RtcHandle, RTC_DateStruct, RTC_FORMAT_BIN );
     HAL_RTC_GetTime( &RtcHandle, RTC_TimeStruct, RTC_FORMAT_BIN );
-  } while (first_read != RTC_TimeStruct->SubSeconds);
+    HAL_RTC_GetDate( &RtcHandle, RTC_DateStruct, RTC_FORMAT_BIN );
  
   /* calculte amount of elapsed days since 01/01/2000 */
   seconds= DIVC( (DAYS_IN_YEAR*3 + DAYS_IN_LEAP_YEAR)* RTC_DateStruct->Year , 4);
@@ -621,8 +614,6 @@ static uint64_t CPU_RTC_GetCalendarValue( RTC_DateTypeDef* RTC_DateStruct, RTC_T
   seconds += ( ( uint32_t )RTC_TimeStruct->Seconds + 
              ( ( uint32_t )RTC_TimeStruct->Minutes * SECONDS_IN_1MINUTE ) +
              ( ( uint32_t )RTC_TimeStruct->Hours * SECONDS_IN_1HOUR ) ) ;
-
-
   
   calendarValue = (((uint64_t) seconds)<<N_PREDIV_S) + ( PREDIV_S - RTC_TimeStruct->SubSeconds);
 
