@@ -34,6 +34,7 @@ extern const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers];
 extern VirtualTimer gVirtualTimerObject;
 static const UINT64 cTimerMax64Value = 0x0000FFFFFFFFFFFFull; //TODO: use better name.
 static const UINT32 cTimerMax32Value = 0xFFFFFFFFul;          //TODO: use better name or use UINT32_MAX.
+#define TIMER_COMPENSATION 7000
 
 inline BOOL VirtualTimerMapper::VirtTimerIndexMapper(UINT8 timer_id, UINT8 &VTimerIndex)
 {
@@ -294,6 +295,8 @@ void VirtualTimerMapper::SetAlarmForTheNextTimer(){
 		for(i = 0; i < m_current_timer_cnt_; i++) {
 			if(g_VirtualTimerInfo[i].get_m_is_running() == TRUE)
 			{
+				// attempting compensation
+				g_VirtualTimerInfo[i].set_m_ticks_when_match_(g_VirtualTimerInfo[i].get_m_ticks_when_match_() + TIMER_COMPENSATION);
 				if(g_VirtualTimerInfo[i].get_m_ticks_when_match_() <= smallestTicks)
 				{
 					smallestTicks = g_VirtualTimerInfo[i].get_m_ticks_when_match_();
