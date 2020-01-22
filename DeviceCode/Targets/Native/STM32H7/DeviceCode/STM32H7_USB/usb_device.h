@@ -32,6 +32,15 @@
 #include "stm32h7xx_hal.h"
 #include "usbd_def.h"
 
+// Singleton status structure
+typedef struct {
+	int is_connected;
+	int usb_cdc_overrun;
+	unsigned TxBytes;
+	unsigned RxBytes;
+	unsigned RxQueueBytes;
+} usb_cdc_status_t;
+
 /* USER CODE BEGIN INCLUDE */
 
 /* USER CODE END INCLUDE */

@@ -12,7 +12,32 @@ NPS 2019-11-22
 #include <tinyhal.h>
 #include "usb_device.h"
 
-volatile int test_delete_me = 0;
+#ifndef STRING_BUF_SIZE
+#define STRING_BUF_SIZE 128
+#endif
+
+// Note buffers are large to accomodate testing
+
+#ifndef USB_IN_BUF_SIZE
+#define USB_IN_BUF_SIZE (256)
+#endif
+
+#define INBUF_IDX usb_cdc_status.RxQueueBytes // Alias, to confuse people later
+
+static uint8_t inbuf[USB_IN_BUF_SIZE];		// USB buffer
+											// Using libc for outbuf
+static uint8_t rx_pkt_buf[STRING_BUF_SIZE]; // Max FS packet size is 64 bytes
+static uint8_t tx_pkt_buf[STRING_BUF_SIZE]; // Max FS packet size is 64 bytes
+
+static usb_cdc_status_t usb_cdc_status;
+
+static void reset_status(usb_cdc_status_t *x) {
+	memset(x, 0, sizeof(usb_cdc_status_t)); // A simple zero'ing
+}
+
+static int is_usb_link_up(void) {
+	return usb_cdc_status.is_connected;
+}
 
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
@@ -23,26 +48,52 @@ extern "C" void OTG_FS_IRQHandler(void)
 
 extern "C" uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len); // for debugging
 
-void test_usb(void) {
-	USBD_StatusTypeDef ret;
-	char s[] = "Hello Nathan!\r\n";
-	do {
-	ret = (USBD_StatusTypeDef)CDC_Transmit_FS((uint8_t *)s, hal_strlen_s(s));
-	} while (ret != USBD_OK);
-	__NOP();
-}
-
 
 HRESULT CPU_USB_Initialize( int Controller )
 {
 	MX_USB_DEVICE_Init();
-	if (test_delete_me) test_usb();
 	return S_OK;
 }
 
 HRESULT CPU_USB_Uninitialize( int Controller )
 {
 	return S_OK;
+}
+
+// Kind of sloppy to be locked for most of it, but it is clean and not worth further investment
+int CPU_USB_read(void *buf, int size) {
+	int ret=0;
+	// Don't care about CDC not connected case, simply means nothing to read
+	if (INBUF_IDX == 0) return ret;
+	__disable_irq();
+	if (size >= INBUF_IDX) { // Return the whole input buffer
+		memcpy(buf, inbuf, INBUF_IDX);
+		ret = INBUF_IDX;
+		INBUF_IDX = 0;
+	}
+	else { // Return a piece of the input buffer, shift reminder down
+		memcpy(buf, inbuf, size);
+		memcpy(inbuf, &inbuf[size], sizeof(inbuf)-size); // Does not actually overlap so no need memmove()
+		INBUF_IDX -= size;
+		ret = size;
+	}
+	usb_cdc_status.RxBytes += ret;
+	__enable_irq();
+	return ret;
+}
+
+int CPU_USB_write(char *buf, int size) {
+	int ret;
+	//if (!is_usb_link_up()) return -1; // CDC not connected
+	memcpy(tx_pkt_buf, buf, size);
+	do { // TODO: ADD TIMEOUT
+		ret = CDC_Transmit_FS(tx_pkt_buf, size);
+	} while(ret == USBD_BUSY);
+	if (ret != USBD_OK) __BKPT();
+	__disable_irq();
+	usb_cdc_status.TxBytes += size;
+	__enable_irq();
+	return size;
 }
 
 extern "C" void USB_Error_Handler(void);

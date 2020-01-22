@@ -60,6 +60,8 @@ void Timer_RTC_Handler(void *arg)
 
 	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	CPU_GPIO_SetPinState(GPIO_0, FALSE);
+	char s[] = "test message!\r\n";
+	CPU_USB_write(s, sizeof(s));
 	/*static bool state = FALSE;
 	if (state)
 		state = FALSE;
@@ -86,8 +88,9 @@ void Timer_RTC_Handler(void *arg)
 
 void Timer_1_Handler(void *arg)
 {
-	//CPU_GPIO_SetPinState(GPIO_1, TRUE);
-	//CPU_GPIO_SetPinState(GPIO_1, FALSE);
+	CPU_GPIO_SetPinState(GPIO_1, TRUE);
+	CPU_GPIO_SetPinState(GPIO_1, FALSE);
+	//CPU_Test_USB();
 	//	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	//CPU_GPIO_SetPinState(GPIO_0, FALSE);
 	//CPU_Timer_CurrentTicks(RTC_32BIT);
@@ -140,7 +143,7 @@ void ApplicationEntryPoint()
 		CPU_GPIO_SetPinState(GPIO_5, FALSE);
 	}
 */
-	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 200000, FALSE, FALSE, Timer_1_Handler); 
+	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 2000000, FALSE, FALSE, Timer_1_Handler); 
 	VirtTimer_Start(VIRT_TIMER_TIME_TEST);
 	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 300000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
 	VirtTimer_Start(VIRT_TIMER_RTC_TEST);
