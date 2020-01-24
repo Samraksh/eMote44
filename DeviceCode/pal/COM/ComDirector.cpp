@@ -84,6 +84,7 @@ int DebuggerPort_Write( COM_HANDLE ComPortNum, const char* Data, size_t size, in
         case USB_TRANSPORT:
 			//hal_printf(" DebuggerPort_Write in ComDirector.cpp line 83\n ");
             ret = USB_Write( ConvertCOM_UsbStream( ComPortNum ), dataTmp, size );
+            ret = CPU_USB_write( dataTmp, size );
             break;
         case SOCKET_TRANSPORT:
             ret = SOCKETS_Write( ConvertCOM_SockPort(ComPortNum), dataTmp, size );

@@ -581,8 +581,8 @@ BOOL           CPU_USB_StartOutput      ( USB_CONTROLLER_STATE* State, int endpo
 BOOL           CPU_USB_RxEnable         ( USB_CONTROLLER_STATE* State, int endpoint );
 BOOL           CPU_USB_GetInterruptState(                         );
 BOOL           CPU_USB_ProtectPins      ( int Controller, BOOL On );
-int CPU_USB_read(void *buf, int size);
-int CPU_USB_write(char *buf, int size);
+//int CPU_USB_read(void *buf, int size);
+int CPU_USB_write(const char *buf, int size);
 
 //--//
 

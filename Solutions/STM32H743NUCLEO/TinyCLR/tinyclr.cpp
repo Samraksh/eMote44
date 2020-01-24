@@ -60,8 +60,9 @@ void Timer_RTC_Handler(void *arg)
 
 	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	CPU_GPIO_SetPinState(GPIO_0, FALSE);
-	char s[] = "test message!\r\n";
-	CPU_USB_write(s, sizeof(s));
+	hal_printf("hal print test\r\n");
+	//char s[] = "test message!\r\n";
+	//CPU_USB_write(s, sizeof(s));
 	/*static bool state = FALSE;
 	if (state)
 		state = FALSE;

@@ -12,6 +12,8 @@ NPS 2019-11-22
 #include <tinyhal.h>
 #include "usb_device.h"
 
+#define USB_COM_PORT_NUM 1
+
 #ifndef STRING_BUF_SIZE
 #define STRING_BUF_SIZE 128
 #endif
@@ -61,7 +63,7 @@ HRESULT CPU_USB_Uninitialize( int Controller )
 }
 
 // Kind of sloppy to be locked for most of it, but it is clean and not worth further investment
-int CPU_USB_read(void *buf, int size) {
+/*int CPU_USB_read(void *buf, int size) {
 	int ret=0;
 	// Don't care about CDC not connected case, simply means nothing to read
 	if (INBUF_IDX == 0) return ret;
@@ -81,8 +83,8 @@ int CPU_USB_read(void *buf, int size) {
 	__enable_irq();
 	return ret;
 }
-
-int CPU_USB_write(char *buf, int size) {
+*/
+int CPU_USB_write(const char *buf, int size) {
 	int ret;
 	//if (!is_usb_link_up()) return -1; // CDC not connected
 	memcpy(tx_pkt_buf, buf, size);
@@ -94,6 +96,12 @@ int CPU_USB_write(char *buf, int size) {
 	usb_cdc_status.TxBytes += size;
 	__enable_irq();
 	return size;
+}
+
+// This function is called from the usb driver c code
+extern "C" int CPU_USB_Queue_Rx_Data(  char c );
+int CPU_USB_Queue_Rx_Data(  char c ){
+	return USART_AddCharToRxBuffer(USB_COM_PORT_NUM, c);
 }
 
 extern "C" void USB_Error_Handler(void);

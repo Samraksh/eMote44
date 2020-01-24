@@ -20,7 +20,9 @@
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
+#include "STM32H7_usb_functions.h"
 #include "usbd_cdc_if.h"
+
 
 /* USER CODE BEGIN INCLUDE */
 
@@ -265,6 +267,9 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  for (int i = 0; i < *Len; i++){
+	  CPU_USB_Queue_Rx_Data( (char)Buf[i]);
+  }
   return (USBD_OK);
   /* USER CODE END 6 */
 }
