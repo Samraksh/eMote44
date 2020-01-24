@@ -146,7 +146,7 @@ void ApplicationEntryPoint()
 */
 	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 2000000, FALSE, FALSE, Timer_1_Handler); 
 	VirtTimer_Start(VIRT_TIMER_TIME_TEST);
-	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 300000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
+	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 3000000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
 	VirtTimer_Start(VIRT_TIMER_RTC_TEST);
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, RTC_32BIT);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);

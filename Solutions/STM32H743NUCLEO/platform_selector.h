@@ -112,23 +112,12 @@
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)
 #define USB_ALLOW_CONFIGURATION_OVERRIDE 1
 
-// 00000000|00000000|TTTTTTTT|cccppppp| ( transport == USB_TRANSPORT )
-//    |--------+--------+--------+--------|
-// 
-// where:
-//    T => Transport type
-//              USART_TRANSPORT => 1
-//                USB_TRANSPORT => 2
-//             SOCKET_TRANSPORT => 3
-//              DEBUG_TRANSPORT => 4
-//                LCD_TRANSPORT => 5
-//        FLASH_WRITE_TRANSPORT => 6
-//          MESSAGING_TRANSPORT => 7
-//            GENERIC_TRANSPORT => 8
-//    p => port instance number 
-//        Port instances in the handle are 1 based. (e.g. p == 0 is invalid except when T == 0 )
-//    c -> Controller instance number ( USB_TRANSPORT only )
-#define USB_SERIAL_PORT			0x221 // USB transport, controller instance 1, port 1
+// if we want to use our USB port as a USB device you must specify it as USB as the following declaration does
+//#define USB_SERIAL_PORT			0x221 // USB transport, controller instance 1, port 1
+
+// we will specify that our USB/serial interface is a serial port and have MF treat it as such (except we will 
+// have all driver interfaces to ONLY this USB/serial port use the USB drivers
+#define USB_SERIAL_PORT	COM6
 
 #define DEBUG_TEXT_PORT                 USB_SERIAL_PORT
 #define STDIO                           USB_SERIAL_PORT

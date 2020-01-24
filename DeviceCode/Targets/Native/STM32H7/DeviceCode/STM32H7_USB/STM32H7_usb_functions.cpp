@@ -12,8 +12,6 @@ NPS 2019-11-22
 #include <tinyhal.h>
 #include "usb_device.h"
 
-#define USB_COM_PORT_NUM 1
-
 #ifndef STRING_BUF_SIZE
 #define STRING_BUF_SIZE 128
 #endif
@@ -25,6 +23,8 @@ NPS 2019-11-22
 #endif
 
 #define INBUF_IDX usb_cdc_status.RxQueueBytes // Alias, to confuse people later
+
+static bool USB_initialized = FALSE;
 
 static uint8_t inbuf[USB_IN_BUF_SIZE];		// USB buffer
 											// Using libc for outbuf
@@ -53,12 +53,16 @@ extern "C" uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len); // for debugging
 
 HRESULT CPU_USB_Initialize( int Controller )
 {
-	MX_USB_DEVICE_Init();
+	if (USB_initialized == false){
+		MX_USB_DEVICE_Init();
+		USB_initialized = true;
+	}
 	return S_OK;
 }
 
 HRESULT CPU_USB_Uninitialize( int Controller )
 {
+	USB_initialized = false;
 	return S_OK;
 }
 
@@ -101,7 +105,7 @@ int CPU_USB_write(const char *buf, int size) {
 // This function is called from the usb driver c code
 extern "C" int CPU_USB_Queue_Rx_Data(  char c );
 int CPU_USB_Queue_Rx_Data(  char c ){
-	return USART_AddCharToRxBuffer(USB_COM_PORT_NUM, c);
+	return USART_AddCharToRxBuffer(USB_SERIAL_PORT, c);
 }
 
 extern "C" void USB_Error_Handler(void);
