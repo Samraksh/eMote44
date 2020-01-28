@@ -438,10 +438,10 @@ void CPU_RTC_IrqHandler ( void )
   // enable low power at irq
   //LPM_SetStopMode(LPM_RTC_Id , LPM_Enable );
  
-  hal_printf("\r\n RTC = %s\r\n", l2s2(CPU_Timer_CurrentTicks(SYSTEM_TIME)/50,0));
+ // hal_printf("\r\n RTC = %s\r\n", l2s2(CPU_Timer_CurrentTicks(SYSTEM_TIME)/50,0));
   
-  CPU_GPIO_SetPinState(GPIO_1, TRUE);
-  CPU_GPIO_SetPinState(GPIO_1, FALSE);
+  //CPU_GPIO_SetPinState(GPIO_1, TRUE);
+ // CPU_GPIO_SetPinState(GPIO_1, FALSE);
 	
   // Clear the EXTI's line Flag for RTC Alarm 
   __HAL_RTC_ALARM_EXTI_CLEAR_FLAG();

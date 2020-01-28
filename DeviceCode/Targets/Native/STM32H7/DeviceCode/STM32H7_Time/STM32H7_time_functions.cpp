@@ -77,7 +77,7 @@ static void x64toa3(unsigned long long val, char *buf, unsigned radix, int is_ne
   char temp;
   unsigned digval;
   p = buf; *p=0,p[1]='\0',p;
-  if (val==0||radix<2||radix>32||radix&1) return; 
+  if (val==0||radix<2||radix>32||radix&1) return;
   if ( is_neg )  *p++ = '-', val = (unsigned long long)(-(long long)val);
   firstdig = p;
   if(radix--==10)
@@ -116,15 +116,15 @@ char* _ui64toa3(unsigned long long val, char *buf, int radix)
   return buf;
 }
 
-char* l2s3(long long v,int sign) { 
+char* l2s3(long long v,int sign) {
 	char r,s;
-	static char buff[33];  
-	r=sign>>8; 
+	static char buff[33];
+	r=sign>>8;
 	s=sign;
-	if(!r) r=10; 
-	if(r!=10||s&&v>=0) s=0; 
+	if(!r) r=10;
+	if(r!=10||s&&v>=0) s=0;
 	if(r<8) r=0;
-	x64toa3(v,buff,r,s); 
+	x64toa3(v,buff,r,s);
 	return buff;
 }
 
@@ -468,8 +468,8 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 		hal_printf("\r\n COMPARE = %s\r\n", l2s3(compareValue/50,0));
 		hal_printf("\r\n NOW = %s\r\n", l2s3(now/50,0));
 		hal_printf("\r\n TOTAL COM = %s\r\n", l2s3((compareValue - now)/50,0));
-		
-		  
+
+
 		//volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
 		uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
 		if (compareValue < (now + minTimeout)){

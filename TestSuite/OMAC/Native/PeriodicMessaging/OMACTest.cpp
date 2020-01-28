@@ -279,9 +279,9 @@ BOOL OMACTest::Initialize(){
 	}
 
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSLocalClockMonitorTimerHandler);//, OMACClockSpecifier);
+	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSLocalClockMonitorTimerHandler, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
-	rm = VirtTimer_SetTimer(VIRT_CONT_TEST_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSNeighborClockMonitorTimerHandler);//, OMACClockSpecifier);
+	rm = VirtTimer_SetTimer(VIRT_CONT_TEST_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSNeighborClockMonitorTimerHandler, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
 
 
@@ -509,10 +509,10 @@ void ApplicationEntryPoint()
 	CPU_GPIO_EnableOutputPin(LED1, TRUE);
 	CPU_GPIO_EnableOutputPin(LED3, TRUE);
 
-	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
-	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
-	//VirtTimer_Start(VIRT_TIMER_LED_RED);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
+	VirtTimer_Start(VIRT_TIMER_LED_GREEN);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	VirtTimer_Start(VIRT_TIMER_LED_RED);
 	
     do
     {

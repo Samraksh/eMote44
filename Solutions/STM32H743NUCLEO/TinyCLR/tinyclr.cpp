@@ -26,7 +26,7 @@ void Timer_Green_Handler(void *arg)
 	else
 		state = TRUE;
 	CPU_GPIO_SetPinState(LED1, state); */
-	
+
 
 	//CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	//CPU_GPIO_SetPinState(GPIO_0, FALSE);
@@ -87,6 +87,8 @@ void Timer_RTC_Handler(void *arg)
 
 void Timer_1_Handler(void *arg)
 {
+	CPU_GPIO_SetPinState(GPIO_1, TRUE);
+	CPU_GPIO_SetPinState(GPIO_1, FALSE);
 	//CPU_GPIO_SetPinState(GPIO_1, TRUE);
 	//CPU_GPIO_SetPinState(GPIO_1, FALSE);
 	

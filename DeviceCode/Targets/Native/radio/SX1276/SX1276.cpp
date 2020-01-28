@@ -1294,7 +1294,7 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
       
-      SX1276BoardSetAntSwLowPower( true );
+      //SX1276BoardSetAntSwLowPower( true );
       
       ///LoRaBoardCallbacks->SX1276BoardSetXO( RESET ); 
     }
@@ -1302,9 +1302,9 @@ void SX1276SetOpMode( uint8_t opMode )
     {
       ///LoRaBoardCallbacks->SX1276BoardSetXO( SET ); 
       
-      SX1276BoardSetAntSwLowPower( false );
+      //SX1276BoardSetAntSwLowPower( false );
       
-      SX1276BoardSetAntSw( opMode );
+      //SX1276BoardSetAntSw( opMode );
       
       SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
     }
@@ -2003,50 +2003,21 @@ void SX1276BoardSetXO( uint8_t state )
 {
 }
 
-void SX1276BoardIoInit( void )
-{
-  GPIO_InitTypeDef initStruct={0};
-  
-  ///SX1276BoardInit( &BoardCallbacks );
-  
-  initStruct.Mode = GPIO_MODE_IT_RISING;
-  initStruct.Pull = GPIO_PULLDOWN;
-  initStruct.Speed = GPIO_SPEED_HIGH;
-
-  CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
-}
 
 void SX1276BoardIoIrqInit( )
 {
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, IRQ_HIGH_PRIORITY, irqHandlers[0] );
   //CPU_GPIO_EnableInputPin( SI446X_pin_setup.nirq_mf_pin, FALSE, si446x_spi2_handle_interrupt, GPIO_INT_EDGE_LOW, RESISTOR_DISABLED);
-	CPU_GPIO_EnableInputPin(_P(F,15), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(F,14), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(F,13), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
-	CPU_GPIO_EnableInputPin(_P(F,12), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,5), FALSE, SX1276OnDio0Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,6), FALSE, SX1276OnDio1Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,7), FALSE, SX1276OnDio2Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
+	CPU_GPIO_EnableInputPin(_P(B,8), FALSE, SX1276OnDio3Irq, GPIO_INT_EDGE_HIGH, RESISTOR_DISABLED);	
 
   //CPU_GPIO_SetIrq( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, 2, SX1276OnDio0Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, 2, SX1276OnDio1Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, 2, SX1276OnDio2Irq );
   //CPU_GPIO_SetIrq( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, 2, SX1276OnDio3Irq );
 }
-
-void SX1276BoardIoDeInit( void )
-{
-  GPIO_InitTypeDef initStruct={0};
-
-  initStruct.Mode = GPIO_MODE_IT_RISING ;
-  initStruct.Pull = GPIO_PULLDOWN;
-  
-  CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-  CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
-}
-
 
 void SX1276BoardSetRfTxPower( int8_t power )
 {
@@ -2123,15 +2094,15 @@ void SX1276BoardSetAntSwLowPower( bool status )
 
         if( status == false )
         {
-            SX1276AntSwInit( );
+          //  SX1276AntSwInit( );
         }
         else
         {
-            SX1276AntSwDeInit( );
+           // SX1276AntSwDeInit( );
         }
     }
 }
-
+/*
 static void SX1276AntSwInit( void )
 {
   GPIO_InitTypeDef initStruct={0};
@@ -2172,7 +2143,7 @@ void SX1276BoardSetAntSw( uint8_t opMode )
         break;
     }
 }
-
+*/
 bool SX1276BoardCheckRfFrequency( uint32_t frequency )
 {
     // Implement check. Currently all frequencies are supported
