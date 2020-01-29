@@ -30,6 +30,8 @@
 
 #define STM32H743xx
 
+#define USE_LPTIM1 // Enables timer 32.768 kHz LPTIM1
+
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
 #define STARTUP_DELAY_MS 200

@@ -71,6 +71,7 @@
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_pcd_ex.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_ll_usb.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_flash.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_lptim.c" />
 </ItemGroup>
   
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />

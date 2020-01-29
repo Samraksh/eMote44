@@ -14,6 +14,7 @@
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
+#include "lptim.h"
 
 
 #if STM32H7_32B_TIMER == 2
@@ -512,6 +513,10 @@ BOOL CPU_Timer_Initialize_System_time(){
 		// Starting Error 
 		Error_Handler();
 	}
+
+#ifdef USE_LPTIM1
+	MX_LPTIM1_Init();
+#endif //#ifdef USE_LPTIM1
 
 	return TRUE;
 }
