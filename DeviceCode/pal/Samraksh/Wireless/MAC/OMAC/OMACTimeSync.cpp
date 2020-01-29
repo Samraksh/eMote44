@@ -75,16 +75,16 @@ UINT64 OMACTimeSync::NextEvent(){
 		);
 		if(sn != NULL) {
 			y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
-///			Send(sn->MACAddress);
-			if(sn->IsInitializationTimeSamplesNeeded()){ //If the node needs initialization
-				Send(sn->MACAddress);
-			}
-			else if(y - sn->LastTimeSyncSendTime >= m_messagePeriod){
-				Send(sn->MACAddress);
-			}
-			else{
-				break;
-			}
+			Send(sn->MACAddress);
+//			if(sn->IsInitializationTimeSamplesNeeded()){ //If the node needs initialization
+//				Send(sn->MACAddress);
+//			}
+//			else if(y - sn->LastTimeSyncSendTime >= m_messagePeriod){
+//				Send(sn->MACAddress);
+//			}
+//			else{
+//				break;
+//			}
 		}
 		else{
 			break;
@@ -274,15 +274,17 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 	if(ReceiveTS > rcv_ltime){
 		l_offset = ReceiveTS - rcv_ltime;
 		l_offset = l_offset*-1;
-		//hal_printf("\r1:ReceiveTS=%s",l2s(ReceiveTS/8,0));
-		//hal_printf("\r1:rcv=%s",l2s(rcv_ltime/8,0));
-		hal_printf("\r1:offset=-%s\r\n",l2s((ReceiveTS - rcv_ltime)/8,0));
+		hal_printf("\r1:ReceiveTS=%s ",l2s(ReceiveTS/48,0));
+		hal_printf("rcv=%s ",l2s(rcv_ltime/48,0));
+		hal_printf("sdelay=%s ",l2s(SenderDelay/48,0));
+		hal_printf("offset=-%s\r\n",l2s((ReceiveTS - rcv_ltime)/48,0));
 	}
 	else{
 		l_offset = rcv_ltime - ReceiveTS;	
-		//hal_printf("\r2:ReceiveTS=%s",l2s(ReceiveTS/8,0));
-		//hal_printf("\r2:rcv=%s",l2s(rcv_ltime/8,0));
-		hal_printf("\r2:offset=%s\r\n",l2s((rcv_ltime - ReceiveTS)/8,0));
+		hal_printf("\r2:ReceiveTS=%s ",l2s(ReceiveTS/48,0));
+		hal_printf("rcv=%s ",l2s(rcv_ltime/48,0));
+		hal_printf("sdelay=%s ",l2s(SenderDelay/48,0));
+		hal_printf("offset=%s\r\n",l2s((rcv_ltime - ReceiveTS)/48,0));
 	}
 	
 	//l_offset = 0;

@@ -268,7 +268,7 @@ bool RadioControl_t::PiggybackMessages(Message_15_4_t* msg, UINT16 &size){
 	}
 	if( header->payloadType == MFM_OMAC_TIMESYNCREQ && !(header->flags & MFM_DISCOVERY_FLAG) && (header->payloadType != MFM_OMAC_DISCOVERY)) {
 		Neighbor_t* neigh_ptr = g_NeighborTable.GetNeighborPtr(header->dest);
-		if(header->dest != 0 && header->dest != RADIO_BROADCAST_ADDRESS && neigh_ptr!= NULL && neigh_ptr->IsSendingMyScheduleNeeded() ){
+		if(header->dest != 0 && header->dest != RADIO_BROADCAST_ADDRESS && neigh_ptr!= NULL ) { /// && neigh_ptr->IsSendingMyScheduleNeeded() ){
 			rv =  PiggybackDiscoMessage(msg, size) || rv;
 		}
 	}
@@ -317,9 +317,14 @@ bool RadioControl_t::PiggybackTimeSyncMessage(Message_15_4_t* msg, UINT16 &size)
 #endif
 		header->flags = ((header->flags | TIMESTAMPED_FLAG));
 		y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
+		///hal_printf("\r PY = %s ",l2s(y,0));
+		///hal_printf("PE = %s ",l2s(event_time,0));
+		
 		y_lo = y & 0xFFFFFFFF;
 		event_time_lo = event_time & 0xFFFFFFFF;
 		y = y - ( y_lo - event_time_lo );
+		
+		///hal_printf("CY = %s\r\n",l2s(y,0));
 		g_OMAC.m_omac_scheduler.m_TimeSyncHandler.CreateMessage(tmsg, y);
 		dest = header->dest;
 		if(dest != 0 && dest != RADIO_BROADCAST_ADDRESS) {

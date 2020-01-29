@@ -178,9 +178,13 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
-        <DriverLibs Include="usb_pal.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USB\dotNetMF.proj" />
+        <DriverLibs Include="usb_pal_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USB\stubs\dotNetMF.proj" />
     </ItemGroup>
+    <!-- <ItemGroup> -->
+        <!-- <DriverLibs Include="usb_pal.$(LIB_EXT)" /> -->
+        <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USB\dotNetMF.proj" /> -->
+    <!-- </ItemGroup> -->
     <ItemGroup>
         <DriverLibs Include="config_pal_loader.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\Configuration\dotNetMF_loader.proj" />

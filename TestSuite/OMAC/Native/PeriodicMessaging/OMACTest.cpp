@@ -33,6 +33,27 @@ extern UINT16 MF_NODE_ID;
 #define NEIGHBORCLOCKMONITORPERIOD (g_OMAC.m_Clock.ConvertMicroSecstoTicks(NEIGHBORCLOCKMONITORPERIOD_MICRO))
 #define INITIALDELAY 100000
 
+void Timer_Green_Handler(void *arg)
+{
+	static bool state = FALSE;
+	if (state)
+		state = FALSE;
+	else
+		state = TRUE;
+	CPU_GPIO_SetPinState(LED1, state);	
+}
+
+void Timer_Red_Handler(void *arg)
+{
+	static bool state = FALSE;
+	if (state)
+		state = FALSE;
+	else
+		state = TRUE;
+	CPU_GPIO_SetPinState(LED3, state);
+}
+
+
 void ToggleLocalClockMonitorPIN(){
 	//Toggle Pin State for monitoring with Logic Analyzer
 	if(gOMACTest.LocalClkPINState){
@@ -53,8 +74,9 @@ void OMACTest_ReceiveHandler (void* msg, UINT16 PacketType){
 #if OMACTEST_PRINT_RX_PACKET_INFO
 //	hal_printf("\r\n OMACTest_RX: rx_packet_count = %llu ", gOMACTest.rx_packet_count);
 //	hal_printf("src = %u PacketID = %llu \r\n", packet_ptr->GetHeader()->src, packetID );
-	hal_printf("\r\n OMACTest_RX: rx_packet_count = %s ", l2s(gOMACTest.rx_packet_count,0));
-	hal_printf("src = %s PacketID = %s \r\n", l2s(packet_ptr->GetHeader()->src,0), l2s(packetID,0));
+	hal_printf("\r\n OMACTest_RX: rx_packet_count = %s\r\n", l2s(gOMACTest.rx_packet_count,0));
+	//hal_printf("src = %s ", l2s(packet_ptr->GetHeader()->src,0));
+	//hal_printf("PacketID = %s \r\n", l2s(packetID,0));
 
 #endif
 }
@@ -77,7 +99,7 @@ void OMACTest_NeighborChangeHandler (INT16 args){
 }
 
 void OMACTest_SendAckHandler (void* msg, UINT16 size, NetOpStatus status, UINT8 radioAckStatus){
-	hal_printf("\r\n OMACTest_SendAckHandler: status = %u radioAckStatus = %u ", status, radioAckStatus);
+	//hal_printf("\r\n OMACTest_SendAckHandler: status = %s radioAckStatus = %s\r\n", l2s(status,0), l2s(radioAckStatus,0));
 
 	Message_15_4_t* packet_ptr = static_cast<Message_15_4_t*>(msg);
 	DataMsg_t* data_msg = (DataMsg_t*) packet_ptr->GetPayload();
@@ -87,8 +109,11 @@ void OMACTest_SendAckHandler (void* msg, UINT16 size, NetOpStatus status, UINT8 
 
 	g_NeighborTable.DeletePacket(packet_ptr);
 
+	hal_printf("\r\n OMACTest_SendAckHandler: send_packet = %s \r\n", l2s(gOMACTest.sent_packet_count,0));
 	//hal_printf(" dest = %u  PacketID = %llu rx_packet_count = %llu \r\n",packet_ptr->GetHeader()->dest, packetID,  gOMACTest.rx_packet_count );
-	hal_printf(" dest = %s  PacketID = %s rx_packet_count = %s \r\n",l2s(packet_ptr->GetHeader()->dest,0), l2s(packetID,0),  l2s(gOMACTest.rx_packet_count,0));
+	//hal_printf("\r\n dest = %s ",l2s(packet_ptr->GetHeader()->dest,0));
+	//hal_printf("PacketID = %s ", l2s(packetID,0));
+	//hal_printf("\r\nrx_packet_count = %s \r\n", l2s(gOMACTest.rx_packet_count,0));
 
 
 }
@@ -254,9 +279,9 @@ BOOL OMACTest::Initialize(){
 	}
 
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSLocalClockMonitorTimerHandler, OMACClockSpecifier);
+	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSLocalClockMonitorTimerHandler);//, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
-	rm = VirtTimer_SetTimer(VIRT_CONT_TEST_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSNeighborClockMonitorTimerHandler, OMACClockSpecifier);
+	rm = VirtTimer_SetTimer(VIRT_CONT_TEST_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSNeighborClockMonitorTimerHandler);//, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
 
 
@@ -303,10 +328,11 @@ void OMACTest::SendPacketToNeighbor(){
 	if (g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.regressgt2.NumberOfRecordedElements(Nbr2beFollowed) > 2 ) {//if ( g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.regressgt2.NumberOfRecordedElements(Nbr2beFollowed) >= 5 ){
 		++(sequence_number);
 		//hal_printf("\r\n sequence_number = %s \r\n",l2s(sequence_number,0));
-		//if( (sent_packet_count % 20 < 10 && sequence_number % 300 == 0)
-		//||  (sent_packet_count % 20 >= 10 && sequence_number % 300 == 0)
-		//		) {
-
+	//	if( (sent_packet_count % 20 < 10 && sequence_number % 10 == 0)
+	//	||  (sent_packet_count % 20 >= 10 && sequence_number % 300 == 0)
+	//	)
+		if (sequence_number % 60 == 0)
+		{
 			//Choose neighbor to send
 			hal_printf("\r\n Choosing Neighbor \r\n");
 				UINT16 Nbr2beSent = 0;
@@ -330,15 +356,15 @@ void OMACTest::SendPacketToNeighbor(){
 				if(Nbr2beSent){
 					if(g_OMAC.Send(Nbr2beSent, TYPE31, &sent_packet_count, sizeof(UINT64))){
 						//hal_printf("\r\n PACKET ACCEPTED Dest = %u PacketID = %llu!! \r\n", Nbr2beSent, sent_packet_count);
-						hal_printf("\r\n PACKET ACCEPTED Dest = %d PacketID = %d!! \r\n", Nbr2beSent, sent_packet_count);
+						hal_printf("\r\n PACKET ACCEPTED Dest = %s PacketID = %s!! \r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
 						++sent_packet_count;
 					}
 					else{
 						//hal_printf("\r\n PACKET REJECTED!! Dest = %u PacketID = %llu!!\r\n", Nbr2beSent, sent_packet_count);
-						hal_printf("\r\n PACKET REJECTED!! Dest = %d PacketID = %d!!\r\n", Nbr2beSent, sent_packet_count);
+						hal_printf("\r\n PACKET REJECTED!! Dest = %s PacketID = %s!!\r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
 					}
 				}
-		//}
+		}
 
 	}
 }
@@ -480,7 +506,14 @@ void OMACTest_Initialize(){
 
 void ApplicationEntryPoint()
 {
+	CPU_GPIO_EnableOutputPin(LED1, TRUE);
+	CPU_GPIO_EnableOutputPin(LED3, TRUE);
 
+	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
+	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
+	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	//VirtTimer_Start(VIRT_TIMER_LED_RED);
+	
     do
     {
     	OMACTest omacTest();

@@ -121,9 +121,9 @@ void SX1276_HAL_FhssChangeChannel(uint8_t currentChannel ){
 
 }
 void SX1276_HAL_CadDone(bool channelActivityDetected){	
-/*	m_rm = SLEEP;
+	m_rm = SLEEP;
 	CAD_Status = channelActivityDetected;
-	Is_CAD_Running = false;*/
+	Is_CAD_Running = false;
 }
 
 
@@ -302,22 +302,23 @@ DeviceStatus SX1276_HAL_AddToTxBuffer(void* msg, UINT16 size){
 
 DeviceStatus SX1276_HAL_ChannelActivityDetection(){
 	Is_CAD_Running = true;
-	CAD_Status = true;
+	CAD_Status = false;
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_Start(VIRT_TIMER_SX1276_CADTimer);
+	//rm = VirtTimer_Start(VIRT_TIMER_SX1276_CADTimer);
 
 	m_rm = RX;
-	//SX1276StartCad();
+	SX1276StartCad();
 
 	UINT32 i = 1;
-	//while(Is_CAD_Running && i < 20000){
-	//	i++;
-		//hal_printf("CAD Running");
-	//};
+	while(Is_CAD_Running && i < 20000){
+		i++;
+		
+	};
+	//hal_printf("CAD Detected");
 	
-	return DS_Success;
-	//if(CAD_Status) return DS_Success;
-	//else return DS_Fail;
+	//return DS_Success;
+	if(!CAD_Status) return DS_Success;
+	else return DS_Fail;
 }
 
 void SX1276_HAL_PacketLoadTimerHandler(void* param) {
@@ -520,3 +521,5 @@ ClockIdentifier_t SX1276_Packet_GetClockId() {
 	return m_packet.clock_id;
 }
 
+
+	

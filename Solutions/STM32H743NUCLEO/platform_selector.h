@@ -174,8 +174,8 @@
 #define LED2                            _P(B, 1)  // Blue
 #define LED3                            _P(B, 2)  // Red
 
-//#define GPIO_0 _P(A,3)
-//#define GPIO_1 _P(C,2)
+#define GPIO_0 _P(A,4)
+#define GPIO_1 _P(C,10)
 //#define GPIO_2 _P(B,1)
 //#define GPIO_3 _P(F,3)
 //#define GPIO_4 _P(F,4)

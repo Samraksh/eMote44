@@ -5,8 +5,8 @@
 #include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
 
-#define GPIO_0 _P(B,12)
-#define GPIO_1 _P(B,13)
+//#define GPIO_0 _P(B,12)
+//#define GPIO_1 _P(B,13)
 
 
 extern void HAL_CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents);

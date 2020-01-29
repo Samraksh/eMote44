@@ -40,11 +40,11 @@ UINT16 CONTROL_P4[] = {8627, 8623, 8467, 8447, 8443, 8429, 8419};
 
 //UINT16 CONTROL_P3[] = {197, 157, 151, 163, 211, 113, 127};
 //UINT16 CONTROL_P4[] = {911, 727, 787, 769, 773, 853, 797};
-UINT16 CONTROL_P1[] = {19, 17, 13, 37, 11, 5, 7};
-UINT16 CONTROL_P2[] = {67, 43, 53, 47, 61, 59};
+//UINT16 CONTROL_P1[] = {19, 17, 13, 37, 11, 5, 7};
+//UINT16 CONTROL_P2[] = {67, 43, 53, 47, 61, 59};
 
-//UINT16 CONTROL_P1[] = {47, 37, 43, 37, 53, 29, 31};
-//UINT16 CONTROL_P2[] = {227, 181, 197, 191, 211, 199};
+UINT16 CONTROL_P1[] = {47, 37, 43, 37, 53, 29, 31};
+UINT16 CONTROL_P2[] = {227, 181, 197, 191, 211, 199};
 
 //Expected disco time(2 disco receptions) 2.63 mins, Typical MaxDiscoTime Time (2 disco receptions) 3.51 mins, Non typical MaxDiscoTime = 11.46 mins
 //#if defined(PLATFORM_ARM_Austere) || defined(PLATFORM_ARM_EmoteDotNow)
@@ -65,6 +65,7 @@ void PublicBeaconNCallback(void * param){
 }
 
 void PublicDiscoPostExec(void * param){
+	g_OMAC.m_omac_scheduler.m_DiscoveryHandler.FailsafeStop();
 	g_OMAC.m_omac_scheduler.m_DiscoveryHandler.PostExecuteEvent();
 }
 
@@ -115,7 +116,9 @@ void DiscoveryHandler::Initialize(UINT8 radioID, UINT8 macID){
 	OMAC_HAL_PRINTF("Estimated disco interval : %s secs\r\n", l2s((UINT64)m_period1*(UINT64)m_period2*(UINT64)g_OMAC.DISCO_SLOT_PERIOD_MICRO/1000000,0));
 #endif
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_SLOT_PERIOD_MICRO/2, TRUE, FALSE, PublicBeaconNCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
+	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_SLOT_PERIOD_MICRO, TRUE, FALSE, PublicBeaconNCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
+	//rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY_POST_EXEC, 0, 100000, TRUE, FALSE, PublicDiscoPostExec, OMACClockSpecifier); //1 sec Timer in micro seconds
+	
 	//rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_DISCOVERY_POST_EXEC, 0, DISCO_BEACON_TX_MAX_DURATION_MICRO, TRUE, FALSE, PublicDiscoPostExec, OMACClockSpecifier); //1 sec Timer in micro seconds
 	//ASSERT_SP(rm == TimerSupported);
 }
@@ -199,13 +202,15 @@ void DiscoveryHandler::ExecuteEvent(){
 	CPU_GPIO_SetPinState(  DISCO_NEXT_EVENT, TRUE );
 #endif
 
+	//rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY_POST_EXEC);
+	
 	DeviceStatus e = DS_Fail;
 	
 
 	e = g_OMAC.m_omac_RadioControl.StartRx();
-
 	if (e == DS_Success){
 		m_state = DISCO_LISTEN_SUCCESS;
+		///rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 20000, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 1, TRUE, OMACClockSpecifier );
 #ifdef OMAC_DEBUG_GPIO
 		CPU_GPIO_SetPinState( OMAC_DISCO_EXEC_EVENT, FALSE );
@@ -242,6 +247,8 @@ void DiscoveryHandler::PostExecuteEvent(){
 	VirtualTimerReturnMessage rm;
 	DeviceStatus  ds = DS_Success;
 	m_state = WAITING_FOR_SLEEP;
+
+	//rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY_POST_EXEC);
 	ds = g_OMAC.m_omac_RadioControl.Stop();
 
 	if (ds == DS_Success) {
@@ -252,7 +259,7 @@ void DiscoveryHandler::PostExecuteEvent(){
 		OMAC_HAL_PRINTF(" \r\n OMACScheduler::PostPostExecution() Radio stop failure! m_num_sleep_retry_attempts = %u  \r\n", m_num_sleep_retry_attempts);
 		if(m_num_sleep_retry_attempts < MAX_SLEEP_RETRY_ATTEMPTS){
 			++m_num_sleep_retry_attempts;
-			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, RADIO_STOP_RETRY_PERIOD_IN_MICS/2, TRUE, OMACClockSpecifier );
+			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, RADIO_STOP_RETRY_PERIOD_IN_MICS, TRUE, OMACClockSpecifier );
 			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 			if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 				PostExecuteEvent();
@@ -308,6 +315,7 @@ DeviceStatus DiscoveryHandler::Beacon(RadioAddress_t dst, Message_15_4_t* msgPtr
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, TRUE );
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, FALSE );
 #endif
+
 	while(1){
 		//Check CCA
 		DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
@@ -327,8 +335,10 @@ DeviceStatus DiscoveryHandler::Beacon(RadioAddress_t dst, Message_15_4_t* msgPtr
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, TRUE );
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, FALSE );
 #endif
+	
 
 	if(canISend) {
+		
 		DS = Send(dst, msgPtr, sizeof(DiscoveryMsg_t), 0 );
 	}
 
@@ -428,23 +438,23 @@ void DiscoveryHandler::HandleRadioInterrupt(){
 void DiscoveryHandler::Beacon1(){
 	VirtualTimerReturnMessage rm;
 	DeviceStatus ds = DS_Fail;
-	if (ShouldBeacon()) {
+	if (ShouldBeacon()) {		
 		m_state = BEACON1_SEND_START;
 		ds = Beacon(RADIO_BROADCAST_ADDRESS, &m_discoveryMsgBuffer);
 	}
 	if(ds == DS_Success) {
 
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 44337/2, TRUE, OMACClockSpecifier );// g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
-		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+    	//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 44337/2, TRUE, OMACClockSpecifier );// g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
-			PostExecuteEvent();
+			PostExecuteEvent();			
 		}
 	}
 	else {
 		m_state = BEACON1_SKIPPED;
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -466,16 +476,18 @@ void DiscoveryHandler::BeaconN(){
 	}
 	if(ds == DS_Success) {
 		///rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
-	
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
+		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_SLOT_PERIOD_MICRO/2, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
 		}
+		
 	}
 	else {
 		m_state = BEACON2_SKIPPED;
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
+		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_SLOT_PERIOD_MICRO/2, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
@@ -511,7 +523,6 @@ void DiscoveryHandler::BeaconNTimerHandler(){
 	case FAILSAFE_STOPPING:
 		break;
 	case DISCO_LISTEN_SUCCESS:
-
 		Beacon1();
 		break;
 	case BEACON1_SEND_START:
@@ -520,9 +531,8 @@ void DiscoveryHandler::BeaconNTimerHandler(){
 	//	OMAC_HAL_PRINTF("DiscoveryHandler::Beacon1 transmission send ACK is missing \r\n");
 #endif
 		if(!g_OMAC.isSendDone){
-	
 			//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
-			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO/2, TRUE, OMACClockSpecifier );
+			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		
 			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 			if(rm == TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
@@ -531,20 +541,20 @@ void DiscoveryHandler::BeaconNTimerHandler(){
 		}
 	case BEACON1_SKIPPED:
 	case BEACON1_SEND_DONE:
-		/* BK: This was  a hack to wait additional time before sending second beacon. Commening it out.
-		//m_state = WAIT_AFTER_BEACON1;
-		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
-		//rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
-		//if(rm == TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
-		//	break;
-		//}
-		//break;
-		 */
+		// BK: This was  a hack to wait additional time before sending second beacon. Commening it out.
+		m_state = WAIT_AFTER_BEACON1;
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
+		if(rm == TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
+			break;
+		}
+		break;
+		 
 	case WAIT_AFTER_BEACON1:
-		/* BK: Second beacon is not very useful without CCA, commenting it out.
+		// BK: Second beacon is not very useful without CCA, commenting it out.
 		BeaconN();
 		break;
-		*/
+		
 	case BEACON2_SEND_START:
 		/* BK: Second beacon is not very useful without CCA, commenting it out.
 		hal_printf("DiscoveryHandler::Beacon2 transmission send ACK is missing \r\n");
@@ -617,7 +627,9 @@ DeviceStatus DiscoveryHandler::Receive(RadioAddress_t source, DiscoveryMsg_t* di
 	//RadioAddress_t source = msg->GetHeader()->src;
 
 	UINT64 nextwakeupSlot = (((UINT64)discoMsg->nextwakeupSlot1) <<32) + discoMsg->nextwakeupSlot0;
-
+#ifdef OMAC_DEBUG_PRINTF
+		OMAC_HAL_PRINTF("DiscoveryHandler::Receive DISCO nextwakeupSlot = %s\r\n", l2s(nextwakeupSlot, 0));
+#endif
 
 	neighborTableCommonParameters_One_t.MACAddress = source;
 	neighborTableCommonParameters_One_t.status = Alive;
@@ -660,7 +672,6 @@ DeviceStatus DiscoveryHandler::Send(RadioAddress_t address, Message_15_4_t* msg,
 	DeviceStatus retValue = DS_Fail;
 	static UINT8 seqNumber = 0;
 	UINT8 finalSeqNumber = 0;
-
 	IEEE802_15_4_Header_t * header = msg->GetHeader();
 	/****** Taking the word value of below bits gives FCF_WORD_VALUE *******/
 	/*header->fcf->IEEE802_15_4_Header_FCF_BitValue.frameType = FRAME_TYPE_MAC;
