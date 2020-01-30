@@ -522,8 +522,8 @@ BOOL CPU_Timer_Initialize_System_time(){
 }
 
 void Early_RTC_Irq_Handler(void *arg){
-			CPU_GPIO_SetPinState(GPIO_1, TRUE);
-			CPU_GPIO_SetPinState(GPIO_1, FALSE);
+			//CPU_GPIO_SetPinState(GPIO_1, TRUE);
+			//CPU_GPIO_SetPinState(GPIO_1, FALSE);
 	earlyRtcCallBackISR(&earlyRtcCallBackISR_Param);
 	return;
 }

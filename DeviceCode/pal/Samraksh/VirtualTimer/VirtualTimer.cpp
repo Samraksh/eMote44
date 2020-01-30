@@ -295,8 +295,10 @@ void VirtualTimerMapper::SetAlarmForTheNextTimer(){
 		for(i = 0; i < m_current_timer_cnt_; i++) {
 			if(g_VirtualTimerInfo[i].get_m_is_running() == TRUE)
 			{
-				// attempting compensation
-				g_VirtualTimerInfo[i].set_m_ticks_when_match_(g_VirtualTimerInfo[i].get_m_ticks_when_match_() + TIMER_COMPENSATION);
+				if (g_VirtualTimerInfo[i].get_m_timer_id() == RTC_32BIT){
+					// attempting compensation for RTC timer
+					g_VirtualTimerInfo[i].set_m_ticks_when_match_(g_VirtualTimerInfo[i].get_m_ticks_when_match_() + TIMER_COMPENSATION);
+				}
 				if(g_VirtualTimerInfo[i].get_m_ticks_when_match_() <= smallestTicks)
 				{
 					smallestTicks = g_VirtualTimerInfo[i].get_m_ticks_when_match_();

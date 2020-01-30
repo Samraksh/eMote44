@@ -5,8 +5,8 @@
 #include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
 
-//#define GPIO_0 _P(B,12)
-//#define GPIO_1 _P(B,13)
+#define GPIO_0 _P(B,12)
+#define GPIO_1 _P(B,13)
 
 
 extern void HAL_CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents);
@@ -60,9 +60,6 @@ void Timer_RTC_Handler(void *arg)
 
 	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	CPU_GPIO_SetPinState(GPIO_0, FALSE);
-	hal_printf("hal print test\r\n");
-	//char s[] = "test message!\r\n";
-	//CPU_USB_write(s, sizeof(s));
 	/*static bool state = FALSE;
 	if (state)
 		state = FALSE;
@@ -91,7 +88,6 @@ void Timer_1_Handler(void *arg)
 {
 	CPU_GPIO_SetPinState(GPIO_1, TRUE);
 	CPU_GPIO_SetPinState(GPIO_1, FALSE);
-	//CPU_Test_USB();
 	//	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	//CPU_GPIO_SetPinState(GPIO_0, FALSE);
 	//CPU_Timer_CurrentTicks(RTC_32BIT);
@@ -144,9 +140,9 @@ void ApplicationEntryPoint()
 		CPU_GPIO_SetPinState(GPIO_5, FALSE);
 	}
 */
-	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 2000000, FALSE, FALSE, Timer_1_Handler); 
+	VirtTimer_SetTimer(VIRT_TIMER_TIME_TEST, 0, 200000, FALSE, FALSE, Timer_1_Handler); 
 	VirtTimer_Start(VIRT_TIMER_TIME_TEST);
-	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 3000000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
+	VirtTimer_SetTimer(VIRT_TIMER_RTC_TEST, 0, 300000, FALSE, FALSE, Timer_RTC_Handler, RTC_32BIT);
 	VirtTimer_Start(VIRT_TIMER_RTC_TEST);
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, RTC_32BIT);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
