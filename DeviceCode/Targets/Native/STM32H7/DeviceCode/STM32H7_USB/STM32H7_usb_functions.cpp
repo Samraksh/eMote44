@@ -90,11 +90,13 @@ HRESULT CPU_USB_Uninitialize( int Controller )
 */
 int CPU_USB_write(const char *buf, int size) {
 	int ret;
-	//if (!is_usb_link_up()) return -1; // CDC not connected
+	if (!USB_initialized) return 0; // CDC not connected
 	memcpy(tx_pkt_buf, buf, size);
-	do { // TODO: ADD TIMEOUT
+	//do { // TODO: ADD TIMEOUT
 		ret = CDC_Transmit_FS(tx_pkt_buf, size);
-	} while(ret == USBD_BUSY);
+	if (ret == USBD_BUSY)
+		return 0;
+	//} while(ret == USBD_BUSY);
 	if (ret != USBD_OK) __BKPT();
 	__disable_irq();
 	usb_cdc_status.TxBytes += size;
@@ -105,7 +107,8 @@ int CPU_USB_write(const char *buf, int size) {
 // This function is called from the usb driver c code
 extern "C" int CPU_USB_Queue_Rx_Data(  char c );
 int CPU_USB_Queue_Rx_Data(  char c ){
-	return USART_AddCharToRxBuffer(USB_SERIAL_PORT, c);
+	// sending back only port number (USB_SERIAL_PORT also contains info that it is a serial interface)
+	return USART_AddCharToRxBuffer(ConvertCOM_ComPort(USB_SERIAL_PORT), c);
 }
 
 extern "C" void USB_Error_Handler(void);

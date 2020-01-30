@@ -60,6 +60,7 @@ void Timer_RTC_Handler(void *arg)
 
 	CPU_GPIO_SetPinState(GPIO_0, TRUE);
 	CPU_GPIO_SetPinState(GPIO_0, FALSE);
+	hal_printf("hal print test\r\n");
 	/*static bool state = FALSE;
 	if (state)
 		state = FALSE;

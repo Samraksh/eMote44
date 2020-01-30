@@ -117,6 +117,12 @@
 // if we want to use our USB port as a USB device you must specify it as USB as the following declaration does
 //#define USB_SERIAL_PORT			0x221 // USB transport, controller instance 1, port 1
 
+#define COM1                   ConvertCOM_ComHandle(0)
+#define COM2                   ConvertCOM_ComHandle(1)
+#define COM3                   ConvertCOM_ComHandle(2)
+#define COM4                   ConvertCOM_ComHandle(3)
+#define COM5                   ConvertCOM_ComHandle(4)
+#define COM6                   ConvertCOM_ComHandle(5)
 // we will specify that our USB/serial interface is a serial port and have MF treat it as such (except we will 
 // have all driver interfaces to ONLY this USB/serial port use the USB drivers
 #define USB_SERIAL_PORT	COM6
@@ -126,7 +132,7 @@
 #define DEBUGGER_PORT                   USB_SERIAL_PORT
 #define MESSAGING_PORT                  USB_SERIAL_PORT
 
-#define USART_DEFAULT_PORT              4 // COM3
+#define USART_DEFAULT_PORT              USB_SERIAL_PORT // COM3
 #define USART_DEFAULT_BAUDRATE          115200
 
 // System Timer Configuration
@@ -176,8 +182,8 @@
 #define LED2                            _P(B, 1)  // Blue
 #define LED3                            _P(B, 2)  // Red
 
-#define GPIO_0 _P(A,4)
-#define GPIO_1 _P(C,10)
+//#define GPIO_0 _P(A,3)
+//#define GPIO_1 _P(C,2)
 //#define GPIO_2 _P(B,1)
 //#define GPIO_3 _P(F,3)
 //#define GPIO_4 _P(F,4)
