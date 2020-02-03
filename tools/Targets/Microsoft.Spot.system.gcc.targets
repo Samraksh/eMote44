@@ -224,7 +224,7 @@
     <GCCSTDLIBS>-lstdc++ -lsupc++ -lm -lgcc -lc </GCCSTDLIBS>
 
     <!-- Use newlib-nano (default) or newlib -->
-    <LINK_NANO_SPECS Condition="'$(NewlibNano)' != 'false'">-specs="$(GNU_LIBGCC_DIR)\nano.specs" </LINK_NANO_SPECS>
+    <LINK_NANO_SPECS Condition="'$(NewlibNano)' != 'false'">-specs="nano.specs" </LINK_NANO_SPECS>
   </PropertyGroup>
 
   <!-- item group  -->
