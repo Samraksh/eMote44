@@ -514,9 +514,7 @@ BOOL CPU_Timer_Initialize_System_time(){
 		Error_Handler();
 	}
 
-#ifdef USE_LPTIM1
-	MX_LPTIM1_Init();
-#endif //#ifdef USE_LPTIM1
+	MX_LPTIM_Init();
 
 	return TRUE;
 }

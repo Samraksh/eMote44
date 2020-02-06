@@ -30,8 +30,7 @@
 
 #define STM32H743xx
 
-#define PRINTF_MAX_RETRIES 7
-#define USE_LPTIM1 // Enables timer 32.768 kHz LPTIM1
+#define PRINTF_MAX_RETRIES 0
 
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
