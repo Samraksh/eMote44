@@ -18,8 +18,12 @@ static LPTIM_HandleTypeDef *my_lptim; // Will init to LPTIM2
 static LPTIM_HandleTypeDef *vt_lptim; // Will init to LPTIM1
 
 static volatile bool cmp_set;
-static volatile uint32_t lse_counter32;		// At 32.768 kHz, rolls at ~36.4 hours
-static volatile uint32_t lse_counter32_vt;	// At 32.768 kHz, rolls at ~36.4 hours
+
+// Upper 32-bits of an effective 48-bit counter (when added with LPTIM)
+static volatile uint32_t lse_counter32;
+static volatile uint32_t lse_counter32_vt;
+
+// Locks
 static uint32_t lptim_lock;
 static uint32_t lptim_lock_vt;
 
@@ -70,8 +74,9 @@ static void free_lock(volatile uint32_t *Lock_Variable) {
 
 
 // Returns LSE native tick count (32-bit)
-static uint32_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {
-	uint32_t ret, read, read2, prim;
+static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {
+	uint64_t ret;
+	uint32_t read, read2, prim;
 	unsigned timeout = 10;
 
 	while(timeout) {
@@ -89,7 +94,7 @@ static uint32_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleT
 		}
 
 		read = HAL_LPTIM_ReadCounter(lptim_ptr);
-		ret = *counter32 + read;
+		ret = ((uint64_t)(*counter32) << 16) + read;
 		if (!prim) __enable_irq();
 
 		read2 = HAL_LPTIM_ReadCounter(lptim_ptr);
@@ -104,9 +109,9 @@ static uint32_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleT
 // Returns tick count in 1 us ticks
 uint64_t lptim_get_counter_us(int lptim) {
 	if (lptim == LPTIM_VT)
-		return (uint64_t)my_get_counter_lptim(&lse_counter32_vt, vt_lptim) * 1000000 / LSE_HZ;
+		return my_get_counter_lptim(&lse_counter32_vt, vt_lptim) * 1000000 / LSE_HZ;
 	else
-		return (uint64_t)my_get_counter_lptim(&lse_counter32, my_lptim)    * 1000000 / LSE_HZ;
+		return my_get_counter_lptim(&lse_counter32, my_lptim)    * 1000000 / LSE_HZ;
 }
 
 // Compare match sub-handler called from HAL_LPTIM_IRQHandler()
@@ -126,9 +131,9 @@ void HAL_LPTIM_CompareMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 // LPTIM counter is 16-bit
 void HAL_LPTIM_AutoReloadMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 	if( hlptim->Instance == my_lptim->Instance )
-		lse_counter32 += 0x10000;
+		lse_counter32 += 1;
 	else
-		lse_counter32_vt += 0x10000;
+		lse_counter32_vt += 1;
 }
 
 // Main LPTIM1 IRQ handler
