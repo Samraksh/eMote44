@@ -12,6 +12,7 @@ extern "C" {
 
 
 void LptimInit(){
+	// Starts all LPTIM
 	MX_LPTIM_Init();
 }
 
@@ -25,14 +26,14 @@ int callLptimSetCompareMicroseconds(uint32_t us){
 		lptimIRQHandler();
 		return 0;
 	} else {
-		retCode = set_lptim_set_delay_us(us);
+		retCode = set_lptim_set_delay_us(us, lptim_vt);
 		if (retCode == lptim_err_short){
 			lptimIRQHandler();
 			return 0;
 		}
 		int timeout = 10;
 		while ( (retCode != lptim_err_none) && (timeout-- >0) ){
-			retCode = set_lptim_set_delay_us(us);
+			retCode = set_lptim_set_delay_us(us, lptim_vt);
 		}
 		if (timeout == 0) {
 			lptimIRQHandler();
@@ -43,11 +44,11 @@ int callLptimSetCompareMicroseconds(uint32_t us){
 }
 
 int callLptimSetCompare(uint16_t ticks, bool is_next_epoch){
-	return lptim_set_compare_ticks(ticks, is_next_epoch);
+	return lptim_set_compare_ticks(ticks, is_next_epoch, lptim_vt);
 }
 
 uint64_t requestLptimCounter(void){
-	return my_get_counter_lptim_us();
+	return my_get_counter_lptim_us(lptim_vt);
 }
 
 #ifdef __cplusplus
