@@ -34,6 +34,11 @@ static void LPTIM_Error_Handler(void) {
 #endif
 }
 
+// Test if in interrupt context
+static inline bool isInterrupt() {
+    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
+}
+
 // Returns true if lock aquired
 static bool get_lock_inner(volatile uint32_t *Lock_Variable, lptim_lock_id_t id) {
 	uint32_t status;
@@ -72,6 +77,17 @@ static uint32_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleT
 	while(timeout) {
 		prim = __get_PRIMASK(); __disable_irq();
 		__DMB();
+
+		// If in ISR or interrupts were disabled in call, use heroic effort
+		// Check manually if ARRM interrupt is pending, and service it if necessary
+		// Best to avoid this case if at all possible
+		if ( isInterrupt() || prim ) {
+			if (__HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_ARRM) != RESET && __HAL_LPTIM_GET_IT_SOURCE(lptim_ptr, LPTIM_IT_ARRM) != RESET) {
+				__HAL_LPTIM_CLEAR_FLAG(lptim_ptr, LPTIM_FLAG_ARRM);
+				HAL_LPTIM_AutoReloadMatchCallback(lptim_ptr);
+			}
+		}
+
 		read = HAL_LPTIM_ReadCounter(lptim_ptr);
 		ret = *counter32 + read;
 		if (!prim) __enable_irq();
