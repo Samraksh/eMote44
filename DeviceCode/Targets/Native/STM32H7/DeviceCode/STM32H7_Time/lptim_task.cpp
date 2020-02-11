@@ -67,7 +67,7 @@ int lptim_add_oneshot(lptim_task_t *x) {
 	add_lptim_task_front(x);
 
 	next = get_next_task();
-	ret = set_lptim_set_delay_ms(next->delay_ms, lptim_debug);
+	ret = lptim_set_delay_ms(next->delay_ms, LPTIM_DEBUG);
 	if (ret) __BKPT();
 	task_RUNNING = next;
 }
