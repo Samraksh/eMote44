@@ -47,9 +47,12 @@
   <ItemGroup>
     <HFiles Include="..\stm32h7xx.h" />
 	<HFiles Include="lptim.h" />
+	<HFiles Include="STM32H7_time_functions.h" />
+	<HFiles Include="STM32H7_lptim_interface.h" />
     <Compile Include="STM32H7_Time_functions.cpp" />
 	<Compile Include="lptim.c" />
 	<Compile Include="lptim_task.cpp" />
+	<Compile Include="STM32H7_lptim_interface.cpp" />
   </ItemGroup>
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 </Project>

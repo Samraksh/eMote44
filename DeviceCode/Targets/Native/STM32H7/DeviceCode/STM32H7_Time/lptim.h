@@ -29,12 +29,15 @@ uint32_t my_get_counter_lptim(void);
 uint64_t my_get_counter_lptim_us(void);
 
 int set_lptim_set_delay_ms(uint32_t ms);
+int set_lptim_set_delay_us(uint32_t us);
 
 // task stuff
 bool task_is_linked(lptim_task_t *x);
 void lptim_task_init(lptim_task_t *x);
 int lptim_add_oneshot(lptim_task_t *x);
 void lptim_task_cb(void);
+int lptim_set_compare_ticks(uint16_t ticks, bool is_next_epoch);
+int lptim_set_compare_dticks(uint16_t dticks);
 
 #ifdef __cplusplus
 }

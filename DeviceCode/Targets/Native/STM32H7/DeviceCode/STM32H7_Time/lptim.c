@@ -92,6 +92,7 @@ void HAL_LPTIM_CompareMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 		if (!cmp_set) return; // False fire
 		cmp_set = false;
 		lptim_task_cb();
+		lptimIRQHandler();
 	}
 }
 
@@ -130,7 +131,7 @@ static uint32_t lptim_ms_to_ticks(uint32_t ms) {
 // Sets a compare interrupt for 'dticks' (delta ticks) in the future
 // Strictly speaking, compare is for "at least dticks" but attempt tight lower bound
 // WARNING: Will override any existing compare
-static int lptim_set_compare_dticks(uint16_t dticks) {
+int lptim_set_compare_dticks(uint16_t dticks) {
 	uint32_t prim, lock_ret, now, now2, diff;
 	int ret = lptim_err_none;
 
@@ -170,11 +171,11 @@ out:
 
 // Sets a compare interrupt for 'ticks' value in the current or next epoch
 // WARNING: Will override any existing compare
-static int lptim_set_compare_ticks(uint16_t ticks, bool is_next_epoch) {
+int lptim_set_compare_ticks(uint16_t ticks, bool is_next_epoch) {
 	uint32_t prim, lock_ret, now;
 	int ret = lptim_err_none;
 
-	if (ticks > 0xFFFF) return lptim_err_long; // Too long
+	if (ticks > 0xFFFF) ticks = 0xFFFF;
 
 	// take the lock
 	lock_ret = get_lock(&lptim_lock, lptim_lock_cmp);
@@ -205,6 +206,16 @@ out:
 
 int set_lptim_set_delay_ms(uint32_t ms) {
 	uint32_t ticks = lptim_ms_to_ticks(ms);
+	return lptim_set_compare_dticks(ticks);
+}
+
+static uint32_t lptim_us_to_ticks(uint32_t us) {
+	if (us >= 131072000) return 0xFFFFFFFF; // saturate
+	else return us*32768/1000000;
+}
+
+int set_lptim_set_delay_us(uint32_t us) {
+	uint32_t ticks = lptim_us_to_ticks(us);
 	return lptim_set_compare_dticks(ticks);
 }
 

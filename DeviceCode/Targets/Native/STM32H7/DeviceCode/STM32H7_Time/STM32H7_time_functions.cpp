@@ -14,7 +14,7 @@
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
-#include "lptim.h"
+#include "STM32H7_lptim_interface.h"
 
 
 #if STM32H7_32B_TIMER == 2
@@ -77,6 +77,11 @@
 TIM_HandleTypeDef    TimHandle2_SystemTime;
 TIM_HandleTypeDef    TimHandle5;
 
+HAL_CALLBACK_FPN lptimCallBackISR;
+UINT32 lptimCallBackISR_Param;
+
+static HAL_CONTINUATION LPTIM_interrupt_continuation;
+
 HAL_CALLBACK_FPN tim5CallBackISR;
 UINT32 callBackISR_Param;
 
@@ -128,6 +133,14 @@ void TIM2_IRQHandler(void)
 }
 } // extern "C"
 
+void queueLptimCallback(void){
+	LPTIM_interrupt_continuation.Enqueue();
+}
+
+void lptimSetCompareTriggered(void *arg){
+	lptimCallBackISR(&lptimCallBackISR_Param);
+}
+
 UINT32 CPU_SystemClock()
 {
     return SYSTEM_CLOCK_HZ;
@@ -149,6 +162,10 @@ UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 	else if(Timer == RTC_32BIT)
 	{
 		maxTicks = 0xFFFFFFFF;
+	}
+	else if(Timer == LPTIM)
+	{
+		maxTicks = 0x1FFFF;
 	}
 	return maxTicks;
 }
@@ -327,14 +344,19 @@ UINT64 CPU_Timer_CurrentTicks(UINT16 Timer)
 {
 	static UINT64 prevRead = 0;
 	UINT64 retVal = 0;
-	if (Timer == ADVTIMER_32BIT){
+	/*if (Timer == ADVTIMER_32BIT){
 		retVal = (UINT64)(TimHandle5.Instance->CNT);
 	} 
-	else if (Timer == RTC_32BIT) {
+	else */if (Timer == RTC_32BIT) {
 		retVal = (UINT64) CPU_RTC_GetTimerValue();
+	} else
+	if (Timer == LPTIM){
+		// LPTIM time is in microseconds (although it is based off a 32kH physical clock)
+		return requestLptimCounter();
 	}
 	else {
 		GLOBAL_LOCK(irq);
+		// ADVTIMER_32BIT
 		// SYSTEM_TIME
 		volatile UINT64 current_systemTime =  m_systemTime;
 		volatile UINT64 currentValue = (UINT64)(TimHandle2_SystemTime.Instance->CNT);
@@ -415,21 +437,37 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 	} 
 	else if(Timer == RTC_32BIT)
 	{
+		volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
 		//uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
 		uint32_t minTimeout = 500;
-		if (compareValue < now ){
-			compareValue = now + 1;
+		if (compareValue < nowRTC ){
+			compareValue = nowRTC + 1;
 		}  
 		
-		UINT64 totalCompareTime = compareValue - now;
-		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME);		
+		UINT64 totalCompareTime = compareValue - nowRTC;
+		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, RTC_32BIT);		
 		if (timerRtc <  minTimeout){
 			//timerRtc = minTimeout;
 			RTC_interrupt_continuation.Enqueue();
 		} else {
 			CPU_RTC_SetAlarm(timerRtc);
 		}
+	}
+	else if (Timer == LPTIM) 
+	{
+		// LPTIM time is in microseconds already (although it is based off a 32kH physical clock)
+		volatile UINT64 origCompareValue = compareValue;
+		volatile UINT64 nowLPTIM = CPU_Timer_CurrentTicks(LPTIM);
+
+		UINT64 minLptimTimeout = 500;
+		if (compareValue < (nowLPTIM + minLptimTimeout)) {
+			queueLptimCallback();
+		} else {
+
+			volatile UINT64 totalCompareTime = compareValue - nowLPTIM;								
 		
+			callLptimSetCompareMicroseconds(totalCompareTime);
+		}
 	}
 }
 //--//
@@ -514,7 +552,9 @@ BOOL CPU_Timer_Initialize_System_time(){
 		Error_Handler();
 	}
 
-	MX_LPTIM_Init();
+//#ifdef USE_LPTIM1
+//	MX_LPTIM1_Init();
+//#endif //#ifdef USE_LPTIM1
 
 	return TRUE;
 }
@@ -563,6 +603,15 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 
 		// this will handle firing the RTC callback if timeout is too short
 		RTC_interrupt_continuation.InitializeCallback(Early_RTC_Irq_Handler, NULL);
+	} else if (Timer == LPTIM) 
+	{
+		lptimCallBackISR = ISR;
+		lptimCallBackISR_Param = LPTIM;
+
+		// this will handle firing the LPTIM callback if timeout is too short
+		LPTIM_interrupt_continuation.InitializeCallback(lptimSetCompareTriggered, NULL);
+
+		LptimInit();
 	}
 
 	

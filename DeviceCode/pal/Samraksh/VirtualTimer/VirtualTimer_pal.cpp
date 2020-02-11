@@ -52,7 +52,6 @@ namespace VirtTimerHelperFunctions
 	}
 }
 
-
 //BOOL VirtTimer_Initialize(UINT16 Timer, BOOL FreeRunning, UINT32 ClkSource, UINT32 Prescaler, HAL_CALLBACK_FPN ISR, void* ISR_PARAM)
 BOOL VirtTimer_Initialize()
 {
@@ -231,20 +230,61 @@ UINT32 VirtTimer_GetMaxTicks(UINT8 timer_id)
 	return CPU_Timer_GetMaxTicks(g_HardwareTimerIDs[mapperId]);
 }
 
-UINT64 VirtTimer_GetNextAlarm()
-{
-	UINT64 nextAlarm = VirtTimer_GetMaxTicks(g_HardwareTimerIDs[0]);
-	UINT64 retTime = 0;
-	UINT16 i = 0;
-	// This only works for the timer that uses the same system time as the Expire time in completions.cpp
-	// other timers have different system clocks and this function will have to be expanded in the future to accomodate them
-	//for(UINT16 i = 0; i < g_CountOfHardwareTimers; i++)
-	{
-			retTime = gVirtualTimerObject.virtualTimerMapper[i].GetNextAlarm();
-			if (retTime < nextAlarm)
-				nextAlarm = retTime;
+// Debug helper function
+static void print_all_vts() __attribute__ ((unused));
+static void print_all_vts() {
+	for (int i=0; i<g_CountOfHardwareTimers; i++) {
+		hal_printf("%d NOW: %llu\r\n", i, CPU_Timer_CurrentTicks(gVirtualTimerObject.virtualTimerMapper[i].VTM_hardwareTimerId));
+		for (int j=0; j<gVirtualTimerObject.virtualTimerMapper[i].m_current_timer_cnt_; j++) {
+			VirtualTimerInfo *tim = &gVirtualTimerObject.virtualTimerMapper[i].g_VirtualTimerInfo[j];
+			hal_printf("%d:%d\tRUN?:%s MTH:%llu RES?:%s\r\n", i, tim->get_m_timer_id(), tim->get_m_is_running() ? "yes" : "no", tim->get_m_ticks_when_match_(),
+				tim->get_m_reserved() ? "yes" : "no");
+		}
 	}
-	return nextAlarm;
+}
+
+// Input is system timer ticks (e.g., 8 MHz)
+// Output is system timer ticks
+UINT64 VirtTimer_GetNextAlarm(UINT64 now) {
+
+	UINT64 extra=0xFFFFFFFFFFFFFFFF-now; // system timer ticks
+	UINT16 system_hw_id = gVirtualTimerObject.virtualTimerMapper[0].VTM_hardwareTimerId;
+	// The VT can schedule a callback but not ensure it gets executed before sleep
+	// Manually check for this here.
+	if ( VTCallbackQueueHasItem() )
+		return 0;
+
+	{ // System timer is first and special case
+		UINT64 alr_next = gVirtualTimerObject.virtualTimerMapper[0].GetNextAlarm();
+		UINT64 alr_now  = CPU_Timer_CurrentTicks(system_hw_id);
+		if (alr_now >= alr_next) {
+			return 0; // A timer is behind?
+		}
+		// Already in system timer ticks, no conversion
+		UINT64 ticks = alr_next - alr_now;
+		if (ticks < extra)
+			extra = ticks;
+	}
+
+	for (int i=1; i<g_CountOfHardwareTimers; i++) {
+		UINT16 hw_id = gVirtualTimerObject.virtualTimerMapper[i].VTM_hardwareTimerId;
+		// Below two ops are in native ticks (unique to timer)
+		UINT64 alr_next = gVirtualTimerObject.virtualTimerMapper[i].GetNextAlarm();
+		UINT64 alr_now  = CPU_Timer_CurrentTicks(hw_id);
+
+		if (alr_now >= alr_next) {
+			return 0; // A timer is behind?
+		}
+
+		// Convert to microseconds
+		UINT64 next_us = CPU_TicksToMicroseconds(alr_next - alr_now , hw_id);
+
+		// Convert back to system timer ticks
+		UINT64 ticks = CPU_MicrosecondsToTicks(next_us, system_hw_id);
+		if (ticks < extra)
+			extra = ticks;
+	}
+	return now+extra;
 }
 
 void VirtTimer_UpdateAlarms()
@@ -256,7 +296,6 @@ void VirtTimer_UpdateAlarms()
 		gVirtualTimerObject.virtualTimerMapper[i].SetAlarmForTheNextTimer();
 	}
 }
-
 
 BOOL VirtTimer_UnInitialize()
 {
