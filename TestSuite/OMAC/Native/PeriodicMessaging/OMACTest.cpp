@@ -331,7 +331,7 @@ void OMACTest::SendPacketToNeighbor(){
 	//	if( (sent_packet_count % 20 < 10 && sequence_number % 10 == 0)
 	//	||  (sent_packet_count % 20 >= 10 && sequence_number % 300 == 0)
 	//	)
-		if (sequence_number % 60 == 0)
+		if (sequence_number % 30 == 0)
 		{
 			//Choose neighbor to send
 			hal_printf("\r\n Choosing Neighbor \r\n");
@@ -356,12 +356,14 @@ void OMACTest::SendPacketToNeighbor(){
 				if(Nbr2beSent){
 					if(g_OMAC.Send(Nbr2beSent, TYPE31, &sent_packet_count, sizeof(UINT64))){
 						//hal_printf("\r\n PACKET ACCEPTED Dest = %u PacketID = %llu!! \r\n", Nbr2beSent, sent_packet_count);
-						hal_printf("\r\n PACKET ACCEPTED Dest = %s PacketID = %s!! \r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						//hal_printf("\r\n PACKET ACCEPTED Dest = %s PacketID = %s!! \r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						hal_printf("\r\n PACKET ACCEPTED!!\r\n");
 						++sent_packet_count;
 					}
 					else{
 						//hal_printf("\r\n PACKET REJECTED!! Dest = %u PacketID = %llu!!\r\n", Nbr2beSent, sent_packet_count);
-						hal_printf("\r\n PACKET REJECTED!! Dest = %s PacketID = %s!!\r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						//hal_printf("\r\n PACKET REJECTED!! Dest = %s PacketID = %s!!\r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						hal_printf("\r\n PACKET REJECTED!!\r\n");
 					}
 				}
 		}
@@ -509,10 +511,10 @@ void ApplicationEntryPoint()
 	CPU_GPIO_EnableOutputPin(LED1, TRUE);
 	CPU_GPIO_EnableOutputPin(LED3, TRUE);
 
-	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
-	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
-	//VirtTimer_Start(VIRT_TIMER_LED_RED);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
+	VirtTimer_Start(VIRT_TIMER_LED_GREEN);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	VirtTimer_Start(VIRT_TIMER_LED_RED);
 	
     do
     {

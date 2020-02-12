@@ -628,7 +628,7 @@ DeviceStatus DiscoveryHandler::Receive(RadioAddress_t source, DiscoveryMsg_t* di
 
 	UINT64 nextwakeupSlot = (((UINT64)discoMsg->nextwakeupSlot1) <<32) + discoMsg->nextwakeupSlot0;
 #ifdef OMAC_DEBUG_PRINTF
-		OMAC_HAL_PRINTF("DiscoveryHandler::Receive DISCO nextwakeupSlot = %s\r\n", l2s(nextwakeupSlot, 0));
+		//OMAC_HAL_PRINTF("DiscoveryHandler::Receive DISCO nextwakeupSlot = %s\r\n", l2s(nextwakeupSlot, 0));
 #endif
 
 	neighborTableCommonParameters_One_t.MACAddress = source;

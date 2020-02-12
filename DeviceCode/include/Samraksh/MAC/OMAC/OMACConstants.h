@@ -52,7 +52,7 @@
 #define SLOTRETRYMAXATTEMPT 2
 #define CCA_PERIOD_FRAME_RETRY_MICRO 0 //BK: We need to double check this. Since 2 nodes will be off by this much. A node should CCA at least this much to make sure there was no other transmitter trying to reach the same destination.
 
-#define HIGH_DISCO_PERIOD_IN_SLOTS_CONSTANT 50000 //This is setting the length of high disco period after start up. Note that the length of disco slot is different than the length of data slots. The ratio is determined by DISCOPERIODINSLOTS. Note that this is a convention and there is no direct relationship limiting the ratio between the data slots and the discovery slots.
+#define HIGH_DISCO_PERIOD_IN_SLOTS_CONSTANT 13334 //This is setting the length of high disco period after start up. Note that the length of disco slot is different than the length of data slots. The ratio is determined by DISCOPERIODINSLOTS. Note that this is a convention and there is no direct relationship limiting the ratio between the data slots and the discovery slots.
 //#define HIGH_DISCO_PERIOD_IN_SLOTS_CONSTANT 0
 #ifdef PLATFORM_ARM_EmoteDotNow
 #define HIGH_DISCO_PERIOD_ALWAYS_ON 1
@@ -118,7 +118,7 @@
 //GUARDTIME_MICRO+OMAC_TIME_ERROR - Pessimistic time error
 //GUARDTIME_MICRO - optimistic time error (if there is a re-transmission, tx takes GUARDTIME_MICRO to do CCA
 
-#define EXECUTE_WITH_CCA  0
+#define EXECUTE_WITH_CCA  1
 #define  FAST_RECOVERY 0
 #define  FAST_RECOVERY2 0
 
@@ -165,7 +165,7 @@
 //#define OMACClockSpecifier HFCLOCKID
 //#define OMACClockFreq 8000
 //#define OMACClocktoSystemClockFreqRatio 1
-#define OMACClocktoSystemClockFreqRatio 1525.879
+#define OMACClocktoSystemClockFreqRatio 1525.87890625
 
 #define INITIALIZATION_TIMESYNC_INTERVAL_INMICS 10000000   // Controls the interval during the neighbor intiialization period after a discovery. This interval is faster than the regular intervals in order to fill the neighbor's timesync table with the samples from the current node.
 

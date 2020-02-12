@@ -37,7 +37,7 @@ void PublicSchedulerTaskHandler1(void * param){
 	UINT64 rem_time_micros;
 	g_OMAC.m_omac_scheduler.m_curTime_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks();
 	if(g_OMAC.m_omac_scheduler.m_scheduledTimer_in_ticks > g_OMAC.m_omac_scheduler.m_curTime_in_ticks){ //Check for early firing from the timer
-		g_OMAC.m_omac_scheduler.m_num_rescheduled = g_OMAC.m_omac_scheduler.m_num_rescheduled + 1;
+	/*	g_OMAC.m_omac_scheduler.m_num_rescheduled = g_OMAC.m_omac_scheduler.m_num_rescheduled + 1;
 		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_SCHEDULER);
 		if(rm != TimerSupported) {
 			SOFT_BREAKPOINT();
@@ -51,8 +51,21 @@ void PublicSchedulerTaskHandler1(void * param){
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_SCHEDULER);
 		if(rm != TimerSupported) {
 			SOFT_BREAKPOINT();
-		}
+		}*/
 
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE);
+		
+		rem_time_micros = g_OMAC.m_Clock.ConvertTickstoMicroSecs( g_OMAC.m_omac_scheduler.m_scheduledTimer_in_ticks - g_OMAC.m_omac_scheduler.m_curTime_in_ticks);
+		if(rem_time_micros < OMAC_SCHEDULER_MIN_REACTION_TIME_IN_MICRO) rem_time_micros = OMAC_SCHEDULER_MIN_REACTION_TIME_IN_MICRO;
+		
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE, 0, rem_time_micros, TRUE, OMACClockSpecifier );
+		if(rm != TimerSupported) {
+			SOFT_BREAKPOINT();
+		}
+		rm = VirtTimer_Start(VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE);
+		if(rm != TimerSupported) {
+			SOFT_BREAKPOINT();
+		}
 	}
 	else{
 #endif
@@ -105,6 +118,7 @@ void OMACScheduler::Initialize(UINT8 _radioID, UINT8 _macID){
 	VirtualTimerReturnMessage rm;
 
 	//rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE, 0, FAILSAFETIME_MICRO, FALSE, FALSE, PublicSchedulerTaskHandlerFailsafe);
+	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE, 0, FAILSAFETIME_MICRO, TRUE, FALSE, PublicSchedulerTaskHandler1, OMACClockSpecifier);
 	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_SCHEDULER_RADIO_STOP_RETRY, 0, RADIO_STOP_RETRY_PERIOD_IN_MICS, TRUE, FALSE, PublicSchedulerTaskHandlerRadioStop, OMACClockSpecifier);
 	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_SCHEDULER, 0, SLOT_PERIOD_MILLI * MILLISECINMICSEC, TRUE, FALSE, PublicSchedulerTaskHandler1, OMACClockSpecifier);
 	//ASSERT_SP(rm == TimerSupported);
@@ -219,14 +233,19 @@ void OMACScheduler::ScheduleNextEvent(){
 	//	nextWakeupTimeInMicSec  = timeSyncEventOffset;
 	//}
 
-	hal_printf("\r rxEvent=%s ", l2s(rxEventOffset,0));
-	hal_printf("txEvent=%s ", l2s(txEventOffset,0));
-	hal_printf("beaconent=%s ", l2s(beaconEventOffset,0));
+	//if (rxEventOffset < txEventOffset) 
+	//	hal_printf("\r rxEvent=%s", l2s(rxEventOffset,0));
+	//else 
+	//	hal_printf(" txEvent=%s", l2s(txEventOffset,0));
+	//	hal_printf(" beaconent=%s", l2s(beaconEventOffset,0));
 	
+	//hal_printf("rxEvent=%d ", rxEventOffset);
+	//hal_printf("txEvent=%d \n ", txEventOffset);
+	//hal_printf("beaconent=%d ", beaconEventOffset);
 	
 	if(rxEventOffset == nextWakeupTimeInMicSec) {
 		m_state = I_DATA_RCV_PENDING;
-		hal_printf("RCV \r\n");
+		//hal_printf(" RCV \r\n");
 
 		//m_state = I_IDLE;
 		//nextWakeupTimeInMicSec = nextWakeupTimeInMicSec - RADIO_TURN_ON_DELAY_MICRO - OMAC_HW_ACK_DELAY; //MMA
@@ -237,19 +256,19 @@ void OMACScheduler::ScheduleNextEvent(){
 		//TODO: BK: The PROCESSING_DELAY_BEFORE_TX_MICRO should depend on the packet size. We need to experiment and make it better. This will help balance out the guardband and take the bias out of it.
 		//nextWakeupTimeInMicSec = nextWakeupTimeInMicSec - PROCESSING_DELAY_BEFORE_TX_MICRO - RADIO_TURN_ON_DELAY_MICRO - OMAC_HW_ACK_DELAY;	//MMA
 		//nextWakeupTimeInMicSec = nextWakeupTimeInMicSec + GUARDTIME_MICRO + SWITCHING_DELAY_MICRO - PROCESSING_DELAY_BEFORE_TX_MICRO - RADIO_TURN_ON_DELAY_MICRO;//BK: THis calculation is done inside the nextevent in order to prevent a negative value
-		hal_printf("SEND \r\n");
+		//hal_printf(" SEND \r\n");
 		
 		m_state = I_DATA_SEND_PENDING;
 		//m_state = I_IDLE;
 	}
 	else if(beaconEventOffset == nextWakeupTimeInMicSec) {
 		//nextWakeupTimeInMicSec = nextWakeupTimeInMicSec - OMAC_HW_ACK_DELAY_MICRO;
-		hal_printf("DISCO \r\n");
+		//hal_printf(" DISCO \r\n");
 		m_state  = I_DISCO_PENDING;
 	}
 	else if(timeSyncEventOffset == nextWakeupTimeInMicSec) {
 		//nextWakeupTimeInMicSec = nextWakeupTimeInMicSec - OMAC_HW_ACK_DELAY_MICRO;
-		hal_printf("TimeSync \r\n");
+		//hal_printf(" TimeSync \r\n");
 #ifdef OMAC_DEBUG_GPIO		
 		CPU_GPIO_SetPinState(SCHED_TSREQ_EXEC_PIN, TRUE);
 		CPU_GPIO_SetPinState(SCHED_TSREQ_EXEC_PIN, FALSE);
@@ -257,7 +276,7 @@ void OMACScheduler::ScheduleNextEvent(){
 		m_state = I_TIMESYNC_PENDING;
 	}
 	else{
-		hal_printf("Idle \r\n");
+		//hal_printf(" Idle \r\n");
 		m_state = I_IDLE;
 	}
 
