@@ -88,7 +88,7 @@
 #define FLASH_MANUFACTURER_CODE              0x0000  // not used
 #define FLASH_DEVICE_CODE                    0x0000  // not used
 #define FLASH_BASE_ADDRESS1                  0x08000000 // 1x 128K
-#define FLASH_BLOCK_COUNT1                   1
+#define FLASH_BLOCK_COUNT1                   16
 #define FLASH_BYTES_PER_BLOCK1               0x20000
 #define FLASH_BASE_ADDRESS2                  0x08020000 // 1x 128K
 #define FLASH_BLOCK_COUNT2                   1
@@ -97,7 +97,7 @@
 #define FLASH_BLOCK_COUNT3                   6
 #define FLASH_BYTES_PER_BLOCK3               0x20000
 
-#define FLASH_BYTES_PER_SECTOR               2
+#define FLASH_BYTES_PER_SECTOR               0x20000
 #define FLASH_BLOCK_ERASE_TYPICAL_TIME_USEC  1000000 // not used
 #define FLASH_SECTOR_WRITE_TYPICAL_TIME_USEC 10      // not used
 #define FLASH_BLOCK_ERASE_MAX_TIME_USEC      4000000 // not used
@@ -121,10 +121,10 @@
 #define STM32H7__SUPPORTS_XIP      TRUE
 #define STM32H7__WRITE_PROTECTED   FALSE
 #define STM32H7__SUPP_COPY_BACK    FALSE
-#define STM32H7__NUM_REGIONS       3
+#define STM32H7__NUM_REGIONS       1
 
 #define FLASH_MEMORY_Base               0x08000000
-#define FLASH_MEMORY_Size               0x00100000  // 2M
+#define FLASH_MEMORY_Size               0x00200000  // 2M
 #define SRAM1_MEMORY_Base               0x20000000
 #define SRAM1_MEMORY_Size               0x00020000  // 128K
 //DTCMRAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 128K

@@ -38,20 +38,11 @@
     <ARCH_TYPE_FLAGS Condition="'$(DEVICE_TYPE)' == 'cortex-m7'">-mcpu=cortex-m7 -mthumb</ARCH_TYPE_FLAGS>
     <ARCH_TYPE_FLAGS Condition="'$(ARCH_TYPE_FLAGS)'==''">-mcpu=$(DEVICE_TYPE)</ARCH_TYPE_FLAGS>
 
-    <!-- GCC_ARCH_DIR specifies the CPU architecture portion of the path to the appropriate libraries for a given device -->
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'arm926EJ-S'"></GCC_ARCH_DIR>
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'ARM7TDMI'"></GCC_ARCH_DIR>
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'cortex-m4' AND '$(PLATFORM_EMULATED_FLOATINGPOINT)'=='true'">armv7e-m\softfp</GCC_ARCH_DIR>
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'cortex-m4' AND '$(PLATFORM_EMULATED_FLOATINGPOINT)'!='true'">armv7e-m\fpu</GCC_ARCH_DIR>
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'cortex-m3'">armv7-m</GCC_ARCH_DIR>
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'cortex-m7' AND '$(PLATFORM_EMULATED_FLOATINGPOINT)'=='true'">armv7e-m/softfp/fpv5-sp-d16</GCC_ARCH_DIR>
-    <GCC_ARCH_DIR Condition="'$(DEVICE_TYPE)' == 'cortex-m7' AND '$(PLATFORM_EMULATED_FLOATINGPOINT)'!='true'">armv7e-m/fpu/fpv5-sp-d16</GCC_ARCH_DIR>
-
     <POS_DEPENDENT></POS_DEPENDENT>
     <POS_INDEPENDENT>-fpic</POS_INDEPENDENT>
     <CC_CPP_COMMON_FLAGS>$(CC_CPP_COMMON_FLAGS) -mabi=aapcs -ffunction-sections -fdata-sections -fomit-frame-pointer -mlong-calls -fdollars-in-identifiers -fshort-wchar -fno-exceptions -funsigned-char -mstructure-size-boundary=8</CC_CPP_COMMON_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >$(CC_CPP_TARGETTYPE_FLAGS) -O3</CC_CPP_TARGETTYPE_FLAGS>
-    <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"        >$(CC_CPP_TARGETTYPE_FLAGS) -Og -femit-class-debug-always -ggdb3</CC_CPP_TARGETTYPE_FLAGS>
+    <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"        >$(CC_CPP_TARGETTYPE_FLAGS) -Og -ggdb3</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'" >$(CC_CPP_TARGETTYPE_FLAGS) -O0</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >$(CC_CPP_TARGETTYPE_FLAGS) -Os</CC_CPP_TARGETTYPE_FLAGS>
 
@@ -72,8 +63,8 @@
     -->
     <CPP_FLAGS>$(CPP_FLAGS)-xc++ -w -fcheck-new -fabi-version=0 -fno-exceptions -fno-rtti -fno-use-cxa-atexit -fno-threadsafe-statics </CPP_FLAGS>
 
-    <FLOATING_POINT_FLAG Condition="('$(PLATFORM_EMULATED_FLOATINGPOINT)'!='true' and '$(DEVICE_TYPE)' == 'cortex-m4') or '$(INSTRUCTION_SET)'=='thumb2fp'">-mfloat-abi=hard -mfpu=fpv5-sp-d16</FLOATING_POINT_FLAG>
-    <FLOATING_POINT_FLAG Condition="'$(PLATFORM_EMULATED_FLOATINGPOINT)'=='true'">-mfloat-abi=softfp -mfpu=fpv5-sp-d16</FLOATING_POINT_FLAG>
+    <FLOATING_POINT_FLAG Condition="('$(PLATFORM_EMULATED_FLOATINGPOINT)'!='true' and '$(DEVICE_TYPE)' == 'cortex-m4') or '$(INSTRUCTION_SET)'=='thumb2fp'">-mfloat-abi=hard -mfpu=fpv5-d16</FLOATING_POINT_FLAG>
+    <FLOATING_POINT_FLAG Condition="'$(PLATFORM_EMULATED_FLOATINGPOINT)'=='true'">-mfloat-abi=softfp -mfpu=fpv5-d16</FLOATING_POINT_FLAG>
 
     <AS_CC_CPP_COMMON_FLAGS>$(AS_CC_CPP_COMMON_FLAGS) $(FLOATING_POINT_FLAG) </AS_CC_CPP_COMMON_FLAGS>
     <AS_CC_CPP_COMMON_FLAGS>$(AS_CC_CPP_COMMON_FLAGS) $(ARCH_TYPE_FLAGS)</AS_CC_CPP_COMMON_FLAGS>
@@ -216,12 +207,13 @@
   
   <PropertyGroup Condition="'$(COMPILER_TOOL)'=='GCC'" >
     <GNU_LIB_DIR   >$(GNU_TOOLS)\$(GNU_TARGET)\lib</GNU_LIB_DIR>
-    <GNU_LIBGCC_DIR>$(GNU_LIB_DIR)\$(GCC_ARCH_DIR)</GNU_LIBGCC_DIR>
-    <ExtraLibs       Condition="'$(INSTRUCTION_SET)'=='arm'"></ExtraLibs>
+	<SONYC_ML_LIB_DIR>$(SPO_SDK)\DeviceCode\pal\Samraksh\SONYC</SONYC_ML_LIB_DIR>
 
     <!--Standard libraries -->
     <!-- NOTE: These are renamed by the "specs" provided to the command line-->
     <GCCSTDLIBS>-lstdc++ -lsupc++ -lm -lgcc -lc </GCCSTDLIBS>
+
+	<SONYC_LIBS Condition="'$(DEVICE_TYPE)' == 'cortex-m7'">-lsonyc_ml</SONYC_LIBS>
 
     <!-- Use newlib-nano (default) or newlib -->
     <LINK_NANO_SPECS Condition="'$(NewlibNano)' != 'false'">-specs="nano.specs" </LINK_NANO_SPECS>
@@ -281,7 +273,7 @@
          (platform independent). Thus the linker looks in the current working directory and finds the specified library without
          needing to list the full path for each one. 
     -->
-    <Exec WorkingDirectory="$(LIB_DIR)" Command="$(LINK) $(ARCH_TYPE_FLAGS) $(FLOATING_POINT_FLAG) -ffunction-sections -fdata-sections -Xlinker $(ARCH_TARGETTYPE_FLAGS) -L&quot;$(GNU_LIBGCC_DIR)&quot; -specs=$(MsBuildThisFileDirectory)startfile.specs -Wl$(LINK_FLAGS),-Map=$(EXEName).map $(LINK_NANO_SPECS) -T@(EXEScatterFile,' ') @(EXEInputs,' ') -Wl,-( @(PlatformIndependentLibs->'$(PLATFORM_INDEPENDENT_RELATIVE_LIB_DIR)%(FileName)%(Extension)',' ') @(DriverLibs->'%(FileName)%(Extension)',' ') @(InputLibs,' ') -Wl,-) -Wl,-no-whole-archive -Wl,-( $(GCCSTDLIBS) -Wl,-) $(ExtraLibs) -o@(EXEOutput)" />
+    <Exec WorkingDirectory="$(LIB_DIR)" Command="$(LINK) $(ARCH_TYPE_FLAGS) $(FLOATING_POINT_FLAG) -ffunction-sections -fdata-sections -Xlinker $(ARCH_TARGETTYPE_FLAGS) -L&quot;$(SONYC_ML_LIB_DIR)&quot; -specs=$(MsBuildThisFileDirectory)startfile.specs -Wl$(LINK_FLAGS),-Map=$(EXEName).map $(LINK_NANO_SPECS) -T@(EXEScatterFile,' ') @(EXEInputs,' ') -Wl,-( @(PlatformIndependentLibs->'$(PLATFORM_INDEPENDENT_RELATIVE_LIB_DIR)%(FileName)%(Extension)',' ') @(DriverLibs->'%(FileName)%(Extension)',' ') @(InputLibs,' ') -Wl,-) -Wl,-no-whole-archive -Wl,-( $(GCCSTDLIBS) -Wl,-) $(SONYC_LIBS) -o@(EXEOutput)" />
 
     <Exec Command="$(OBJDUMP) -d -EL -S @(EXEOutput) > $(EXEName).axfdump" />
 

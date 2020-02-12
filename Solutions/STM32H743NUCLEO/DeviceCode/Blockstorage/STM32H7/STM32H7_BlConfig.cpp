@@ -18,17 +18,9 @@
 const BlockRange g_STM32H7_BlockRange1[] =
 {
     { BlockRange::BLOCKTYPE_BOOTSTRAP ,   0, 0 },  // 08000000 bootloader  128k
-};
-
-const BlockRange g_STM32H7_BlockRange2[] =
-{
-    { BlockRange::BLOCKTYPE_CONFIG    ,   0, 0 },  // 08020000 Config      128k    
-};
-
-const BlockRange g_STM32H7_BlockRange3[] =
-{
-    { BlockRange::BLOCKTYPE_CODE      ,   0, 3 },  // 08040000 CLR         384k
-    { BlockRange::BLOCKTYPE_DEPLOYMENT,   4, 5 },  // 080C0000 deployment  384k
+    { BlockRange::BLOCKTYPE_CODE      ,   1, 14 }, // 08020000 CLR         1792k (inc 4k config)
+	{ BlockRange::BLOCKTYPE_CONFIG    ,   13,13 }, // 081DF000 Config      4k. This must exist.
+    { BlockRange::BLOCKTYPE_DEPLOYMENT,   15,15 }, // 081E0000 deployment  128k
 };
 
 const BlockRegionInfo  g_STM32H7_BlkRegion[STM32H7__NUM_REGIONS] = 
@@ -39,22 +31,6 @@ const BlockRegionInfo  g_STM32H7_BlkRegion[STM32H7__NUM_REGIONS] =
         FLASH_BYTES_PER_BLOCK1, // UINT32        BytesPerBlock;   // Total number of bytes per block
         ARRAYSIZE_CONST_EXPR(g_STM32H7_BlockRange1),
         g_STM32H7_BlockRange1,
-    },
-    
-    {
-        FLASH_BASE_ADDRESS2,    // ByteAddress   Start;           // Starting Sector address
-        FLASH_BLOCK_COUNT2,     // UINT32        NumBlocks;       // total number of blocks in this region
-        FLASH_BYTES_PER_BLOCK2, // UINT32        BytesPerBlock;   // Total number of bytes per block
-        ARRAYSIZE_CONST_EXPR(g_STM32H7_BlockRange2),
-        g_STM32H7_BlockRange2,
-    },
-    
-    {
-        FLASH_BASE_ADDRESS3,    // ByteAddress   Start;           // Starting Sector address
-        FLASH_BLOCK_COUNT3,     // UINT32        NumBlocks;       // total number of blocks in this region
-        FLASH_BYTES_PER_BLOCK3, // UINT32        BytesPerBlock;   // Total number of bytes per block
-        ARRAYSIZE_CONST_EXPR(g_STM32H7_BlockRange3),
-        g_STM32H7_BlockRange3,
     }
 };
 
