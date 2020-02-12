@@ -201,15 +201,16 @@ const UINT8 ADVTIMER_32BIT = 1;
 const UINT8 DEFAULT_TIMER = ADVTIMER_32BIT;
 const UINT8 TIMER_32BIT = ADVTIMER_32BIT;
 const UINT8 RTC_32BIT = 4;
-const UINT8 LOW_DRIFT_TIMER = RTC_32BIT;
+const UINT8 LPTIM = 5;
+const UINT8 LOW_DRIFT_TIMER = LPTIM;
 const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
-const UINT8 OMACClockSpecifier = RTC_32BIT; //??
+const UINT8 OMACClockSpecifier = LPTIM; 
 
 const UINT8 g_CountOfHardwareTimers = 2;
 const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = { DEFAULT_TIMER, LOW_DRIFT_TIMER };
 const UINT8 g_VirtualTimerPerHardwareTimer = 40;
-//const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { 48000000, 32768};
-const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 32768 };
+//const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 32768 };
+const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 1000000 };	// LPTIM is physically a 32kHz clock but gives its time in microseconds
 
 // timers that are run within interrupt context
 #define VIRT_TIMER_EVENTS 			1

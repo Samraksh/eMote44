@@ -3,20 +3,29 @@
 #include "..\stm32h7xx.h"
 #include "lptim.h"
 
-#define LPTIM_DEBUG
+#define LPTIM_DEBUG_VERBOSE
 #define DELTA_TICKS_GUARD 2 // <= this amt is "now"
 #define DELTA_TICKS_EXTRA 0  // Manually compensate this many ticks on set compare
+
+#define LSE_HZ 32768
 
 static LPTIM_HandleTypeDef hlptim1;
 static LPTIM_HandleTypeDef hlptim2;
 
 // Set the LPTIM used for the clocking in this file.
 // Anticipate giving LPTIM1 to VT and its code doing it own thing other than init for now.
-static LPTIM_HandleTypeDef *my_lptim;
+static LPTIM_HandleTypeDef *my_lptim; // Will init to LPTIM2
+static LPTIM_HandleTypeDef *vt_lptim; // Will init to LPTIM1
 
 static volatile bool cmp_set;
-static volatile uint32_t lse_counter32; // At 32.768 kHz, rolls at ~36.4 hours
+
+// Upper 32-bits of an effective 48-bit counter (when added with LPTIM)
+static volatile uint32_t lse_counter32;
+static volatile uint32_t lse_counter32_vt;
+
+// Locks
 static uint32_t lptim_lock;
+static uint32_t lptim_lock_vt;
 
 typedef enum {
 	lptim_lock_none	=0,
@@ -24,9 +33,14 @@ typedef enum {
 } lptim_lock_id_t;
 
 static void LPTIM_Error_Handler(void) {
-#ifdef LPTIM_DEBUG
+#ifdef LPTIM_DEBUG_VERBOSE
 		__BKPT();
 #endif
+}
+
+// Test if in interrupt context
+static inline bool isInterrupt() {
+    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
 }
 
 // Returns true if lock aquired
@@ -60,20 +74,49 @@ static void free_lock(volatile uint32_t *Lock_Variable) {
 
 
 // Returns LSE native tick count (32-bit)
-uint32_t my_get_counter_lptim(void) {
-	uint32_t ret, read, read2, prim;
+static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {
+	uint64_t ret = 0;
+	uint32_t read, prim, counter_temp;
 	unsigned timeout = 10;
 
 	while(timeout) {
 		prim = __get_PRIMASK(); __disable_irq();
 		__DMB();
-		read = HAL_LPTIM_ReadCounter(my_lptim);
-		ret = lse_counter32 + read;
+
+		// If in ISR or interrupts were disabled in call, use heroic effort
+		// Check manually if ARRM interrupt is pending, and service it if necessary
+		// Best to avoid this case if at all possible
+		if ( isInterrupt() || prim ) {
+			if (__HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_ARRM) != RESET && __HAL_LPTIM_GET_IT_SOURCE(lptim_ptr, LPTIM_IT_ARRM) != RESET) {
+				__HAL_LPTIM_CLEAR_FLAG(lptim_ptr, LPTIM_FLAG_ARRM);
+				HAL_LPTIM_AutoReloadMatchCallback(lptim_ptr);
+			}
+		}
+
+		read = HAL_LPTIM_ReadCounter(lptim_ptr);
+		counter_temp = *counter32; // Save it to check again later
+
 		if (!prim) __enable_irq();
 
-		read2 = HAL_LPTIM_ReadCounter(my_lptim);
-		if (read <= read2) break;
-		else timeout--; // read2 < read case, inconsistent, do it again
+		__NOP(); // Not itself important, but explictly allow for interrupt to fire, if it can
+		__DMB();
+
+		// Check ARRM again if needed
+		if ( isInterrupt() || prim ) {
+			__disable_irq(); // So we don't trip over ourselves
+			if (__HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_ARRM) != RESET && __HAL_LPTIM_GET_IT_SOURCE(lptim_ptr, LPTIM_IT_ARRM) != RESET) {
+				__HAL_LPTIM_CLEAR_FLAG(lptim_ptr, LPTIM_FLAG_ARRM);
+				HAL_LPTIM_AutoReloadMatchCallback(lptim_ptr);
+			}
+			if (!prim) __enable_irq();
+		}
+
+		// If counter32 incremented (timer fired), assume we are inconsistent
+		if (counter_temp == *counter32) {
+			ret = (((uint64_t)(counter_temp)) << 16) + read;
+			break;
+		}
+		else timeout--;
 	}
 	if (timeout == 0) __BKPT();
 
@@ -81,17 +124,23 @@ uint32_t my_get_counter_lptim(void) {
 }
 
 // Returns tick count in 1 us ticks
-uint64_t my_get_counter_lptim_us(void) {
-	return (uint64_t)my_get_counter_lptim() * 1000000 / 32768;
+uint64_t lptim_get_counter_us(int lptim) {
+	if (lptim == LPTIM_VT)
+		return my_get_counter_lptim(&lse_counter32_vt, vt_lptim) * 1000000 / LSE_HZ;
+	else
+		return my_get_counter_lptim(&lse_counter32, my_lptim)    * 1000000 / LSE_HZ;
 }
 
 // Compare match sub-handler called from HAL_LPTIM_IRQHandler()
 void HAL_LPTIM_CompareMatchCallback(LPTIM_HandleTypeDef *hlptim) {
-	if( hlptim->Instance == my_lptim->Instance ) {
+	if( hlptim->Instance == my_lptim->Instance ) { // LPTIM2 for Debug and Task
 		__HAL_LPTIM_DISABLE_IT(hlptim, LPTIM_IT_CMPM);
 		if (!cmp_set) return; // False fire
 		cmp_set = false;
 		lptim_task_cb();
+	} else {
+		__HAL_LPTIM_DISABLE_IT(hlptim, LPTIM_IT_CMPM);
+		lptimIRQHandler(); // The VT
 	}
 }
 
@@ -99,7 +148,9 @@ void HAL_LPTIM_CompareMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 // LPTIM counter is 16-bit
 void HAL_LPTIM_AutoReloadMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 	if( hlptim->Instance == my_lptim->Instance )
-		lse_counter32 += 0x10000;
+		lse_counter32 += 1;
+	else
+		lse_counter32_vt += 1;
 }
 
 // Main LPTIM1 IRQ handler
@@ -112,44 +163,71 @@ void LPTIM2_IRQHandler(void) {
   HAL_LPTIM_IRQHandler(&hlptim2);
 }
 
-static int my_start_lptim(void) {
+// For debug LPTIM2
+static int my_start_lptim(LPTIM_HandleTypeDef *lptim) {
 	HAL_StatusTypeDef ret;
 	free_lock(&lptim_lock);
-	ret = HAL_LPTIM_Counter_Start_IT(my_lptim, 0xFFFF);
+	ret = HAL_LPTIM_Counter_Start_IT(lptim, 0xFFFF);
 	if (ret != HAL_OK) __BKPT();
 	cmp_set = false;
-	__HAL_LPTIM_COMPARE_SET(my_lptim, 0); // Only to setup CMPOK
+	__HAL_LPTIM_COMPARE_SET(lptim, 0); // Only to setup CMPOK
+	return 0;
+}
+
+// Starts LPTIM1 which is used by the VT
+static int my_start_lptim_vt(LPTIM_HandleTypeDef *lptim) {
+	HAL_StatusTypeDef ret;
+	free_lock(&lptim_lock_vt);
+	ret = HAL_LPTIM_Counter_Start_IT(lptim, 0xFFFF);
+	if (ret != HAL_OK) __BKPT();
+	__HAL_LPTIM_COMPARE_SET(lptim, 0); // Only to setup CMPOK
 	return 0;
 }
 
 static uint32_t lptim_ms_to_ticks(uint32_t ms) {
-	if (ms >= 131072) return 0xFFFFFFFF; // saturate
-	else return ms*32768/1000;
+	uint64_t ret = ms*(uint64_t)LSE_HZ/1000;
+	if (ret >= 0xFFFFFFFF) return 0xFFFFFFFF;
+	else return ret;
+}
+
+static uint32_t lptim_us_to_ticks(uint32_t us) {
+	uint64_t ret = (uint64_t)us*(uint64_t)LSE_HZ/1000000;
+	if (ret >= 0xFFFFFFFF) return 0xFFFFFFFF;
+	else return ret;
 }
 
 // Sets a compare interrupt for 'dticks' (delta ticks) in the future
 // Strictly speaking, compare is for "at least dticks" but attempt tight lower bound
 // WARNING: Will override any existing compare
-static int lptim_set_compare_dticks(uint16_t dticks) {
+int lptim_set_compare_dticks(uint16_t dticks, int lptim) {
 	uint32_t prim, lock_ret, now, now2, diff;
 	int ret = lptim_err_none;
 
-	now = HAL_LPTIM_ReadCounter(my_lptim); // Sample time at start
+	uint32_t *lock;
+	LPTIM_HandleTypeDef *lptim_ptr;
+
+	switch (lptim) {
+		case LPTIM_VT:  lock = &lptim_lock_vt; lptim_ptr = vt_lptim; break;
+		case LPTIM_DEBUG:  lock = &lptim_lock; lptim_ptr = my_lptim; break;
+		default: __BKPT(); lock = &lptim_lock; lptim_ptr = my_lptim;
+	}
+
+	now = HAL_LPTIM_ReadCounter(lptim_ptr); // Sample time at start
 
 	if (dticks <= DELTA_TICKS_GUARD) return lptim_err_short; // Too short
 
 	// take the lock
-	lock_ret = get_lock(&lptim_lock, lptim_lock_cmp);
+	lock_ret = get_lock(lock, lptim_lock_cmp);
 	if (lock_ret) return lptim_err_busy; // busy, failed to take lock
 
 	// Kill existing interrupt
-	if (cmp_set) { cmp_set = false; __HAL_LPTIM_DISABLE_IT(my_lptim, LPTIM_IT_CMPM); }
+	if (cmp_set && lptim == LPTIM_DEBUG) { cmp_set = false; __HAL_LPTIM_DISABLE_IT(lptim_ptr, LPTIM_IT_CMPM); }
 
-	while ( __HAL_LPTIM_GET_FLAG(my_lptim, LPTIM_FLAG_CMPOK) == RESET ) ; // spin for CMP register to be ready
+	while ( __HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_CMPOK) == RESET ) ; // spin for CMP register to be ready
 	prim = __get_PRIMASK(); __disable_irq(); // Disable IRQ for tight timing
 
 	 // Calculate the ticks we lost to setup, usually 0
-	now2 = HAL_LPTIM_ReadCounter(my_lptim);
+	now2 = HAL_LPTIM_ReadCounter(lptim_ptr);
 	if (now2 >= now) diff = now2 - now;
 	else diff = now2 - now + 0x10000; // Rolled
 	if (dticks - diff <= DELTA_TICKS_GUARD) {
@@ -158,59 +236,80 @@ static int lptim_set_compare_dticks(uint16_t dticks) {
 	}
 
 	// Set the new compare
-	__HAL_LPTIM_ENABLE_IT(my_lptim, LPTIM_IT_CMPM);
-	__HAL_LPTIM_COMPARE_SET(my_lptim, now+dticks+DELTA_TICKS_EXTRA);
-	cmp_set = true;
+	__HAL_LPTIM_ENABLE_IT(lptim_ptr, LPTIM_IT_CMPM);
+	__HAL_LPTIM_COMPARE_SET(lptim_ptr, now+dticks+DELTA_TICKS_EXTRA);
+	if (lptim == LPTIM_DEBUG) cmp_set = true;
 
 out:
 	if (!prim) __enable_irq(); // Only enable if they were not disabled at the start
-	free_lock(&lptim_lock);
+	free_lock(lock);
 	return ret;
 }
 
 // Sets a compare interrupt for 'ticks' value in the current or next epoch
 // WARNING: Will override any existing compare
-static int lptim_set_compare_ticks(uint16_t ticks, bool is_next_epoch) {
+int lptim_set_compare_ticks(uint16_t ticks, bool is_next_epoch, int lptim) {
 	uint32_t prim, lock_ret, now;
 	int ret = lptim_err_none;
 
-	if (ticks > 0xFFFF) return lptim_err_long; // Too long
+	uint32_t *lock;
+	LPTIM_HandleTypeDef *lptim_ptr;
+
+	switch (lptim) {
+		case LPTIM_VT:  lock = &lptim_lock_vt; lptim_ptr = vt_lptim; break;
+		case LPTIM_DEBUG:  lock = &lptim_lock; lptim_ptr = my_lptim; break;
+		default: __BKPT(); lock = &lptim_lock; lptim_ptr = my_lptim;
+	}
+
+	if (ticks > 0xFFFF) ticks = 0xFFFF;
 
 	// take the lock
-	lock_ret = get_lock(&lptim_lock, lptim_lock_cmp);
+	lock_ret = get_lock(lock, lptim_lock_cmp);
 	if (lock_ret) return lptim_err_busy; // busy, failed to take lock
 
 	// Kill existing interrupt
-	if (cmp_set) { cmp_set = false; __HAL_LPTIM_DISABLE_IT(my_lptim, LPTIM_IT_CMPM); }
+	if (cmp_set && lptim == LPTIM_DEBUG) { cmp_set = false; __HAL_LPTIM_DISABLE_IT(lptim_ptr, LPTIM_IT_CMPM); }
 
-	while ( __HAL_LPTIM_GET_FLAG(my_lptim, LPTIM_FLAG_CMPOK) == RESET ) ; // spin for CMP register to be ready
+	while ( __HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_CMPOK) == RESET ) ; // spin for CMP register to be ready
 	prim = __get_PRIMASK(); __disable_irq(); // Disable IRQ to ensure timing remains consistent
 
-	now = HAL_LPTIM_ReadCounter(my_lptim) + DELTA_TICKS_EXTRA;
+	now = HAL_LPTIM_ReadCounter(lptim_ptr) + DELTA_TICKS_EXTRA;
 	// Make sure epoch and ticks are consistent
 	if (now > ticks && !is_next_epoch) ret = lptim_err_short;
 	if (now < ticks &&  is_next_epoch) ret = lptim_err_long;
 	if (ret) goto out;
 
 	// Set the new compare
-	__HAL_LPTIM_ENABLE_IT(my_lptim, LPTIM_IT_CMPM);
-	__HAL_LPTIM_COMPARE_SET(my_lptim, ticks);
-	cmp_set = true;
+	__HAL_LPTIM_ENABLE_IT(lptim_ptr, LPTIM_IT_CMPM);
+	__HAL_LPTIM_COMPARE_SET(lptim_ptr, ticks);
+	if (lptim == LPTIM_DEBUG) cmp_set = true;
 
 out:
 	if (!prim) __enable_irq(); // Only enable if they were not disabled at the start
-	free_lock(&lptim_lock);
+	free_lock(lock);
 	return ret;
 }
 
-int set_lptim_set_delay_ms(uint32_t ms) {
+int lptim_set_delay_ticks(uint16_t ticks, int lptim) {
+	return lptim_set_compare_dticks(ticks, lptim);
+}
+
+int lptim_set_delay_ms(uint32_t ms, int lptim) {
 	uint32_t ticks = lptim_ms_to_ticks(ms);
-	return lptim_set_compare_dticks(ticks);
+	if (ticks > 0xFFFF) return lptim_err_long;
+	return lptim_set_compare_dticks(ticks, lptim);
+}
+
+int lptim_set_delay_us(uint32_t us, int lptim) {
+	uint32_t ticks = lptim_us_to_ticks(us);
+	if (ticks > 0xFFFF) return lptim_err_long;
+	return lptim_set_compare_dticks(ticks, lptim);
 }
 
 /* LPTIM 1+2 init function */
 void MX_LPTIM_Init(void) {
 	lse_counter32 = 0;
+	lse_counter32_vt = 0;
 
 	// LPTIM1
 	hlptim1.Instance = LPTIM1;
@@ -240,8 +339,11 @@ void MX_LPTIM_Init(void) {
 
 	//HAL_PWREx_ConfigD3Domain(PWR_D3_DOMAIN_RUN); // Might be needed in future
 
+	vt_lptim = &hlptim1;
 	my_lptim = &hlptim2;
-	my_start_lptim();
+
+	my_start_lptim_vt(vt_lptim);
+	my_start_lptim(my_lptim);
 }
 
 // Called from HAL_LPTIM_Init()
