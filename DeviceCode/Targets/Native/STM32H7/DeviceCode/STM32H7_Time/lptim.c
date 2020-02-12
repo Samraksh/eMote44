@@ -191,8 +191,9 @@ static uint32_t lptim_ms_to_ticks(uint32_t ms) {
 }
 
 static uint32_t lptim_us_to_ticks(uint32_t us) {
-	if (us >= 131072000) return 0xFFFFFFFF; // saturate
-	else return us*32768/1000000;
+	uint64_t ret = (uint64_t)us*(uint64_t)LSE_HZ/1000000;
+	if (ret >= 0xFFFFFFFF) return 0xFFFFFFFF;
+	else return ret;
 }
 
 // Sets a compare interrupt for 'dticks' (delta ticks) in the future
@@ -301,6 +302,7 @@ int lptim_set_delay_ms(uint32_t ms, int lptim) {
 
 int lptim_set_delay_us(uint32_t us, int lptim) {
 	uint32_t ticks = lptim_us_to_ticks(us);
+	if (ticks > 0xFFFF) return lptim_err_long;
 	return lptim_set_compare_dticks(ticks, lptim);
 }
 
