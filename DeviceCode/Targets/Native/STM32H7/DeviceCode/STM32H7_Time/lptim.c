@@ -75,8 +75,8 @@ static void free_lock(volatile uint32_t *Lock_Variable) {
 
 // Returns LSE native tick count (32-bit)
 static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {
-	uint64_t ret;
-	uint32_t read, read2, prim;
+	uint64_t ret = 0;
+	uint32_t read, prim, counter_temp;
 	unsigned timeout = 10;
 
 	while(timeout) {
@@ -94,12 +94,29 @@ static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleT
 		}
 
 		read = HAL_LPTIM_ReadCounter(lptim_ptr);
-		ret = ((uint64_t)(*counter32) << 16) + read;
+		counter_temp = *counter32; // Save it to check again later
+
 		if (!prim) __enable_irq();
 
-		read2 = HAL_LPTIM_ReadCounter(lptim_ptr);
-		if (read <= read2) break;
-		else timeout--; // read2 < read case, inconsistent, do it again
+		__NOP(); // Not itself important, but explictly allow for interrupt to fire, if it can
+		__DMB();
+
+		// Check ARRM again if needed
+		if ( isInterrupt() || prim ) {
+			__disable_irq(); // So we don't trip over ourselves
+			if (__HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_ARRM) != RESET && __HAL_LPTIM_GET_IT_SOURCE(lptim_ptr, LPTIM_IT_ARRM) != RESET) {
+				__HAL_LPTIM_CLEAR_FLAG(lptim_ptr, LPTIM_FLAG_ARRM);
+				HAL_LPTIM_AutoReloadMatchCallback(lptim_ptr);
+			}
+			if (!prim) __enable_irq();
+		}
+
+		// If counter32 incremented (timer fired), assume we are inconsistent
+		if (counter_temp == *counter32) {
+			ret = (((uint64_t)(counter_temp)) << 16) + read;
+			break;
+		}
+		else timeout--;
 	}
 	if (timeout == 0) __BKPT();
 
