@@ -23,6 +23,11 @@ static volatile bool cmp_set;
 static volatile uint32_t lse_counter32;
 static volatile uint32_t lse_counter32_vt;
 
+// Used to check timer monotonicity and return in last resort case where we cannot determine time
+// Hopefully never happens
+static volatile uint64_t lse_counter64_prev;
+static volatile uint64_t lse_counter64_vt_prev;
+
 // Locks
 static uint32_t lptim_lock;
 static uint32_t lptim_lock_vt;
@@ -77,13 +82,12 @@ static void free_lock(volatile uint32_t *Lock_Variable) {
 static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {
 	uint64_t ret = 0;
 	uint32_t read, prim, counter_temp;
-	unsigned timeout = 10;
+	unsigned timeout = 3;
 
 	while(timeout) {
 		prim = __get_PRIMASK(); __disable_irq();
-		__DMB();
 
-		// If in ISR or interrupts were disabled in call, use heroic effort
+		// If in ISR or interrupts were disabled in caller, use heroic effort
 		// Check manually if ARRM interrupt is pending, and service it if necessary
 		// Best to avoid this case if at all possible
 		if ( isInterrupt() || prim ) {
@@ -99,11 +103,10 @@ static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleT
 		if (!prim) __enable_irq();
 
 		__NOP(); // Not itself important, but explictly allow for interrupt to fire, if it can
-		__DMB();
 
 		// Check ARRM again if needed
 		if ( isInterrupt() || prim ) {
-			__disable_irq(); // So we don't trip over ourselves
+			__disable_irq(); // By assumption, should be redundant (no interrupt pre-emption), but whatever...
 			if (__HAL_LPTIM_GET_FLAG(lptim_ptr, LPTIM_FLAG_ARRM) != RESET && __HAL_LPTIM_GET_IT_SOURCE(lptim_ptr, LPTIM_IT_ARRM) != RESET) {
 				__HAL_LPTIM_CLEAR_FLAG(lptim_ptr, LPTIM_FLAG_ARRM);
 				HAL_LPTIM_AutoReloadMatchCallback(lptim_ptr);
@@ -124,11 +127,23 @@ static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleT
 }
 
 // Returns tick count in 1 us ticks
+// Do a special check to guarantee monotonic time
+// In particular, if my_get_counter_lptim() cannot get a consistent reading it will return 0
+// In this case the best we can do is return the last known good time.
+// This should be very very rare, maybe never in practice.
 uint64_t lptim_get_counter_us(int lptim) {
-	if (lptim == LPTIM_VT)
-		return my_get_counter_lptim(&lse_counter32_vt, vt_lptim) * 1000000 / LSE_HZ;
-	else
-		return my_get_counter_lptim(&lse_counter32, my_lptim)    * 1000000 / LSE_HZ;
+	uint64_t ret;
+	if (lptim == LPTIM_VT) {
+		ret = my_get_counter_lptim(&lse_counter32_vt, vt_lptim);
+		if (ret >= lse_counter64_vt_prev) lse_counter64_vt_prev = ret;
+		else ret = lse_counter64_vt_prev;
+	}
+	else {
+		ret = my_get_counter_lptim(&lse_counter32, my_lptim);
+		if (ret >= lse_counter64_prev)    lse_counter64_prev = ret;
+		else ret = lse_counter64_prev;
+	}
+	return ret * 1000000 / LSE_HZ;
 }
 
 // Compare match sub-handler called from HAL_LPTIM_IRQHandler()
@@ -151,6 +166,7 @@ void HAL_LPTIM_AutoReloadMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 		lse_counter32 += 1;
 	else
 		lse_counter32_vt += 1;
+	__DMB();
 }
 
 // Main LPTIM1 IRQ handler
