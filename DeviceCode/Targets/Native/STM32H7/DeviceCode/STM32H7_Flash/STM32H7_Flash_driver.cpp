@@ -14,6 +14,17 @@
 #include "STM32H7_Flash.h"
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
+#include <stm32h7xx_hal_flash_ex.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+	 extern HAL_StatusTypeDef HAL_FLASHEx_Erase(FLASH_EraseInitTypeDef *pEraseInit, uint32_t *SectorError);
+	 extern HAL_StatusTypeDef HAL_FLASH_Program(uint32_t TypeProgram, uint32_t FlashAddress, uint32_t DataAddress);
+#ifdef __cplusplus
+}
+#endif
+
 
 #ifndef FLASH
 #define FLASH               ((FLASH_TypeDef *) FLASH_R_BASE)
@@ -33,6 +44,62 @@ typedef UINT32 CHIP_WORD;
 
 static const UINT32 STM32H7_FLASH_KEY1 = 0x45670123;
 static const UINT32 STM32H7_FLASH_KEY2 = 0xCDEF89AB;
+
+/**
+  * @brief  Gets the page of a given address
+  * @param  Addr: Address of the FLASH Memory
+  * @retval The page of a given address
+  */
+static inline uint32_t GetPage(uint32_t Addr)
+{
+  if IS_FLASH_PROGRAM_ADDRESS_BANK1(Addr)
+  {
+    /* Bank 1 */
+    return (Addr - FLASH_BANK1_BASE) / FLASH_SECTOR_SIZE;
+  }
+  else
+  {
+    /* Bank 2 */
+    return (Addr - FLASH_BANK2_BASE) / FLASH_SECTOR_SIZE;
+  }
+}
+
+/**
+  * @brief  Gets the bank of a given address
+  * @param  Addr: Address of the FLASH Memory
+  * @retval The bank of a given address
+  */
+static inline uint32_t GetBank(uint32_t Addr)
+{
+  uint32_t bank = 0;
+
+  if (READ_BIT(SYSCFG->UR0, SYSCFG_UR0_BKS) == 0)
+  {
+  	/* No Bank swap */
+    if IS_FLASH_PROGRAM_ADDRESS_BANK1(Addr)
+    {
+      bank = FLASH_BANK_1;
+    }
+    else
+    {
+      bank = FLASH_BANK_2;
+    }
+  }
+  else
+  {
+  	/* Bank swap */
+    if IS_FLASH_PROGRAM_ADDRESS_BANK1(Addr)
+    {
+      bank = FLASH_BANK_2;
+    }
+    else
+    {
+      bank = FLASH_BANK_1;
+    }
+  }
+
+  return bank;
+}
 
 
 //--//
@@ -184,7 +251,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Write(void* con
 	while(ChipAddress < EndAddress) {
         if (*ChipAddress != *pBuf) {
             // write data
-            //*ChipAddress = *pBuf;
+            // *ChipAddress = *pBuf;
 			*ChipAddress = 0x01020304;
 			__ISB();
             __DSB();
@@ -274,31 +341,59 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::IsBlockErased( 
 // Remarks:
 //    Erases the block containing the sector address specified.
 //
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::EraseBlock( void* context, ByteAddress Sector )
+BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::EraseBlock( void* context, ByteAddress address )
 {
-    NATIVE_PROFILE_HAL_DRIVERS_FLASH();
+  	FLASH_EraseInitTypeDef EraseInitStruct;
+	uint32_t EraseError = 0;
 
-    UINT32 num = (Sector - FLASH_BASE) >> 15;
-    if (num >= 4) num = (num >> 3) + 4;
+	// Get the 1st page to erase
+  	const uint32_t StartSector = GetPage(address);
+  	// Get the number of pages to erase from 1st page
+	uint32_t bytesPerBlock;
+	if (address > FLASH_BASE_ADDRESS3){
+		bytesPerBlock = FLASH_BYTES_PER_BLOCK3;
+	} else if (address > FLASH_BASE_ADDRESS2){
+		bytesPerBlock = FLASH_BYTES_PER_BLOCK2;
+	} else {
+		// assume block 1
+		bytesPerBlock = FLASH_BYTES_PER_BLOCK1;
+	}
+  	const uint32_t NbOfSectors = GetPage(address + FLASH_BYTES_PER_BLOCK3) - StartSector + 1;
+  	// Get the bank 
+  	const uint32_t BankNumber = GetBank(address);
 
-    if (FLASH->CR1 & FLASH_CR_LOCK) { // unlock
-        FLASH->KEYR1 = STM32H7_FLASH_KEY1;
-        FLASH->KEYR1 = STM32H7_FLASH_KEY2;
-    }
+	// Clear pending flags (if any)
+  	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_BANK1);
+  	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_BANK2);
 
-    // enable erasing
-    UINT32 cr = num * FLASH_CR_SNB_0 | FLASH_CR_SER | FLASH_CR_PSIZE_BITS;
-    FLASH->CR1 = cr;
-    // start erase
-    cr |= FLASH_CR_START;
-    FLASH->CR1 = cr;
-    // wait for completion
-    while (FLASH->SR1 & FLASH_SR_BSY);
+	// Unlock the Flash to enable the flash control register access
+	HAL_FLASH_Unlock();
 
-    // reset & lock the controller
-    FLASH->CR1 = FLASH_CR_LOCK;
+	// Clear all error flags
+  if(BankNumber == FLASH_BANK_1)
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS_BANK1);
+  else
+    __HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_ALL_ERRORS_BANK2);
 
-    return TRUE;
+  // Fill EraseInit structure
+  EraseInitStruct.TypeErase     = FLASH_TYPEERASE_SECTORS;
+  EraseInitStruct.VoltageRange  = FLASH_VOLTAGE_RANGE_3;
+  EraseInitStruct.Banks         = BankNumber;
+  EraseInitStruct.Sector        = StartSector;
+  EraseInitStruct.NbSectors     = NbOfSectors;
+
+  /* Note: If an erase operation in Flash memory also concerns data in the data or instruction cache,
+     you have to make sure that these data are rewritten before they are accessed during code
+     execution. If this cannot be done safely, it is recommended to flush the caches by setting the
+     DCRST and ICRST bits in the FLASH_CR register. */
+  if (HAL_FLASHEx_Erase(&EraseInitStruct, &EraseError) != HAL_OK)
+  {
+    return HAL_FLASH_GetError();
+  }
+
+  HAL_FLASH_Lock();
+
+  return TRUE;
 }
 
 

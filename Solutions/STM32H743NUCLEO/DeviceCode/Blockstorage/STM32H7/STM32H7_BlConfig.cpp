@@ -13,43 +13,7 @@
 
 #include <tinyhal.h>
 
-#define FLASH_MANUFACTURER_CODE              0x0000  // not used
-#define FLASH_DEVICE_CODE                    0x0000  // not used
-#define FLASH_BASE_ADDRESS1                  0x08000000 // 1x 128K
-#define FLASH_BLOCK_COUNT1                   1
-#define FLASH_BYTES_PER_BLOCK1               0x20000
-#define FLASH_BASE_ADDRESS2                  0x08020000 // 1x 128K
-#define FLASH_BLOCK_COUNT2                   1
-#define FLASH_BYTES_PER_BLOCK2               0x20000
-#define FLASH_BASE_ADDRESS3                  0x08040000 // 6x 128K
-#define FLASH_BLOCK_COUNT3                   6
-#define FLASH_BYTES_PER_BLOCK3               0x20000
 
-#define FLASH_BYTES_PER_SECTOR               2
-#define FLASH_BLOCK_ERASE_TYPICAL_TIME_USEC  1000000 // not used
-#define FLASH_SECTOR_WRITE_TYPICAL_TIME_USEC 10      // not used
-#define FLASH_BLOCK_ERASE_MAX_TIME_USEC      4000000 // not used
-#define FLASH_SECTOR_WRITE_MAX_TIME_USEC     100     // not used
-#define FLASH_BLOCK_ERASE_ACTUAL_TIME_USEC   10000   // not used
-
-// EBIU Information
-
-#define STM32H7__CHIP_SELECT       0
-#define STM32H7__WAIT_STATES       5 // not used
-#define STM32H7__RELEASE_COUNTS    0
-#define STM32H7__BIT_WIDTH         16
-#define STM32H7__BASE_ADDRESS      0x08000000
-#define STM32H7__SIZE_IN_BYTES     0x00100000
-#define STM32H7__WP_GPIO_PIN       GPIO_PIN_NONE
-#define STM32H7__WP_ACTIVE         FALSE
-
-// BlockDeviceInformation
-
-#define STM32H7__IS_REMOVABLE      FALSE
-#define STM32H7__SUPPORTS_XIP      TRUE
-#define STM32H7__WRITE_PROTECTED   FALSE
-#define STM32H7__SUPP_COPY_BACK    FALSE
-#define STM32H7__NUM_REGIONS       3
 
 const BlockRange g_STM32H7_BlockRange1[] =
 {
