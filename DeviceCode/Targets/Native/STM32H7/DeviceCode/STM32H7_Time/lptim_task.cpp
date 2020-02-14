@@ -12,11 +12,9 @@ static volatile unsigned task_list_size = 0;
 
 
 bool task_is_linked(lptim_task_t *x) {
-	lptim_task_t *HEAD = task_HEAD;
-	for(unsigned i=0; i<task_list_size; i++) {
-		if (HEAD == NULL) __BKPT(); // Shouldn't happen
+	lptim_task_t *HEAD;
+	for(HEAD = task_HEAD; HEAD != NULL; HEAD = HEAD->next) {
 		if (x == HEAD) return true;
-		HEAD = HEAD->next;
 	}
 	return false;
 }
@@ -30,16 +28,35 @@ static void add_lptim_task_front(lptim_task_t *x) {
 	task_list_size++;
 }
 
-// TODO: SIMPLE CASE ONLY
-static void delete_lptim_task(lptim_task_t *x) {
-	// Root check
-	task_list_size--;
-	if( x == task_HEAD && x->next == NULL ) {
-		task_HEAD = NULL; return;
+
+static void unlink_lptim_task(lptim_task_t *x) {
+	lptim_task_t *t = task_HEAD;
+	lptim_task_t *p = NULL;
+
+	if (x == NULL || t == NULL)  { __BKPT(); goto out_fail; }
+
+	// Find element
+	while (t != x && t != NULL) {
+		p = t;
+		t = t->next;
 	}
+
+	if (t == NULL) { __BKPT(); goto out_fail; } // not found in list
+
+	// Snip
+	if (p == NULL) task_HEAD = t->next; // New HEAD node
+	else p->next = t->next;
+
+	x->next = NULL; // Explicit clear to be safe
+
+	if (x == task_RUNNING) task_RUNNING = NULL;
+	task_list_size--;
+out_fail:
+	return;
 }
 
 // TODO: ONLY DOES delay_ms FOR NOW
+// BIG TODO: DOES NOT ACCOUNT FOR TIME ELAPSED
 static lptim_task_t * get_next_task() {
 	lptim_task_t *min = task_HEAD;
 	lptim_task_t *t;
@@ -74,24 +91,20 @@ int lptim_add_oneshot(lptim_task_t *x) {
 
 // ISR
 void lptim_task_cb() {
+	lptim_task_t *task = task_RUNNING;
 	if (task_RUNNING == NULL) return; // Shouldn't happen
-	delete_lptim_task(task_RUNNING);  // Do this early in case cb re-queues
+	unlink_lptim_task(task_RUNNING);  // Do this early in case cb re-queues
 
 	// run the ISR task
-	if (task_RUNNING->isr_cb != NULL) {
-		lptim_cmp_cb_fn task;
-		void *data;
-
-		task = *(task_RUNNING->isr_cb);
-		data = task_RUNNING->data;
-		task(data);
+	if (task->isr_cb != NULL) {
+		lptim_cmp_cb_fn cb;
+		cb = *(task->isr_cb);
+		cb(task->data);
 	}
 
 	// Queue continuation
-	if (task_RUNNING->contin != NULL) {
-		HAL_CONTINUATION *contin = (HAL_CONTINUATION *)task_RUNNING->contin;
+	if (task->contin != NULL) {
+		HAL_CONTINUATION *contin = (HAL_CONTINUATION *)task->contin;
 		contin->Enqueue();
 	}
-
-	task_RUNNING = NULL;
 }
