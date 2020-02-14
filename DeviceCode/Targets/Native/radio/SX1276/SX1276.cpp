@@ -1819,7 +1819,7 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 break;
             }
             break;
-/*		case RF_CAD: 
+		case RF_CAD: 
 // Once the calculation is finished the modrem generated the CadDone interrupt.
 // If the correlation was successful, CadDetected is generated simultaneously
 			if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
@@ -1832,7 +1832,7 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 					RadioEvents->CadDone( true );
 				}
 			}
-			break;*/
+			break;
 		default:
             break;
     }

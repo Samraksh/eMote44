@@ -14,6 +14,7 @@
 #include <tinyhal.h>
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
+#include "STM32H7_lptim_interface.h"
 
 
 #if STM32H7_32B_TIMER == 2
@@ -70,66 +71,16 @@
 
 #define TIM_CLK_HZ (SYSTEM_APB1_CLOCK_HZ * 2)
 
-static void x64toa3(unsigned long long val, char *buf, unsigned radix, int is_neg)
-{
-  char *p;
-  char *firstdig;
-  char temp;
-  unsigned digval;
-  p = buf; *p=0,p[1]='\0',p;
-  if (val==0||radix<2||radix>32||radix&1) return;
-  if ( is_neg )  *p++ = '-', val = (unsigned long long)(-(long long)val);
-  firstdig = p;
-  if(radix--==10)
-    do { // optimized for fixed division
-    digval = (unsigned) (val % 10);
-    val /= 10;
-    *p++ = (char) (digval + '0');
-    } while (val > 0);
-  else do { temp=radix;
-    digval = (unsigned) (val & radix );
-    while(temp) val>>=1,temp>>=1;
-    *p++ = digval>9?(char)(digval + 'W'):(char) (digval + '0');
-  } while (val>0);
-  *p-- = '\0';
-
-  do { // reverse string
-    temp = *p;
-    *p = *firstdig;
-    *firstdig = temp;
-    --p;
-    ++firstdig;
-  } while (firstdig < p);
-}
-
-//----------------------------------------------------------------------------
-char* _i64toa3(long long val, char *buf, int radix)
-{
-  x64toa3((unsigned long long)val, buf, radix, (radix == 10 && val < 0));
-  return buf;
-}
-
-//----------------------------------------------------------------------------
-char* _ui64toa3(unsigned long long val, char *buf, int radix)
-{
-  x64toa3(val, buf, radix, 0);
-  return buf;
-}
-
-char* l2s3(long long v,int sign) {
-	char r,s;
-	static char buff[33];
-	r=sign>>8;
-	s=sign;
-	if(!r) r=10;
-	if(r!=10||s&&v>=0) s=0;
-	if(r<8) r=0;
-	x64toa3(v,buff,r,s);
-	return buff;
-}
+#define GPIO_0 _P(B,12)
+#define GPIO_1 _P(B,13)
 
 TIM_HandleTypeDef    TimHandle2_SystemTime;
 TIM_HandleTypeDef    TimHandle5;
+
+HAL_CALLBACK_FPN lptimCallBackISR;
+UINT32 lptimCallBackISR_Param;
+
+static HAL_CONTINUATION LPTIM_interrupt_continuation;
 
 HAL_CALLBACK_FPN tim5CallBackISR;
 UINT32 callBackISR_Param;
@@ -141,6 +92,10 @@ const UINT64 TIMER_5_MAX_ALLOWABLE_WAIT = 0xFFFEFFFF;
 
 static bool ignoreFirstInterrupt = FALSE;
 static bool timer5running = FALSE;
+
+HAL_CALLBACK_FPN earlyRtcCallBackISR;
+UINT32 earlyRtcCallBackISR_Param;
+static HAL_CONTINUATION RTC_interrupt_continuation;
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -178,6 +133,14 @@ void TIM2_IRQHandler(void)
 }
 } // extern "C"
 
+void queueLptimCallback(void){
+	LPTIM_interrupt_continuation.Enqueue();
+}
+
+void lptimSetCompareTriggered(void *arg){
+	lptimCallBackISR(&lptimCallBackISR_Param);
+}
+
 UINT32 CPU_SystemClock()
 {
     return SYSTEM_CLOCK_HZ;
@@ -199,6 +162,10 @@ UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 	else if(Timer == RTC_32BIT)
 	{
 		maxTicks = 0xFFFFFFFF;
+	}
+	else if(Timer == LPTIM)
+	{
+		maxTicks = 0x1FFFF;
 	}
 	return maxTicks;
 }
@@ -377,14 +344,19 @@ UINT64 CPU_Timer_CurrentTicks(UINT16 Timer)
 {
 	static UINT64 prevRead = 0;
 	UINT64 retVal = 0;
-	if (Timer == ADVTIMER_32BIT){
+	/*if (Timer == ADVTIMER_32BIT){
 		retVal = (UINT64)(TimHandle5.Instance->CNT);
 	} 
-	else if (Timer == RTC_32BIT) {
+	else */if (Timer == RTC_32BIT) {
 		retVal = (UINT64) CPU_RTC_GetTimerValue();
+	} else
+	if (Timer == LPTIM){
+		// LPTIM time is in microseconds (although it is based off a 32kH physical clock)
+		return requestLptimCounter();
 	}
 	else {
 		GLOBAL_LOCK(irq);
+		// ADVTIMER_32BIT
 		// SYSTEM_TIME
 		volatile UINT64 current_systemTime =  m_systemTime;
 		volatile UINT64 currentValue = (UINT64)(TimHandle2_SystemTime.Instance->CNT);
@@ -465,24 +437,37 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 	} 
 	else if(Timer == RTC_32BIT)
 	{
-		hal_printf("\r\n COMPARE = %s\r\n", l2s3(compareValue/50,0));
-		hal_printf("\r\n NOW = %s\r\n", l2s3(now/50,0));
-		hal_printf("\r\n TOTAL COM = %s\r\n", l2s3((compareValue - now)/50,0));
-
-
-		//volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
-		uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
-		if (compareValue < (now + minTimeout)){
-			compareValue = (now + minTimeout);
+		volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
+		//uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
+		uint32_t minTimeout = 500;
+		if (compareValue < nowRTC ){
+			compareValue = nowRTC + 1;
 		}  
 		
-		UINT64 totalCompareTime = compareValue - now;
-		if ( totalCompareTime > CPU_Timer_GetMaxTicks(RTC_32BIT) ){ 
-			totalCompareTime = CPU_Timer_GetMaxTicks(RTC_32BIT); 
+		UINT64 totalCompareTime = compareValue - nowRTC;
+		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, RTC_32BIT);		
+		if (timerRtc <  minTimeout){
+			//timerRtc = minTimeout;
+			RTC_interrupt_continuation.Enqueue();
+		} else {
+			CPU_RTC_SetAlarm(timerRtc);
 		}
-		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME);		
-		CPU_RTC_SetAlarm(timerRtc);
+	}
+	else if (Timer == LPTIM) 
+	{
+		// LPTIM time is in microseconds already (although it is based off a 32kH physical clock)
+		volatile UINT64 origCompareValue = compareValue;
+		volatile UINT64 nowLPTIM = CPU_Timer_CurrentTicks(LPTIM);
+
+		UINT64 minLptimTimeout = 500;
+		if (compareValue < (nowLPTIM + minLptimTimeout)) {
+			queueLptimCallback();
+		} else {
+
+			volatile UINT64 totalCompareTime = compareValue - nowLPTIM;								
 		
+			callLptimSetCompareMicroseconds(totalCompareTime);
+		}
 	}
 }
 //--//
@@ -567,8 +552,20 @@ BOOL CPU_Timer_Initialize_System_time(){
 		Error_Handler();
 	}
 
+//#ifdef USE_LPTIM1
+//	MX_LPTIM1_Init();
+//#endif //#ifdef USE_LPTIM1
+
 	return TRUE;
 }
+
+void Early_RTC_Irq_Handler(void *arg){
+			//CPU_GPIO_SetPinState(GPIO_1, TRUE);
+			//CPU_GPIO_SetPinState(GPIO_1, FALSE);
+	earlyRtcCallBackISR(&earlyRtcCallBackISR_Param);
+	return;
+}
+
 
 BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CALLBACK_FPN ISR)
 {
@@ -600,6 +597,21 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 		callBackISR_Param = RTC_32BIT;
 		//hal_printf("init rtc 32bit\r\n"); // serial console is not up yet
 		CPU_RTC_Init(ISR, callBackISR_Param);
+
+		earlyRtcCallBackISR = ISR;
+		earlyRtcCallBackISR_Param = callBackISR_Param;
+
+		// this will handle firing the RTC callback if timeout is too short
+		RTC_interrupt_continuation.InitializeCallback(Early_RTC_Irq_Handler, NULL);
+	} else if (Timer == LPTIM) 
+	{
+		lptimCallBackISR = ISR;
+		lptimCallBackISR_Param = LPTIM;
+
+		// this will handle firing the LPTIM callback if timeout is too short
+		LPTIM_interrupt_continuation.InitializeCallback(lptimSetCompareTriggered, NULL);
+
+		LptimInit();
 	}
 
 	

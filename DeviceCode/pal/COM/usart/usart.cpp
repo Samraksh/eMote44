@@ -241,7 +241,13 @@ BOOL USART_Driver::Initialize( int ComPortNum, int BaudRate, int Parity, int Dat
             State.TxQueue.Initialize( &TxBuffer_Com[ComPortNum * TX_USART_BUFFER_SIZE], TX_USART_BUFFER_SIZE);
             State.RxQueue.Initialize( &RxBuffer_Com[ComPortNum * RX_USART_BUFFER_SIZE], RX_USART_BUFFER_SIZE );
 
-            return CPU_USART_Initialize( ComPortNum, BaudRate, Parity, DataBits, StopBits, FlowValue );
+			if (ComPortNum == USB_SERIAL_PORT) {
+				// this USB device is used only as a serial interface
+				CPU_USB_Initialize(0);
+				return TRUE;
+			} else {
+	            return CPU_USART_Initialize( ComPortNum, BaudRate, Parity, DataBits, StopBits, FlowValue );
+			}
         }
 
         return TRUE;
@@ -269,7 +275,13 @@ BOOL USART_Driver::Uninitialize( int ComPortNum )
 
             CLEAR_USART_FLAG(State,HAL_USART_STATE::c_INITIALIZED);
 
-            return CPU_USART_Uninitialize( ComPortNum );
+			if (ComPortNum == USB_SERIAL_PORT) {
+				// this USB device is used only as a serial interface
+				CPU_USB_Uninitialize(0);
+				return TRUE;
+			} else {
+	            return CPU_USART_Uninitialize( ComPortNum );
+			}
         }
 
         return TRUE;
@@ -289,6 +301,11 @@ int USART_Driver::Write( int ComPortNum, const char* Data, size_t size )
     if(NULL == Data                                        ) {ASSERT(FALSE); return -1;}
 
     HAL_USART_STATE& State = Hal_Usart_State[ComPortNum];
+
+	if (ComPortNum == USB_SERIAL_PORT){
+		CPU_USB_write( Data, size );
+		return size;
+	}
 
     if (IS_POWERSAVE_ENABLED(State) || (!IS_USART_INITIALIZED(State)))return -1;
 

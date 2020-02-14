@@ -279,9 +279,9 @@ BOOL OMACTest::Initialize(){
 	}
 
 	VirtualTimerReturnMessage rm;
-	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSLocalClockMonitorTimerHandler, OMACClockSpecifier);
+	rm = VirtTimer_SetTimer(LocalClockMonitor_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSLocalClockMonitorTimerHandler);//, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
-	rm = VirtTimer_SetTimer(VIRT_CONT_TEST_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSNeighborClockMonitorTimerHandler, OMACClockSpecifier);
+	rm = VirtTimer_SetTimer(VIRT_CONT_TEST_TIMER1, 0, NEIGHBORCLOCKMONITORPERIOD_MICRO, USEONESHOTTIMER, FALSE, CMaxTSNeighborClockMonitorTimerHandler);//, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
 
 
@@ -331,7 +331,7 @@ void OMACTest::SendPacketToNeighbor(){
 	//	if( (sent_packet_count % 20 < 10 && sequence_number % 10 == 0)
 	//	||  (sent_packet_count % 20 >= 10 && sequence_number % 300 == 0)
 	//	)
-		if (sequence_number % 60 == 0)
+		if (sequence_number % 30 == 0)
 		{
 			//Choose neighbor to send
 			hal_printf("\r\n Choosing Neighbor \r\n");
@@ -356,12 +356,14 @@ void OMACTest::SendPacketToNeighbor(){
 				if(Nbr2beSent){
 					if(g_OMAC.Send(Nbr2beSent, TYPE31, &sent_packet_count, sizeof(UINT64))){
 						//hal_printf("\r\n PACKET ACCEPTED Dest = %u PacketID = %llu!! \r\n", Nbr2beSent, sent_packet_count);
-						hal_printf("\r\n PACKET ACCEPTED Dest = %s PacketID = %s!! \r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						//hal_printf("\r\n PACKET ACCEPTED Dest = %s PacketID = %s!! \r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						hal_printf("\r\n PACKET ACCEPTED!!\r\n");
 						++sent_packet_count;
 					}
 					else{
 						//hal_printf("\r\n PACKET REJECTED!! Dest = %u PacketID = %llu!!\r\n", Nbr2beSent, sent_packet_count);
-						hal_printf("\r\n PACKET REJECTED!! Dest = %s PacketID = %s!!\r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						//hal_printf("\r\n PACKET REJECTED!! Dest = %s PacketID = %s!!\r\n", l2s(Nbr2beSent,0), l2s(sent_packet_count,0));
+						hal_printf("\r\n PACKET REJECTED!!\r\n");
 					}
 				}
 		}

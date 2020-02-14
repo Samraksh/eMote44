@@ -106,6 +106,10 @@ int hal_fprintf( COM_HANDLE stream, const char* format, ... )
     return chars;
 }
 
+#ifndef PRINTF_MAX_RETRIES
+#define PRINTF_MAX_RETRIES 0
+#endif
+
 int hal_vfprintf( COM_HANDLE stream, const char* format, va_list arg )
 {
     NATIVE_PROFILE_PAL_CRT();
@@ -117,7 +121,7 @@ int hal_vfprintf( COM_HANDLE stream, const char* format, va_list arg )
     switch(ExtractTransport(stream))
     {
     default:
-        DebuggerPort_Write( stream, buffer, chars, 0 ); // skip null terminator
+        DebuggerPort_Write( stream, buffer, chars, PRINTF_MAX_RETRIES ); // skip null terminator
         break;
 
 #if !defined(BUILD_RTM)

@@ -46,27 +46,15 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
   <ItemGroup>
     <HFiles Include="..\stm32h7xx.h" />
-	<Compile Include="usbd_ioreq.cpp"/>
-	<Compile Include="usbd_ctlreq.cpp"/>
-	<Compile Include="usbd_cdc.cpp"/>
-	<Compile Include="usbd_cdc_if.cpp"/>
-	<Compile Include="usbd_core.cpp"/>  
-	<Compile Include="usbd_conf.c"/> 
-    <Compile Include="usbd_desc.cpp"/>
     <Compile Include="STM32H7_USB_functions.cpp"/>
     <HFiles  Include="STM32H7_usb_functions.h" />
 	<Compile Include="usb_device.c"/>
     <HFiles  Include="usb_device.h" />
 	<Compile Include="usbd_cdc.c"/>
     <HFiles  Include="usbd_cdc.h" />
-	<Compile Include="usbd_cdc_if.c"/>
     <HFiles  Include="usbd_cdc_if.h" />
-	<Compile Include="usbd_cdc_if_template.c"/>
-    <HFiles  Include="usbd_cdc_if_template.h" />
 	<Compile Include="usbd_conf.c"/>
     <HFiles  Include="usbd_conf.h" />
-	<Compile Include="usbd_conf_template.c"/>
-    <HFiles  Include="usbd_conf_template.h" />
 	<Compile Include="usbd_core.c"/>
     <HFiles  Include="usbd_core.h" />
 	<Compile Include="usbd_ctlreq.c"/>
@@ -74,8 +62,6 @@
     <HFiles  Include="usbd_def.h" />
 	<Compile Include="usbd_desc.c"/>
     <HFiles  Include="usbd_desc.h" />
-	<Compile Include="usbd_desc_template.c"/>
-    <HFiles  Include="usbd_desc_template.h" />
 	<Compile Include="usbd_ioreq.c"/>
     <HFiles  Include="usbd_ioreq.h" />
   </ItemGroup>

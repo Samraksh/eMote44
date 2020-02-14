@@ -2,6 +2,7 @@
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#include <tinyhal.h>
 #include "USB.h"
 
 #define USB_FLUSH_RETRY_COUNT 1000
@@ -100,7 +101,9 @@ BOOL USB_CloseStream( int UsbStream )
 
 int USB_Write( int UsbStream, const char* Data, size_t size )
 {
-    return USB_Driver::Write( UsbStream, Data, size );
+	return CPU_USB_write(Data, size);
+	// we do not use most features of the USB and just use it like a serial port
+    //return USB_Driver::Write( UsbStream, Data, size );
 }
 
 int USB_Read( int UsbStream, char* Data, size_t size )

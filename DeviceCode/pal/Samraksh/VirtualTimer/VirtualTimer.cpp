@@ -23,10 +23,6 @@
 // ============
 // Assumes that the HAL core hardware timer is running at the same configuration  as the system timer because it uses the CPU_MicrosecondsToTicks
 // interface
-//
-// Time periods coming into these functions are based on specific time lenghts (i.e. 5 ms). 
-// The virtual timer (and its associated m_ticks_when_match variable) are all based on the *system ticks* (a unsigned 64-bit word) to coordinate various alarms and reduce problems due to 32-bit timer rollovers
-// Once a "setCompare" is made the alarm to be set (i.e. 25.2 ms from now) will set a compare value based on an individual clocks own ticks (which often is different than the system clock ticks)
 void VirtualTimerCallback(void *arg);
 
 extern const UINT8 g_CountOfHardwareTimers;
@@ -34,6 +30,9 @@ extern const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers];
 extern VirtualTimer gVirtualTimerObject;
 static const UINT64 cTimerMax64Value = 0x0000FFFFFFFFFFFFull; //TODO: use better name.
 static const UINT32 cTimerMax32Value = 0xFFFFFFFFul;          //TODO: use better name or use UINT32_MAX.
+#define TIMER_COMPENSATION 7000
+
+#define NO_CURRENT_TIMER 999
 
 inline BOOL VirtualTimerMapper::VirtTimerIndexMapper(UINT8 timer_id, UINT8 &VTimerIndex)
 {
@@ -128,8 +127,8 @@ BOOL VirtualTimerMapper::SetTimer(UINT8 timer_id, UINT32 start_delay, UINT32 per
 	
 	DEBUG_VT_ASSERT_ANAL(g_VirtualTimerInfo[VTimerIndex].get_m_is_running() == FALSE);
 
-	ticksPeriod     = CPU_MicrosecondsToTicks(period,      SYSTEM_TIME);
-	ticksStartDelay = CPU_MicrosecondsToTicks(start_delay, SYSTEM_TIME);
+	ticksPeriod     = CPU_MicrosecondsToTicks(period,      VTM_hardwareTimerId);
+	ticksStartDelay = CPU_MicrosecondsToTicks(start_delay, VTM_hardwareTimerId);
 
 	g_VirtualTimerInfo[VTimerIndex].set_m_callBack(callback);
 	g_VirtualTimerInfo[VTimerIndex].set_m_period(ticksPeriod);
@@ -138,7 +137,7 @@ BOOL VirtualTimerMapper::SetTimer(UINT8 timer_id, UINT32 start_delay, UINT32 per
 	g_VirtualTimerInfo[VTimerIndex].set_m_reserved(_isreserved);
 	g_VirtualTimerInfo[VTimerIndex].set_m_start_delay(ticksStartDelay);
 	g_VirtualTimerInfo[VTimerIndex].set_m_timer_id(timer_id);
-	g_VirtualTimerInfo[VTimerIndex].set_m_ticks_when_match_(CPU_Timer_CurrentTicks(SYSTEM_TIME) + ticksPeriod + ticksStartDelay);
+	g_VirtualTimerInfo[VTimerIndex].set_m_ticks_when_match_(VirtTimer_GetTicks(timer_id)  + g_VirtualTimerInfo[VTimerIndex].get_m_period() + g_VirtualTimerInfo[VTimerIndex].get_m_start_delay());
 
 	return TRUE;
 }
@@ -165,8 +164,8 @@ BOOL VirtualTimerMapper::ChangeTimer(UINT8 timer_id, UINT32 start_delay, UINT32 
 		return FALSE;
 	}
 
-	ticksPeriod = CPU_MicrosecondsToTicks(period, SYSTEM_TIME);
-	ticksStartDelay = CPU_MicrosecondsToTicks(start_delay, SYSTEM_TIME);
+	ticksPeriod = CPU_MicrosecondsToTicks(period, VTM_hardwareTimerId);
+	ticksStartDelay = CPU_MicrosecondsToTicks(start_delay, VTM_hardwareTimerId);
 
 	g_VirtualTimerInfo[VTimerIndex].set_m_start_delay(ticksStartDelay);
 	g_VirtualTimerInfo[VTimerIndex].set_m_period(ticksPeriod);
@@ -201,13 +200,21 @@ BOOL VirtualTimerMapper::StartTimer(UINT8 timer_id)
 	}
 
 	// check to see if we are already running
-	if (g_VirtualTimerInfo[VTimerIndex].get_m_is_running() == TRUE) {
+	/*if (g_VirtualTimerInfo[VTimerIndex].get_m_is_running() == TRUE) {
 		DEBUG_VT_ASSERT_ANAL(0);
+#ifdef _DEBUG
+		// Double check that the timer isn't in the past and we are ignoring it at our peril.
+		// Add a little buffer (64 ticks) in case the interrupt just recently went pending (valid).
+		// This is mostly for the sleep clock. Rollover will break this check.
+		UINT32 cnt = VirtTimer_GetCounter(timer_id);
+		UINT32 mth = g_VirtualTimerInfo[VTimerIndex].get_m_ticks_when_match_() & 0xFFFFFFFF;
+		if ( mth+64 < cnt ) SOFT_BREAKPOINT();
+#endif
 		return TRUE;
-	}
+	}*/
 
 	// Initializing timer
-	g_VirtualTimerInfo[VTimerIndex].set_m_ticks_when_match_(CPU_Timer_CurrentTicks(SYSTEM_TIME)  + g_VirtualTimerInfo[VTimerIndex].get_m_period() + g_VirtualTimerInfo[VTimerIndex].get_m_start_delay());
+	g_VirtualTimerInfo[VTimerIndex].set_m_ticks_when_match_(VirtTimer_GetTicks(timer_id)  + g_VirtualTimerInfo[VTimerIndex].get_m_period() + g_VirtualTimerInfo[VTimerIndex].get_m_start_delay());
 
 	// if we have a timer set but marked as not running and then we change it and start it, the old set compare could fire, see that it is running from the following statement and then execute the callback.
 	// So we lock that out here.
@@ -294,6 +301,10 @@ void VirtualTimerMapper::SetAlarmForTheNextTimer(){
 		for(i = 0; i < m_current_timer_cnt_; i++) {
 			if(g_VirtualTimerInfo[i].get_m_is_running() == TRUE)
 			{
+				/*if (g_VirtualTimerInfo[i].get_m_timer_id() == RTC_32BIT){
+					// attempting compensation for RTC timer
+					g_VirtualTimerInfo[i].set_m_ticks_when_match_(g_VirtualTimerInfo[i].get_m_ticks_when_match_() + TIMER_COMPENSATION);
+				}*/
 				if(g_VirtualTimerInfo[i].get_m_ticks_when_match_() <= smallestTicks)
 				{
 					smallestTicks = g_VirtualTimerInfo[i].get_m_ticks_when_match_();
@@ -317,7 +328,7 @@ void VirtualTimerMapper::SetAlarmForTheNextTimer(){
 			m_current_timer_running_ = nextTimer;
 		}
 		else{
-			m_current_timer_running_ = 99; //g_VirtualTimerPerHardwareTimer;
+			m_current_timer_running_ = NO_CURRENT_TIMER; //g_VirtualTimerPerHardwareTimer;
 		}
 	}
 }
@@ -386,6 +397,13 @@ bool queueVTCallback(VirtualTimerInfo* runningTimer){
 	return false;
 }
 
+bool VTCallbackQueueHasItem(void) {
+	for (int i=0; i<VT_CALLBACK_CONTINUATION_MAX; i++) {
+		if ( vtCallbackContinuationArray[i].IsLinked() ) return true;
+	}
+	return false;
+}
+
 // Algorithm for the callback:
 // All system timers (except C# user timers) will run through the Virtual timer. Each timer keeps track of the time at which it will fire
 // The timer that will fire soonest has its time set in the timer comparator and upon the timer matching, this callback will be called.
@@ -410,18 +428,16 @@ void VirtualTimerCallback(void *arg)
 
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].is_callback_running = true;
 	UINT16 currentVirtualTimerCount = gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_cnt_;
-	if(gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_cnt_ >= g_VirtualTimerPerHardwareTimer){
-		ASSERT(0);
+	if(gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_ == NO_CURRENT_TIMER){
+		//ASSERT(0);
 		return;
 	}
-	if (gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_ <= g_VirtualTimerPerHardwareTimer) {
-	
 		VirtualTimerInfo* runningTimer = &gVirtualTimerObject.virtualTimerMapper[currentVTMapper].g_VirtualTimerInfo[gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_];
 
 		// calling the timer callback that just fired IF it is running and should have matched by now. 
 		// It is possible that while we are queueing up a timer to fire another timer fires and then m_current_timer_running_ gets changed, that exits, the timer interrupt gets processed and we process the wrong timer
 		// So we double check here.
-		if (runningTimer->get_m_is_running() && (runningTimer->get_m_ticks_when_match_() < CPU_Timer_CurrentTicks(SYSTEM_TIME))){
+	if (runningTimer->get_m_is_running() && (runningTimer->get_m_ticks_when_match_() < CPU_Timer_CurrentTicks(currentHardwareTimerId))){
 			if ( runningTimer->get_m_timer_id() <= VIRT_TIMER_INTERRUPT_CONTEXT_MARKER){
 				(runningTimer->get_m_callback())(NULL);
 			} else {
@@ -433,10 +449,10 @@ void VirtualTimerCallback(void *arg)
 				runningTimer->set_m_is_running(FALSE);
 			} else {
 				// calculating the next time this timer will fire
-				runningTimer->set_m_ticks_when_match_(CPU_Timer_CurrentTicks(SYSTEM_TIME) + runningTimer->get_m_period());
+			runningTimer->set_m_ticks_when_match_(VirtTimer_GetTicks(runningTimer->get_m_timer_id()) + runningTimer->get_m_period());
 			}
 		}
-	}
+
 	
 
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].is_callback_running = false;

@@ -30,6 +30,8 @@
 
 #define STM32H743xx
 
+#define PRINTF_MAX_RETRIES 0
+
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
 #define STARTUP_DELAY_MS 200
@@ -112,12 +114,25 @@
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)
 #define USB_ALLOW_CONFIGURATION_OVERRIDE 1
 
-#define DEBUG_TEXT_PORT                 COM5
-#define STDIO                           COM5
-#define DEBUGGER_PORT                   COM5
-#define MESSAGING_PORT                  COM5
+// if we want to use our USB port as a USB device you must specify it as USB as the following declaration does
+//#define USB_SERIAL_PORT			0x221 // USB transport, controller instance 1, port 1
 
-#define USART_DEFAULT_PORT              4 // COM3
+#define COM1                   ConvertCOM_ComHandle(0)
+#define COM2                   ConvertCOM_ComHandle(1)
+#define COM3                   ConvertCOM_ComHandle(2)
+#define COM4                   ConvertCOM_ComHandle(3)
+#define COM5                   ConvertCOM_ComHandle(4)
+#define COM6                   ConvertCOM_ComHandle(5)
+// we will specify that our USB/serial interface is a serial port and have MF treat it as such (except we will 
+// have all driver interfaces to ONLY this USB/serial port use the USB drivers
+#define USB_SERIAL_PORT	COM6
+
+#define DEBUG_TEXT_PORT                 USB_SERIAL_PORT
+#define STDIO                           USB_SERIAL_PORT
+#define DEBUGGER_PORT                   USB_SERIAL_PORT
+#define MESSAGING_PORT                  USB_SERIAL_PORT
+
+#define USART_DEFAULT_PORT              USB_SERIAL_PORT // COM3
 #define USART_DEFAULT_BAUDRATE          115200
 
 // System Timer Configuration
@@ -186,15 +201,16 @@ const UINT8 ADVTIMER_32BIT = 1;
 const UINT8 DEFAULT_TIMER = ADVTIMER_32BIT;
 const UINT8 TIMER_32BIT = ADVTIMER_32BIT;
 const UINT8 RTC_32BIT = 4;
-const UINT8 LOW_DRIFT_TIMER = RTC_32BIT;
+const UINT8 LPTIM = 5;
+const UINT8 LOW_DRIFT_TIMER = LPTIM;
 const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
-const UINT8 OMACClockSpecifier = RTC_32BIT; //??
+const UINT8 OMACClockSpecifier = LPTIM; 
 
 const UINT8 g_CountOfHardwareTimers = 2;
 const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = { DEFAULT_TIMER, LOW_DRIFT_TIMER };
 const UINT8 g_VirtualTimerPerHardwareTimer = 40;
-//const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { 48000000, 32768};
-const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 32768 };
+//const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 32768 };
+const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_CLOCK_HZ * 2, 1000000 };	// LPTIM is physically a 32kHz clock but gives its time in microseconds
 
 // timers that are run within interrupt context
 #define VIRT_TIMER_EVENTS 			1
