@@ -276,7 +276,7 @@ void CPU_USART_WriteCharToTxBuffer( int ComPortNum, UINT8 c )
 	#ifdef DEBUG
 	ASSERT(CPU_USART_TxBufferEmpty(ComPortNum));
 	#endif
-    UsartHandle[2].Instance->TDR = c;	
+    UsartHandle[ComPortNum].Instance->TDR = c;	
 }
 
 void CPU_USART_TxBufferEmptyInterruptEnable( int ComPortNum, BOOL Enable )
