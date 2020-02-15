@@ -134,7 +134,8 @@ void TIM2_IRQHandler(void)
 } // extern "C"
 
 void queueLptimCallback(void){
-	LPTIM_interrupt_continuation.Enqueue();
+	//LPTIM_interrupt_continuation.Enqueue();
+	lptimCallBackISR(&lptimCallBackISR_Param);
 }
 
 void lptimSetCompareTriggered(void *arg){

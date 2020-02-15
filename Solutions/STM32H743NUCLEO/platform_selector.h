@@ -219,41 +219,44 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 
 #define VIRT_TIMER_OMAC_RECEIVER_ACK 	5
 #define VIRT_TIMER_SLEEP 6
-// The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
-// Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
-#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 6
-
-#define VIRT_TIMER_SX1276_PacketLoadTimerName 7
-#define VIRT_TIMER_SX1276_PacketTxTimerName 8
-#define VIRT_TIMER_SX1276_CADTimer 9
-
-#define VIRT_TIMER_TIME 			10
-
-#define VIRT_TIMER_TIME_TEST	32
-#define VIRT_TIMER_RTC_TEST	38
-
-// timers that are run within continuations (all C# user timers are run outside an interrupt context also)
-#define VIRT_TIMER_LED_GREEN 		37	
-#define VIRT_TIMER_LED_RED 			39
-
-#define VIRT_TX_TIMEOUT_TIMER 12
-#define VIRT_RX_TIMEOUT_TIMER 13
-#define VIRT_RX_TIMEOUT_SYNC_WORD 14
 
 #define VIRT_TIMER_MAC_SENDPKT 15
 #define VIRT_TIMER_MAC_BEACON 16
 #define VIRT_TIMER_MAC_FLUSHBUFFER 17
-//#define VIRT_TIMER_OMAC_SCHEDULER 18
-
-#define LocalClockMonitor_TIMER1 19
 
 #define VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE 20
+// The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
+// Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
+#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 20
+
 #define VIRT_TIMER_OMAC_SCHEDULER_RADIO_STOP_RETRY 21
 #define VIRT_TIMER_OMAC_RECEIVER 22
 //#define VIRT_TIMER_OMAC_RECEIVER_ACK 23
 #define VIRT_TIMER_OMAC_DISCOVERY 24
 #define VIRT_TIMER_OMAC_TRANSMITTER 25
 #define VIRT_TIMER_OMAC_TIMESYNC 26
+
+
+#define VIRT_TIMER_SX1276_PacketLoadTimerName 67
+#define VIRT_TIMER_SX1276_PacketTxTimerName 68
+#define VIRT_TIMER_SX1276_CADTimer 69
+
+#define VIRT_TIMER_TIME 			70
+
+#define VIRT_TIMER_TIME_TEST	132
+#define VIRT_TIMER_RTC_TEST	138
+
+// timers that are run within continuations (all C# user timers are run outside an interrupt context also)
+#define VIRT_TIMER_LED_GREEN 		137	
+#define VIRT_TIMER_LED_RED 			139
+
+#define VIRT_TX_TIMEOUT_TIMER 72
+#define VIRT_RX_TIMEOUT_TIMER 73
+#define VIRT_RX_TIMEOUT_SYNC_WORD 74
+
+//#define VIRT_TIMER_OMAC_SCHEDULER 18
+
+#define LocalClockMonitor_TIMER1 19
 
 #define VIRT_CONT_TEST_TIMER1 33
 #define VIRT_CONT_TEST_TIMER2 34
