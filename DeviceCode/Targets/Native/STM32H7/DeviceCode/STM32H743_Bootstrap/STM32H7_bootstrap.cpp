@@ -21,22 +21,6 @@ extern UINT32 Load$$ER_FLASH$$Base;
 //    !ERROR
 //#endif
 
-/**
-  * @brief  CPU L1-Cache enable.
-  * @param  None
-  * @retval None
-  */
-static void CPU_CACHE_Enable(void)
-{
-  /* Enable I-Cache */
-  SCB_InvalidateICache();
-  SCB_EnableICache();
-
-  /* Enable D-Cache */
-  SCB_InvalidateDCache();
-  SCB_EnableDCache();
-}
-
 // Note: Not an ISR
 static void Error_Handler(void)
 {
@@ -347,11 +331,13 @@ void BootstrapCode() {
 	//SCB->VTOR = FLASH_BANK1_BASE | VECT_TAB_OFFSET;       /* Vector Table Relocation in Internal FLASH */
 	//SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
 
-	__DSB();
 	SCB->VTOR = (UINT32)&Load$$ER_FLASH$$Base;
+	__DSB();
 	__ISB();
+
 	//PrepareImageRegions(); // startup asm now does this, I think
-	//CPU_CACHE_Enable(); // Turn on later after we get out of our debugging hole
+	SCB_EnableICache();
+	SCB_EnableDCache();
 	HAL_Init(); // Later calls HAL_MspInit()
 	DefaultSystemClock_Config();
 	#ifdef DEBUG
