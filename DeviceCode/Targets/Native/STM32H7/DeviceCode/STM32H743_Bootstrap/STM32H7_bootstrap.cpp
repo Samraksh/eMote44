@@ -341,6 +341,7 @@ void BootstrapCode() {
 
 	// Be paranoid after changing VTOR
 	SCB_InvalidateICache();
+	SCB_CleanDCache();
 	SCB_InvalidateDCache();
 
 	HAL_Init(); // Later calls HAL_MspInit()
