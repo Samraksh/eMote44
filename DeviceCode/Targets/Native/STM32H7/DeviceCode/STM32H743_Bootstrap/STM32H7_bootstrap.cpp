@@ -331,13 +331,18 @@ void BootstrapCode() {
 	//SCB->VTOR = FLASH_BANK1_BASE | VECT_TAB_OFFSET;       /* Vector Table Relocation in Internal FLASH */
 	//SCB->VTOR = FLASH_BANK1_BASE; // Vector table in flash, add offset later (must for TinyCLR with new flash base)
 
+	//PrepareImageRegions(); // startup asm now does this, I think
+	SCB_EnableICache();
+	SCB_EnableDCache();
+
 	SCB->VTOR = (UINT32)&Load$$ER_FLASH$$Base;
 	__DSB();
 	__ISB();
 
-	//PrepareImageRegions(); // startup asm now does this, I think
-	SCB_EnableICache();
-	SCB_EnableDCache();
+	// Be paranoid after changing VTOR
+	SCB_InvalidateICache();
+	SCB_InvalidateDCache();
+
 	HAL_Init(); // Later calls HAL_MspInit()
 	DefaultSystemClock_Config();
 	#ifdef DEBUG
