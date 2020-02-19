@@ -461,14 +461,14 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 		volatile UINT64 nowLPTIM = CPU_Timer_CurrentTicks(LPTIM);
 
 		UINT64 minLptimTimeout = 500;
-		if (compareValue < (nowLPTIM + minLptimTimeout)) {
-			queueLptimCallback();
+		volatile UINT64 totalCompareTime;
+		if (origCompareValue < (nowLPTIM + minLptimTimeout)) {
+		//	queueLptimCallback();
+			totalCompareTime = compareValue - nowLPTIM + minLptimTimeout;	
 		} else {
-
-			volatile UINT64 totalCompareTime = compareValue - nowLPTIM;								
-		
-			callLptimSetCompareMicroseconds(totalCompareTime);
+			totalCompareTime = compareValue - nowLPTIM;								
 		}
+		callLptimSetCompareMicroseconds(totalCompareTime);
 	}
 }
 //--//
