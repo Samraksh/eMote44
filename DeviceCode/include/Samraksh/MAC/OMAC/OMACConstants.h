@@ -76,7 +76,7 @@
 
 #define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_RF231	284
 #define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SI 1718
-#define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SX1276 46208
+#define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SX1276 86208 //46208
 
 //#define PROCESSING_DELAY_BEFORE_TX_MICRO (581) //DELAY_FROM_OMAC_TX_TO_RF231_TX //581
 #define DELAY_FROM_DTH_TX_TO_RADIO_DRIVER_TX_RF231 581
@@ -118,7 +118,7 @@
 //GUARDTIME_MICRO+OMAC_TIME_ERROR - Pessimistic time error
 //GUARDTIME_MICRO - optimistic time error (if there is a re-transmission, tx takes GUARDTIME_MICRO to do CCA
 
-#define EXECUTE_WITH_CCA  1
+#define EXECUTE_WITH_CCA  0
 #define  FAST_RECOVERY 0
 #define  FAST_RECOVERY2 0
 
@@ -165,7 +165,7 @@
 //#define OMACClockSpecifier HFCLOCKID
 //#define OMACClockFreq 8000
 //#define OMACClocktoSystemClockFreqRatio 1
-#define OMACClocktoSystemClockFreqRatio 1525.87890625
+#define OMACClocktoSystemClockFreqRatio 50//1525.87890625
 
 #define INITIALIZATION_TIMESYNC_INTERVAL_INMICS 10000000   // Controls the interval during the neighbor intiialization period after a discovery. This interval is faster than the regular intervals in order to fill the neighbor's timesync table with the samples from the current node.
 
