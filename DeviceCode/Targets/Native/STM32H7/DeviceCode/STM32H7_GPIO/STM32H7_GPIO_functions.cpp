@@ -507,6 +507,12 @@ void CPU_GPIO_SetPinState( GPIO_PIN pin, BOOL pinState )
     {
 		if (pinState == TRUE) {
 			HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_SET);
+
+			// after cache was enabled, very quick GPIO toggles were not able to be detected by the logic analyzer, so we have a slight delay when setting the pin state now
+			volatile int index = 0;
+			for (index=0; index<2; index++){
+				HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_SET);
+			}
 		}
 		else HAL_GPIO_WritePin(Port(pin >> 4), 1 << (pin & 0x0F), GPIO_PIN_RESET);
 	}
