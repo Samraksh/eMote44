@@ -176,6 +176,12 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
   
 BOOL CPU_USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBits, int StopBits, int FlowValue )
 {
+	// HACK: The way we defined it, the HAL see our USB-CDC port as a traditional UART and tries to init it
+	// This work-around detects and ignores when this happens.
+#ifdef USB_SERIAL_PORT
+	if (USB_SERIAL_PORT == ConvertCOM_ComHandle(ComPortNum)) return TRUE;
+#endif
+
 	GLOBAL_LOCK(irq);
 	
 	switch (ComPortNum) {
