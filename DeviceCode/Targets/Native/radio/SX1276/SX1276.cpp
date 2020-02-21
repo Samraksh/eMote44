@@ -72,7 +72,16 @@ typedef struct
 /*
  * Private functions prototypes
  */
-
+#ifdef PLATFORM_ARM_STM32H743NUCLEO
+static inline void wait_nss_30ns(void) {
+	// At 480 MHz Max speed, need 15 nops
+	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
+}
+#else
+#error "FIX ME: MAKE PORTABLE AND SANE"
+#endif
 
 /*!
  * \brief Sets the SX1276 in transmission mode for the given time
@@ -1365,6 +1374,7 @@ void SX1276WriteBuffer( uint16_t addr, uint8_t *buffer, uint8_t size )
 
     //NSS = 0;
     CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN, 0 );
+	wait_nss_30ns();
 
     CPU_SPI_InOut(SPI_TYPE_RADIO, addr | 0x80 );
     for( i = 0; i < size; i++ )
@@ -1382,6 +1392,7 @@ void SX1276ReadBuffer( uint16_t addr, uint8_t *buffer, uint8_t size )
 
     //NSS = 0;
     CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN, 0 );
+	wait_nss_30ns();
 
     CPU_SPI_InOut(SPI_TYPE_RADIO, addr & 0x7F );
 
