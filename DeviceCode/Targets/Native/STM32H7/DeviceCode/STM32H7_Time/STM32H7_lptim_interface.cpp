@@ -22,14 +22,11 @@ void lptimIRQHandler(void){
 
 int callLptimSetCompareMicroseconds(uint32_t us){
 	int retCode = 0;
-	if (us < 400){
-		lptimIRQHandler();
-		return 0;
-	} else {
+	
 		retCode = lptim_set_delay_us(us, LPTIM_VT);
 		if (retCode == lptim_err_short){
-			lptimIRQHandler();
-			return 0;
+			retCode = lptim_set_delay_us(MIN_LPTIM_COUNT, LPTIM_VT);
+			return retCode;
 		}
 		int timeout = 10;
 		while ( (retCode != lptim_err_none) && (timeout-- >0) ){
@@ -39,7 +36,7 @@ int callLptimSetCompareMicroseconds(uint32_t us){
 			lptimIRQHandler();
 		   	return -1;
 		}
-	}
+
 	return 0;
 }
 

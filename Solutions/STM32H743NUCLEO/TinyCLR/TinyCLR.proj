@@ -44,6 +44,7 @@
         <IncludePaths Include="DeviceCode\PAL" />
         <Compile Include="allocator.cpp" />
         <Compile Include="tinyclr.cpp" />
+        <HFiles Include="OMACTest.h" />
         <HFiles Include="$(SPOCLIENT)\clr\include\tinyclr_application.h" />
         <ObjFiles Include="$(OBJ_DIR)\tinyclr_dat.$(OBJ_EXT)" />
         <ScatterFileReferences Include="$(SRC_DIR)\scatterfile_tinyclr_$(COMPILER_TOOL).$(SCATTER_EXT)" />
