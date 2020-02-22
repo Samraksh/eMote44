@@ -246,6 +246,8 @@ const UINT8 LOW_DRIFT_TIMER = LPTIM;
 const UINT8 VT_DEFAULT_TIMER = ADVTIMER_32BIT;
 const UINT8 OMACClockSpecifier = LPTIM; 
 
+#define MIN_LPTIM_COUNT 500	// in microseconds
+
 const UINT8 g_CountOfHardwareTimers = 2;
 const UINT8 g_HardwareTimerIDs[g_CountOfHardwareTimers] = { DEFAULT_TIMER, LOW_DRIFT_TIMER };
 const UINT8 g_VirtualTimerPerHardwareTimer = 40;

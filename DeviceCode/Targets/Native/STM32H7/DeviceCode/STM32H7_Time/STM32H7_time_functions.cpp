@@ -457,14 +457,12 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 	else if (Timer == LPTIM) 
 	{
 		// LPTIM time is in microseconds already (although it is based off a 32kH physical clock)
-		volatile UINT64 origCompareValue = compareValue;
 		volatile UINT64 nowLPTIM = CPU_Timer_CurrentTicks(LPTIM);
 
-		UINT64 minLptimTimeout = 500;
-		volatile UINT64 totalCompareTime;
-		if (origCompareValue < (nowLPTIM + minLptimTimeout)) {
-		//	queueLptimCallback();
-			totalCompareTime = compareValue - nowLPTIM + minLptimTimeout;	
+		UINT64 minLptimTimeout = MIN_LPTIM_COUNT;
+		UINT64 totalCompareTime;
+		if (compareValue < (nowLPTIM + minLptimTimeout)) {
+			totalCompareTime = MIN_LPTIM_COUNT;
 		} else {
 			totalCompareTime = compareValue - nowLPTIM;								
 		}
