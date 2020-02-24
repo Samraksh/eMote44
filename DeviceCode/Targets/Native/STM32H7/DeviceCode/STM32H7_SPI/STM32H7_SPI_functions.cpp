@@ -18,59 +18,27 @@
 
 //--//
 
-SPI_HandleTypeDef SpiHandle[6];
-//SPI_HandleTypeDef SpiHandle;
-/* Buffer used for transmission */
-//uint8_t aTxBuffer2[]=" abc";
-/* Buffer used for reception */
-//uint8_t aRxBuffer2[BUFFERSIZE];
+SPI_HandleTypeDef hspi1;
 
+// We don't currently use SPI interrupts
+/*
 extern "C" {
 void SPI1_IRQHandler(void)
 {
 	INTERRUPT_START;
-	
 	HAL_SPI_IRQHandler(&SpiHandle[0]);
 	
 	INTERRUPT_END;
 }
 }
+*/
 
-
-//extern "C" void SPI1_IRQHandler(void)
-//{
-  /* USER CODE BEGIN OTG_FS_IRQn 0 */
- // hal_printf(" 32 SPI1_IRQHandler \n");
-  /* USER CODE END OTG_FS_IRQn 0 */
-//  HAL_SPI_IRQHandler(&SpiHandle[0]);
-  //HAL_SPI_IRQHandler(&SpiHandle);
-  /* USER CODE BEGIN OTG_FS_IRQn 1 */
- // hal_printf(" 35 SPI1_IRQHandler \n");
-  /* USER CODE END OTG_FS_IRQn 1 */
-//}
-
-//void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
-//{
-//	hal_printf(" 41 SPI complete callback \n");
-//}
-
-//void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
-//{
-//	//hal_printf(" 41 SPI error callback \n");
-//}
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @param  None
-  * @retval None
-  */
 static void Error_Handler(void)
 {
-  /* Turn LED_RED on */
-  //BSP_LED_On(LED_RED);
-	//hal_printf(" 153 Error_handler usart_functions.cpp \n");
- 
+	__BKPT();
 }
 
+// Don't do anything until we get the bus in CPU_SPI_Init()
 BOOL CPU_SPI_Initialize()
 {	
   return TRUE;
@@ -78,10 +46,13 @@ BOOL CPU_SPI_Initialize()
 
 void CPU_SPI_Uninitialize()
 {
+
 }
 
 BOOL CPU_SPI_nWrite16_nRead16( const SPI_CONFIGURATION& Configuration, UINT16* Write16, INT32 WriteCount, UINT16* Read16, INT32 ReadCount, INT32 ReadStartOffset )
 {
+	Error_Handler(); // Not used
+	/*
 	NATIVE_PROFILE_HAL_PROCESSOR_SPI();
 	
 	SPI_XACTION_16 Transaction;
@@ -95,12 +66,14 @@ BOOL CPU_SPI_nWrite16_nRead16( const SPI_CONFIGURATION& Configuration, UINT16* W
     {
         return FALSE;
     }
-	
+	*/
 	return TRUE;
 }
 
 BOOL CPU_SPI_nWrite8_nRead8( const SPI_CONFIGURATION& Configuration, UINT8* Write8, INT32 WriteCount, UINT8* Read8, INT32 ReadCount, INT32 ReadStartOffset )
 {
+	Error_Handler();
+	/*
 	NATIVE_PROFILE_HAL_PROCESSOR_SPI();	
 	
 	SPI_XACTION_8 Transaction;
@@ -115,125 +88,43 @@ BOOL CPU_SPI_nWrite8_nRead8( const SPI_CONFIGURATION& Configuration, UINT8* Writ
     {
        return FALSE;
     }
-	
+	*/
 	return TRUE;
 }
 
 BOOL CPU_SPI_Xaction_Start( const SPI_CONFIGURATION& Configuration )
 {
 	NATIVE_PROFILE_HAL_PROCESSOR_SPI();
-	
-	GPIO_InitTypeDef  GPIO_InitStruct;
-	
-	/*##-1- Enable peripherals and GPIO Clocks #################################*/
-    /* Enable GPIO TX/RX clock */
-    SPIx_SCK_GPIO_CLK_ENABLE();
-    SPIx_MISO_GPIO_CLK_ENABLE();
-    SPIx_MOSI_GPIO_CLK_ENABLE();
-    /* Enable SPI clock */
-    SPIx_CLK_ENABLE();
-
-    /*##-2- Configure peripheral GPIO ##########################################*/
-    /* SPI SCK GPIO pin configuration  */
-    GPIO_InitStruct.Pin       = SPIx_SCK_PIN;
-    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
-    GPIO_InitStruct.Pull      = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed     = GPIO_SPEED_FREQ_HIGH;
-    GPIO_InitStruct.Alternate = SPIx_SCK_AF;
-    HAL_GPIO_Init(SPIx_SCK_GPIO_PORT, &GPIO_InitStruct);
-
-    /* SPI MISO GPIO pin configuration  */
-    GPIO_InitStruct.Pin = SPIx_MISO_PIN;
-    GPIO_InitStruct.Alternate = SPIx_MISO_AF;
-    HAL_GPIO_Init(SPIx_MISO_GPIO_PORT, &GPIO_InitStruct);
-
-    /* SPI MOSI GPIO pin configuration  */
-    GPIO_InitStruct.Pin = SPIx_MOSI_PIN;
-    GPIO_InitStruct.Alternate = SPIx_MOSI_AF;
-    HAL_GPIO_Init(SPIx_MOSI_GPIO_PORT, &GPIO_InitStruct);
-
-    /*##-3- Configure the NVIC for SPI #########################################*/
-    /* NVIC for SPI */
-	//__NVIC_SetVector(SPIx_IRQn, (uint32_t)SPI1_IRQHandler);
-    HAL_NVIC_SetPriority(SPIx_IRQn, 1, 0);
-    HAL_NVIC_EnableIRQ(SPIx_IRQn);
-	
-	SpiHandle[Configuration.SPI_mod].Instance               = SPIx;
-	SpiHandle[Configuration.SPI_mod].Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
-	SpiHandle[Configuration.SPI_mod].Init.Direction         = SPI_DIRECTION_2LINES;
-	SpiHandle[Configuration.SPI_mod].Init.CLKPhase          = SPI_PHASE_1EDGE;
-	SpiHandle[Configuration.SPI_mod].Init.CLKPolarity       = SPI_POLARITY_LOW;
-	SpiHandle[Configuration.SPI_mod].Init.DataSize          = SPI_DATASIZE_8BIT;
-	SpiHandle[Configuration.SPI_mod].Init.FirstBit          = SPI_FIRSTBIT_MSB;
-	SpiHandle[Configuration.SPI_mod].Init.TIMode            = SPI_TIMODE_DISABLE;
-	SpiHandle[Configuration.SPI_mod].Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
-	SpiHandle[Configuration.SPI_mod].Init.CRCPolynomial     = 7;
-	SpiHandle[Configuration.SPI_mod].Init.CRCLength         = SPI_CRC_LENGTH_8BIT;
-	SpiHandle[Configuration.SPI_mod].Init.NSS               = SPI_NSS_SOFT;
-	SpiHandle[Configuration.SPI_mod].Init.NSSPMode          = SPI_NSS_PULSE_DISABLE;
-	SpiHandle[Configuration.SPI_mod].Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_ENABLE;  //Recommanded setting to avoid glitches
-
-	//#ifdef MASTER_BOARD
-	SpiHandle[Configuration.SPI_mod].Init.Mode = SPI_MODE_MASTER;
-	//#else
-	//  SpiHandle.Init.Mode = SPI_MODE_SLAVE;
-	//#endif MASTER_BOARD
-
-	if(HAL_SPI_Init(&SpiHandle[Configuration.SPI_mod]) != HAL_OK)
-	{
-		Error_Handler();
-
-	}  
-		
+	Error_Handler();
     return TRUE;
 }
 
 BOOL CPU_SPI_Xaction_Stop( const SPI_CONFIGURATION& Configuration )
 {
 	NATIVE_PROFILE_HAL_PROCESSOR_SPI();
-	if(HAL_SPI_DeInit(&SpiHandle[Configuration.SPI_mod]) != HAL_OK)
-	//if(HAL_SPI_DeInit(&SpiHandle) != HAL_OK)
-	{
-	/* Initialization Error */
-		Error_Handler();
-	//hal_printf(" 108 spi_functions.cpp \n"); 
-	} 
-	
-	SPIx_FORCE_RESET();
-    SPIx_RELEASE_RESET();
-
-    /*##-2- Disable peripherals and GPIO Clocks ################################*/
-    /* Deconfigure SPI SCK */
-    HAL_GPIO_DeInit(SPIx_SCK_GPIO_PORT, SPIx_SCK_PIN);
-    /* Deconfigure SPI MISO */
-    HAL_GPIO_DeInit(SPIx_MISO_GPIO_PORT, SPIx_MISO_PIN);
-    /* Deconfigure SPI MOSI */
-    HAL_GPIO_DeInit(SPIx_MOSI_GPIO_PORT, SPIx_MOSI_PIN);
-
-    /*##-3- Disable the NVIC for SPI ###########################################*/
-    HAL_NVIC_DisableIRQ(SPIx_IRQn);
-	
+	Error_Handler();
     return TRUE;
 }
 
 BOOL CPU_SPI_Xaction_nWrite16_nRead16( SPI_XACTION_16& Transaction )
 {
 	NATIVE_PROFILE_HAL_PROCESSOR_SPI();
-	
+	Error_Handler();
+	/*
 	UINT16* outBuf = Transaction.Write16;
     UINT16* inBuf  = Transaction.Read16;
-	
 	//HAL_SPI_TransmitReceive_IT(&SpiHandle[Transaction.SPI_mod], (uint8_t)outBuf, (uint8_t)inBuf,  (uint16_t)Transaction.WriteCount);
+	*/
     return TRUE;
 }
 
 BOOL CPU_SPI_Xaction_nWrite8_nRead8( SPI_XACTION_8& Transaction )
 {
 	NATIVE_PROFILE_HAL_PROCESSOR_SPI();
-	
+	Error_Handler();
+	/*
 	UINT8* outBuf = Transaction.Write8;
     UINT8* inBuf = Transaction.Read8;
-	
 	//HAL_SPI_Transmit_IT(&SpiHandle, (uint8_t *)outBuf, 4);
     
 	//hal_printf(" 85 SPI_mod:%d \n", Transaction.SPI_mod);	
@@ -241,7 +132,7 @@ BOOL CPU_SPI_Xaction_nWrite8_nRead8( SPI_XACTION_8& Transaction )
 	//HAL_SPI_Transmit_IT(&SpiHandle[Transaction.SPI_mod], (uint8_t *)outBuf, (uint16_t)Transaction.WriteCount);
 	HAL_SPI_TransmitReceive_IT(&SpiHandle[Transaction.SPI_mod], (uint8_t *)outBuf, (uint8_t *)inBuf , (uint16_t)Transaction.WriteCount);
     //HAL_SPI_Transmit_IT(&SpiHandle, (uint8_t *)aTxBuffer2, BUFFERSIZE);// (uint8_t *)aRxBuffer2), BUFFERSIZE);
-  
+	*/
 	return TRUE;
 }
 
@@ -275,140 +166,91 @@ UINT32 CPU_SPI_ChipSelectLineCount( UINT32 spi_mod )
     return 0;
 }
 
-
-
-/*!
- * @brief Initializes the SPI object and MCU peripheral
- *
- * @param [IN] none
- */
 void CPU_SPI_Init(UINT8 SPI_TYPE)
-{  
-	/*##-1- Configure the SPI peripheral */
-	/* Set the SPI parameters */
-	if (SPI_TYPE == SPI_TYPE_RADIO) {
-		SpiHandle[SPI_TYPE].Instance = SPI1;
+{
+	// SPI_TYPE_RADIO is only option we understand
+	if (SPI_TYPE != SPI_TYPE_RADIO) { Error_Handler(); return; }
 
-		SpiHandle[SPI_TYPE].Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;//SpiFrequency( 10000000 );
-		SpiHandle[SPI_TYPE].Init.Direction      = SPI_DIRECTION_2LINES;
-		SpiHandle[SPI_TYPE].Init.Mode           = SPI_MODE_MASTER;
-		SpiHandle[SPI_TYPE].Init.CLKPolarity    = SPI_POLARITY_LOW;
-		SpiHandle[SPI_TYPE].Init.CLKPhase       = SPI_PHASE_1EDGE;
-		SpiHandle[SPI_TYPE].Init.DataSize       = SPI_DATASIZE_8BIT;
-		SpiHandle[SPI_TYPE].Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;  
-		SpiHandle[SPI_TYPE].Init.FirstBit       = SPI_FIRSTBIT_MSB;
-		SpiHandle[SPI_TYPE].Init.NSS            = SPI_NSS_SOFT;
-		SpiHandle[SPI_TYPE].Init.TIMode         = SPI_TIMODE_DISABLE;
-		
-		/*	LoRaSpiHandle.Init.CRCPolynomial = 7; */
-	
-	}
-	
-	__HAL_RCC_SPI1_CLK_ENABLE();//SPI_CLK_ENABLE(); 
-
-	if(HAL_SPI_Init(&SpiHandle[SPI_TYPE]) != HAL_OK)
-	{
-		/* Initialization Error */
-		Error_Handler();
-	}
-
-	/*##-2- Configure the SPI GPIOs */
-	CPU_SPI_IoInit(SPI_TYPE);
+	hspi1.Instance = SPI1;
+	hspi1.Init.Mode = SPI_MODE_MASTER;
+	hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+	hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
+	hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
+	hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
+	hspi1.Init.NSS = SPI_NSS_SOFT;
+	hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+	hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
+	hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
+	hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+	hspi1.Init.CRCPolynomial = 0x0;
+	hspi1.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+	hspi1.Init.NSSPolarity = SPI_NSS_POLARITY_LOW;
+	hspi1.Init.FifoThreshold = SPI_FIFO_THRESHOLD_01DATA;
+	hspi1.Init.TxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	hspi1.Init.RxCRCInitializationPattern = SPI_CRC_INITIALIZATION_ALL_ZERO_PATTERN;
+	hspi1.Init.MasterSSIdleness = SPI_MASTER_SS_IDLENESS_00CYCLE;
+	hspi1.Init.MasterInterDataIdleness = SPI_MASTER_INTERDATA_IDLENESS_00CYCLE;
+	hspi1.Init.MasterReceiverAutoSusp = SPI_MASTER_RX_AUTOSUSP_DISABLE;
+	hspi1.Init.MasterKeepIOState = SPI_MASTER_KEEP_IO_STATE_DISABLE;
+	hspi1.Init.IOSwap = SPI_IO_SWAP_DISABLE;
+	if (HAL_SPI_Init(&hspi1) != HAL_OK) { Error_Handler(); }
 }
 
-/*!
- * @brief De-initializes the SPI object and MCU peripheral
- *
- * @param [IN] none
- */
+void HAL_SPI_MspInit(SPI_HandleTypeDef* spiHandle)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(spiHandle->Instance==SPI1)
+  {
+    __HAL_RCC_SPI1_CLK_ENABLE();
+
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF5_SPI1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+	// nSS pin PC1
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_1, GPIO_PIN_SET); // default un-asserted
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+  }
+}
+
+void HAL_SPI_MspDeInit(SPI_HandleTypeDef* spiHandle)
+{
+
+  if(spiHandle->Instance==SPI1)
+  {
+    __HAL_RCC_SPI1_CLK_DISABLE();
+
+    /**SPI1 GPIO Configuration
+    PA5     ------> SPI1_SCK
+    PA6     ------> SPI1_MISO
+    PA7     ------> SPI1_MOSI
+    */
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_5|GPIO_PIN_6|GPIO_PIN_7);
+	HAL_GPIO_DeInit(GPIOC, GPIO_PIN_1);
+  }
+}
+
 void CPU_SPI_DeInit(UINT8 SPI_TYPE)
 {
-	HAL_SPI_DeInit(&SpiHandle[SPI_TYPE]);
-
-	if (SPI_TYPE == SPI_TYPE_RADIO) {
-		/*##-1- Reset peripherals ####*/
-		__HAL_RCC_SPI1_FORCE_RESET();
-		__HAL_RCC_SPI1_RELEASE_RESET();
+	switch(SPI_TYPE) {
+		case SPI_TYPE_RADIO: if (HAL_SPI_DeInit(&hspi1) != HAL_OK) { Error_Handler(); } break;
+		default: Error_Handler();
 	}
-	/*##-2- Configure the SPI GPIOs */
-	CPU_SPI_IoDeInit(SPI_TYPE);
-}
-
-void CPU_SPI_IoInit(UINT8 SPI_TYPE)
-{
-	GPIO_InitTypeDef initStruct={0};
-
-	if (SPI_TYPE == SPI_TYPE_RADIO) { 
-	
-		//initStruct.Mode = GPIO_MODE_IT_RISING;
-		//initStruct.Pull = GPIO_NOPULL;
-		//CPU_GPIO_Init( GPIOC, GPIO_PIN_13, &initStruct );
-    
-	    //HAL_NVIC_SetPriority(EXTI15_10_IRQn, 2, 0);
-		//HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
-  
-		initStruct.Mode = GPIO_MODE_IT_RISING;
-		initStruct.Pull = GPIO_PULLDOWN;
-		//initStruct.Pull = GPIO_NOPULL;
-		//initStruct.Speed = GPIO_SPEED_HIGH;
-
-		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
-		CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
-		CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-		CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );
-
-		initStruct.Mode = GPIO_MODE_AF_PP;
-		initStruct.Pull = GPIO_NOPULL;
-		initStruct.Speed = GPIO_SPEED_LOW;
-		initStruct.Alternate = GPIO_AF5_SPI1 ;
-
-		CPU_GPIO_Init( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct);		
-		CPU_GPIO_Init( RADIO_MISO_PORT, RADIO_MISO_PIN, &initStruct);
-		CPU_GPIO_Init( RADIO_MOSI_PORT, RADIO_MOSI_PIN, &initStruct);
-
-		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
-		initStruct.Pull = GPIO_NOPULL;
-		initStruct.Speed = GPIO_SPEED_LOW;	
-		
-		CPU_GPIO_Write(RADIO_NSS_PORT, RADIO_NSS_PIN, 1 );	
-		CPU_GPIO_Init(RADIO_NSS_PORT, RADIO_NSS_PIN, &initStruct );
-
-	}
-}
-
-void CPU_SPI_IoDeInit(UINT8 SPI_TYPE)
-{
-	GPIO_InitTypeDef initStruct={0};
-
-	if (SPI_TYPE == SPI_TYPE_RADIO) { 	
-		initStruct.Mode = GPIO_MODE_IT_RISING ;
-		initStruct.Pull = GPIO_PULLDOWN;
-
-		CPU_GPIO_Init( RADIO_DIO_0_PORT, RADIO_DIO_0_PIN, &initStruct );
-		CPU_GPIO_Init( RADIO_DIO_1_PORT, RADIO_DIO_1_PIN, &initStruct );
-		CPU_GPIO_Init( RADIO_DIO_2_PORT, RADIO_DIO_2_PIN, &initStruct );
-		CPU_GPIO_Init( RADIO_DIO_3_PORT, RADIO_DIO_3_PIN, &initStruct );	 
-		
-		initStruct.Mode = GPIO_MODE_OUTPUT_PP;
-
-		initStruct.Pull = GPIO_NOPULL  ; 
-		CPU_GPIO_Write( RADIO_MOSI_PORT, RADIO_MOSI_PIN, 0 );
-		CPU_GPIO_Init ( RADIO_MOSI_PORT, RADIO_MOSI_PIN, &initStruct ); 
-
-		initStruct.Pull = GPIO_PULLDOWN; 
-		CPU_GPIO_Write( RADIO_MISO_PORT, RADIO_MISO_PIN, 0 );	
-		CPU_GPIO_Init ( RADIO_MISO_PORT, RADIO_MISO_PIN, &initStruct ); 
-
-		initStruct.Pull = GPIO_NOPULL  ; 
-		CPU_GPIO_Write( RADIO_SCLK_PORT, RADIO_SCLK_PIN, 0 );
-		CPU_GPIO_Init ( RADIO_SCLK_PORT, RADIO_SCLK_PIN, &initStruct ); 
-  
-		initStruct.Pull = GPIO_NOPULL  ; 
-		CPU_GPIO_Write( RADIO_NSS_PORT, RADIO_NSS_PIN , 1 );			
-		CPU_GPIO_Init ( RADIO_NSS_PORT, RADIO_NSS_PIN , &initStruct ); 
-
-
-	} 
 }
 
 /*!
@@ -421,7 +263,8 @@ UINT16 CPU_SPI_InOut(UINT8 SPI_TYPE, UINT16 txData )
 {
 	UINT16 rxData ;
 	
-	HAL_SPI_TransmitReceive( &SpiHandle[SPI_TYPE], ( UINT8 * ) &txData, ( UINT8* ) &rxData, 1, HAL_MAX_DELAY);
+	//HAL_SPI_TransmitReceive( &SpiHandle[SPI_TYPE], ( UINT8 * ) &txData, ( UINT8* ) &rxData, 1, HAL_MAX_DELAY);
+	HAL_SPI_TransmitReceive( &hspi1, ( UINT8 * ) &txData, ( UINT8* ) &rxData, 1, HAL_MAX_DELAY);
 	
 	return rxData;
 }
