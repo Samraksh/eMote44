@@ -78,14 +78,6 @@ static inline void wait_nss_30ns(void) {
 	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
 	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
 	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
 }
 #else
 #error "FIX ME: MAKE PORTABLE AND SANE"
