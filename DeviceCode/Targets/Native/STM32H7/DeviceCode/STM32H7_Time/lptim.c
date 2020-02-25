@@ -43,6 +43,28 @@ static void LPTIM_Error_Handler(void) {
 #endif
 }
 
+static inline void wait_64_nop(void) {
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+	__NOP(); __NOP(); __NOP(); __NOP();
+}
+
 // Test if in interrupt context
 static inline bool isInterrupt() {
     return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
@@ -320,6 +342,32 @@ int lptim_set_delay_us(uint32_t us, int lptim) {
 	uint32_t ticks = lptim_us_to_ticks(us);
 	if (ticks > 0xFFFF) return lptim_err_long;
 	return lptim_set_compare_dticks(ticks, lptim);
+}
+
+// Milli-seconds. Overrides _weak HAL_Delay in ST driver
+void HAL_Delay(uint32_t Delay) {
+
+	// Original ST HAL code (mostly)
+	if (my_lptim == NULL || Delay >= 2000) {
+		if ( isInterrupt() ) { __BKPT(); return; } // Will be blocked, abort.
+		uint32_t tickstart = HAL_GetTick();
+		uint32_t wait = Delay;
+
+		/* Add a freq to guarantee minimum wait */
+		if (wait < HAL_MAX_DELAY) { wait += (uint32_t)(HAL_GetTickFreq()); }
+
+		while ((HAL_GetTick() - tickstart) < wait) { }
+		return;
+	}
+
+	// Only delays < 2000ms, else handled above
+	uint16_t read = HAL_LPTIM_ReadCounter(my_lptim);
+	uint16_t target = read + Delay*LSE_HZ/1000;
+	// NOPs under the assumption that this is less stressful
+	while ( read < target ) {
+		wait_64_nop();
+		read = HAL_LPTIM_ReadCounter(my_lptim);
+	}
 }
 
 /* LPTIM 1+2 init function */
