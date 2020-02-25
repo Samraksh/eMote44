@@ -348,7 +348,7 @@ int lptim_set_delay_us(uint32_t us, int lptim) {
 void HAL_Delay(uint32_t Delay) {
 
 	// Original ST HAL code (mostly)
-	if (my_lptim == NULL || Delay >= 2000) {
+	if (my_lptim == NULL) {
 		if ( isInterrupt() || __get_PRIMASK() ) { __BKPT(); return; } // Will be blocked, abort.
 		uint32_t tickstart = HAL_GetTick();
 		uint32_t wait = Delay;
@@ -360,17 +360,12 @@ void HAL_Delay(uint32_t Delay) {
 		return;
 	}
 
-	// Only delays < 2000ms, else handled above
-	uint16_t read = HAL_LPTIM_ReadCounter(my_lptim);
-	uint32_t target = read + Delay*LSE_HZ/1000;
-	uint32_t roll;
-	if (target > 0xFFFF) roll = 0x10000;
-	else roll = 0;
-	// NOPs under the assumption that this is less stressful
-	while ( read+roll < target ) {
+	uint64_t target = lptim_get_counter_us(LPTIM_DEBUG) + Delay*1000;
+	uint64_t now;
+	do {
 		wait_64_nop();
-		read = HAL_LPTIM_ReadCounter(my_lptim);
-	}
+		now = lptim_get_counter_us(LPTIM_DEBUG);
+	} while (now < target) ;
 }
 
 /* LPTIM 1+2 init function */
