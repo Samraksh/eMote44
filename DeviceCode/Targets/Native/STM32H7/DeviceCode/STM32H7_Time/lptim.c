@@ -349,7 +349,7 @@ void HAL_Delay(uint32_t Delay) {
 
 	// Original ST HAL code (mostly)
 	if (my_lptim == NULL || Delay >= 2000) {
-		if ( isInterrupt() ) { __BKPT(); return; } // Will be blocked, abort.
+		if ( isInterrupt() || __get_PRIMASK() ) { __BKPT(); return; } // Will be blocked, abort.
 		uint32_t tickstart = HAL_GetTick();
 		uint32_t wait = Delay;
 
