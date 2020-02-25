@@ -362,9 +362,12 @@ void HAL_Delay(uint32_t Delay) {
 
 	// Only delays < 2000ms, else handled above
 	uint16_t read = HAL_LPTIM_ReadCounter(my_lptim);
-	uint16_t target = read + Delay*LSE_HZ/1000;
+	uint32_t target = read + Delay*LSE_HZ/1000;
+	uint32_t roll;
+	if (target > 0xFFFF) roll = 0x10000;
+	else roll = 0;
 	// NOPs under the assumption that this is less stressful
-	while ( read < target ) {
+	while ( read+roll < target ) {
 		wait_64_nop();
 		read = HAL_LPTIM_ReadCounter(my_lptim);
 	}
