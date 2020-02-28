@@ -278,6 +278,8 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_TIMER_OMAC_TRANSMITTER 25
 #define VIRT_TIMER_OMAC_TIMESYNC 26
 
+#define VIRT_TIMER_AUDIO_INTERFACE_CALLBACK 30
+
 
 #define VIRT_TIMER_SX1276_PacketLoadTimerName 67
 #define VIRT_TIMER_SX1276_PacketTxTimerName 68

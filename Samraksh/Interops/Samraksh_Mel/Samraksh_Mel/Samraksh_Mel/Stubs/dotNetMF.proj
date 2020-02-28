@@ -1,0 +1,24 @@
+<Project DefaultTargets="Build" ToolsVersion="3.5" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Directory>DeviceCode\Targets\Native\Interop\Samraksh_Mel</Directory>
+    <AssemblyName>Samraksh_Mel</AssemblyName>
+  </PropertyGroup>
+  <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+<ItemGroup>
+<HFile Include="Samraksh_Mel.h" />
+<Compile Include="Samraksh_Mel.cpp" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface_mshl.cpp" />
+<HFile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface.h" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface.cpp" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_MACBase_mshl.cpp" />
+<HFile Include="Samraksh_Mel_Samraksh_Mel_MACBase.h" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_MACBase.cpp" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base_mshl.cpp" />
+<HFile Include="Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base.h" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base.cpp" />
+</ItemGroup>
+<Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
+</Project>

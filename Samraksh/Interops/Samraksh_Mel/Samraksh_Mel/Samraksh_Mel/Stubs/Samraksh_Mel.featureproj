@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <FeatureName>Samraksh_Mel</FeatureName>
+    <Guid>{c8ad2b67-13c2-4a5f-ae4e-b03e6c0f15fd}</Guid>
+    <Description>&lt;Add Feature Description Here&gt;</Description>
+    <Groups />
+    <SAMRAKSH_MEL_FEATUREPROJ>True</SAMRAKSH_MEL_FEATUREPROJ>
+  </PropertyGroup>
+  <ItemGroup>
+    <DriverLibs Include="Samraksh_Mel.$(LIB_EXT)" />
+    <InteropFeature Include="Samraksh_Mel" />
+    <MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_Mel.pe" />
+    <RequiredProjects Include="D:\Work\MF44\eMote44\Samraksh\Interops\Samraksh_Mel\Samraksh_Mel\Samraksh_Mel\Stubs\dotnetmf.proj" />
+  </ItemGroup>
+</Project>
