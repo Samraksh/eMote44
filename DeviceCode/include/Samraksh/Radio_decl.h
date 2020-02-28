@@ -196,6 +196,9 @@ DeviceStatus CPU_Radio_SetRadioName(INT8 radioName);
 DeviceStatus CPU_Radio_ChangeTxPower(UINT8 radioID, int power);
 
 DeviceStatus CPU_Radio_ChangeChannel(UINT8 radioID, int channel);
+DeviceStatus CPU_Radio_ChangeSpreadingFactor(UINT8 radioID, int spreadingFactor);
+DeviceStatus CPU_Radio_ChangeCodingRate(UINT8 radioID, int codingRate);
+DeviceStatus CPU_Radio_ChangeBandwidth(UINT8 radioID, int bandwidth);
 
 UINT32 CPU_Radio_GetTxPower(UINT8 radioID);
 

@@ -61,6 +61,51 @@ namespace Samraksh_Mel.Radio
         }
         private int _channel;
 
+        /// <summary>bandwidth of the radio</summary>
+        public int RadioBandwidth
+        {
+            get
+            {
+                return _bandwidth;
+            }
+            set
+            {
+                _bandwidth = value;
+                SetBandwidth((byte)_radioName, _bandwidth);
+            }
+        }
+        private int _bandwidth;
+
+        /// <summary>coding rate of the radio</summary>
+        public int CodingRate
+        {
+            get
+            {
+                return _codingRate;
+            }
+            set
+            {
+                _codingRate = value;
+                SetCodingRate((byte)_radioName, _codingRate);
+            }
+        }
+        private int _codingRate;
+
+        /// <summary>coding rate of the radio</summary>
+        public int SpreadingFactor
+        {
+            get
+            {
+                return _spreadingFactor;
+            }
+            set
+            {
+                _spreadingFactor = value;
+                SetSpreadingFactor((byte)_radioName, _spreadingFactor);
+            }
+        }
+        private int _spreadingFactor;
+
         /// <summary>Type of radio</summary>
         public RadioName RadioName
         {
@@ -95,6 +140,27 @@ namespace Samraksh_Mel.Radio
         /// <returns>Status of operation</returns>
         [MethodImpl(MethodImplOptions.InternalCall)]
         private extern DeviceStatus SetChannel(byte radioName, int channel);
+
+        /// <summary>Set the radio spreading factor</summary>
+        /// <param name="radioName">Radio name</param>
+        /// <param name="spreadFactor">spreading factor to use</param>
+        /// <returns>Status of operation</returns>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern DeviceStatus SetSpreadingFactor(byte radioName, int spreadFactor);
+
+        /// <summary>Set the radio coding rate</summary>
+        /// <param name="radioName">Radio name</param>
+        /// <param name="codingRate">coding rate to use</param>
+        /// <returns>Status of operation</returns>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern DeviceStatus SetCodingRate(byte radioName, int codingRate);
+
+        /// <summary>Set the radio bandwidth</summary>
+        /// <param name="radioName">Radio name</param>
+        /// <param name="bandwidth">bandwidth to use</param>
+        /// <returns>Status of operation</returns>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern DeviceStatus SetBandwidth(byte radioName, int bandwidth);
 
         /// <summary>Get the address of the device</summary>
         /// <remarks>This is the address by which the device is known to the rest of the world.</remarks>

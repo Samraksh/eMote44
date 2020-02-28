@@ -82,6 +82,42 @@ INT32 Radio_802_15_4_Base::SetChannel( CLR_RT_HeapBlock* pMngObj, UINT8 radioNam
 	return status;
 }
 
+INT32 Radio_802_15_4_Base::SetSpreadingFactor( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, INT32 spreadingFactor, HRESULT &hr )
+{
+    DeviceStatus status;
+	BOOL ret = CPU_Radio_ChangeSpreadingFactor(radioName, spreadingFactor);
+	if(ret)
+		status = DS_Success;
+	else
+		status = DS_Fail;
+
+	return status;
+}
+
+INT32 Radio_802_15_4_Base::SetCodingRate( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, INT32 codingRate, HRESULT &hr )
+{
+    DeviceStatus status;
+	BOOL ret = CPU_Radio_ChangeCodingRate(radioName, codingRate);
+	if(ret)
+		status = DS_Success;
+	else
+		status = DS_Fail;
+
+	return status;
+}
+
+INT32 Radio_802_15_4_Base::SetBandwidth( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, INT32 bandwidth, HRESULT &hr )
+{
+   DeviceStatus status;
+	BOOL ret = CPU_Radio_ChangeBandwidth(radioName, bandwidth);
+	if(ret)
+		status = DS_Success;
+	else
+		status = DS_Fail;
+
+	return status;
+}
+
 INT32 Radio_802_15_4_Base::TurnOnRx( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, HRESULT &hr )
 {
 	DeviceStatus status;

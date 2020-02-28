@@ -27,6 +27,12 @@ namespace Samraksh_Mel
 
             static INT32& Get__channel( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_INT32( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::FIELD___channel ); }
 
+            static INT32& Get__bandwidth( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_INT32( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::FIELD___bandwidth ); }
+
+            static INT32& Get__codingRate( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_INT32( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::FIELD___codingRate ); }
+
+            static INT32& Get__spreadingFactor( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_INT32( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::FIELD___spreadingFactor ); }
+
             static INT32& Get__radioName( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_INT32( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::FIELD___radioName ); }
 
             // Declaration of stubs. These functions are implemented by Interop code developers
@@ -41,6 +47,9 @@ namespace Samraksh_Mel
             static INT32 SetRadioName( CLR_RT_HeapBlock* pMngObj, UINT8 param0, HRESULT &hr );
             static INT32 SetTxPower( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr );
             static INT32 SetChannel( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr );
+            static INT32 SetSpreadingFactor( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr );
+            static INT32 SetCodingRate( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr );
+            static INT32 SetBandwidth( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr );
             static UINT16 GetRadioAddress( CLR_RT_HeapBlock* pMngObj, UINT8 param0, HRESULT &hr );
             static INT8 SetRadioAddress( CLR_RT_HeapBlock* pMngObj, UINT8 param0, UINT16 param1, HRESULT &hr );
             static INT32 UnInitialize( CLR_RT_HeapBlock* pMngObj, UINT8 param0, HRESULT &hr );

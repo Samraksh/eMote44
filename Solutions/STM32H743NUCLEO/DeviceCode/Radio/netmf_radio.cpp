@@ -470,6 +470,63 @@ DeviceStatus CPU_Radio_ChangeChannel(UINT8 radioName, int channel)
 	return status;
 }
 
+DeviceStatus CPU_Radio_ChangeSpreadingFactor(UINT8 radioName, int spreadingFactor)
+{
+	DeviceStatus status = DS_Fail;
+
+	switch(radioName)
+	{
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	ASSERT_NOFAIL(status);
+	return status;
+}
+
+DeviceStatus CPU_Radio_ChangeCodingRate(UINT8 radioName, int codingRate)
+{
+	DeviceStatus status = DS_Fail;
+
+	switch(radioName)
+	{
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	ASSERT_NOFAIL(status);
+	return status;
+}
+
+DeviceStatus CPU_Radio_ChangeBandwidth(UINT8 radioName, int bandwidth)
+{
+	DeviceStatus status = DS_Fail;
+
+	switch(radioName)
+	{
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	ASSERT_NOFAIL(status);
+	return status;
+}
+
 UINT32 CPU_Radio_GetChannel(UINT8 radioName)
 {
 	UINT32 channel = 0;

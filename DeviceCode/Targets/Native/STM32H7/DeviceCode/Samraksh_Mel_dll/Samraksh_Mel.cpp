@@ -259,9 +259,18 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetRadioName___SamrakshMelDeviceStatus__U1,
     Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetTxPower___SamrakshMelDeviceStatus__U1__I4,
     Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetChannel___SamrakshMelDeviceStatus__U1__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetSpreadingFactor___SamrakshMelDeviceStatus__U1__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetCodingRate___SamrakshMelDeviceStatus__U1__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetBandwidth___SamrakshMelDeviceStatus__U1__I4,
     Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::GetRadioAddress___U2__U1,
     Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetRadioAddress___BOOLEAN__U1__U2,
     Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::UnInitialize___SamrakshMelDeviceStatus__U1,
@@ -308,7 +317,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0xCFCD5BA2,
+    0xF19B787C,
     method_lookup
 };
 

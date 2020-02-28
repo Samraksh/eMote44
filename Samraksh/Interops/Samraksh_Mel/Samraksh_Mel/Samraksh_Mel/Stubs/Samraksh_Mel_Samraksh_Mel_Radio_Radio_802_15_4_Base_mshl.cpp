@@ -255,6 +255,72 @@ HRESULT Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetChannel_
     TINYCLR_NOCLEANUP();
 }
 
+HRESULT Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetSpreadingFactor___SamrakshMelDeviceStatus__U1__I4( CLR_RT_StackFrame& stack )
+{
+    TINYCLR_HEADER(); hr = S_OK;
+    {
+        CLR_RT_HeapBlock* pMngObj = Interop_Marshal_RetrieveManagedObject( stack );
+
+        FAULT_ON_NULL(pMngObj);
+
+        UINT8 param0;
+        TINYCLR_CHECK_HRESULT( Interop_Marshal_UINT8( stack, 1, param0 ) );
+
+        INT32 param1;
+        TINYCLR_CHECK_HRESULT( Interop_Marshal_INT32( stack, 2, param1 ) );
+
+        INT32 retVal = Radio_802_15_4_Base::SetSpreadingFactor( pMngObj,  param0, param1, hr );
+        TINYCLR_CHECK_HRESULT( hr );
+        SetResult_INT32( stack, retVal );
+
+    }
+    TINYCLR_NOCLEANUP();
+}
+
+HRESULT Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetCodingRate___SamrakshMelDeviceStatus__U1__I4( CLR_RT_StackFrame& stack )
+{
+    TINYCLR_HEADER(); hr = S_OK;
+    {
+        CLR_RT_HeapBlock* pMngObj = Interop_Marshal_RetrieveManagedObject( stack );
+
+        FAULT_ON_NULL(pMngObj);
+
+        UINT8 param0;
+        TINYCLR_CHECK_HRESULT( Interop_Marshal_UINT8( stack, 1, param0 ) );
+
+        INT32 param1;
+        TINYCLR_CHECK_HRESULT( Interop_Marshal_INT32( stack, 2, param1 ) );
+
+        INT32 retVal = Radio_802_15_4_Base::SetCodingRate( pMngObj,  param0, param1, hr );
+        TINYCLR_CHECK_HRESULT( hr );
+        SetResult_INT32( stack, retVal );
+
+    }
+    TINYCLR_NOCLEANUP();
+}
+
+HRESULT Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::SetBandwidth___SamrakshMelDeviceStatus__U1__I4( CLR_RT_StackFrame& stack )
+{
+    TINYCLR_HEADER(); hr = S_OK;
+    {
+        CLR_RT_HeapBlock* pMngObj = Interop_Marshal_RetrieveManagedObject( stack );
+
+        FAULT_ON_NULL(pMngObj);
+
+        UINT8 param0;
+        TINYCLR_CHECK_HRESULT( Interop_Marshal_UINT8( stack, 1, param0 ) );
+
+        INT32 param1;
+        TINYCLR_CHECK_HRESULT( Interop_Marshal_INT32( stack, 2, param1 ) );
+
+        INT32 retVal = Radio_802_15_4_Base::SetBandwidth( pMngObj,  param0, param1, hr );
+        TINYCLR_CHECK_HRESULT( hr );
+        SetResult_INT32( stack, retVal );
+
+    }
+    TINYCLR_NOCLEANUP();
+}
+
 HRESULT Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base::GetRadioAddress___U2__U1( CLR_RT_StackFrame& stack )
 {
     TINYCLR_HEADER(); hr = S_OK;

@@ -82,6 +82,24 @@ INT32 Radio_802_15_4_Base::SetChannel( CLR_RT_HeapBlock* pMngObj, UINT8 param0, 
     return retVal;
 }
 
+INT32 Radio_802_15_4_Base::SetSpreadingFactor( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr )
+{
+    INT32 retVal = 0; 
+    return retVal;
+}
+
+INT32 Radio_802_15_4_Base::SetCodingRate( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr )
+{
+    INT32 retVal = 0; 
+    return retVal;
+}
+
+INT32 Radio_802_15_4_Base::SetBandwidth( CLR_RT_HeapBlock* pMngObj, UINT8 param0, INT32 param1, HRESULT &hr )
+{
+    INT32 retVal = 0; 
+    return retVal;
+}
+
 UINT16 Radio_802_15_4_Base::GetRadioAddress( CLR_RT_HeapBlock* pMngObj, UINT8 param0, HRESULT &hr )
 {
     UINT16 retVal = 0; 

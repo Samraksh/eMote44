@@ -1340,7 +1340,7 @@
         <member name="P:Samraksh_Mel.Radio.SX1276RadioConfiguration.SpreadingFactor">
             <summary>Spreading Factor for the radio</summary>
         </member>
-        <member name="P:Samraksh_Mel.Radio.SX1276RadioConfiguration.Bandwidth">
+        <member name="P:Samraksh_Mel.Radio.SX1276RadioConfiguration.RadioBandwidth">
             <summary>Bandwidth for the radio</summary>
         </member>
         <member name="P:Samraksh_Mel.Radio.SX1276RadioConfiguration.RadioName">
@@ -2147,6 +2147,24 @@
             <param name="channel">channel to use</param>
             <returns>Status of operation</returns>
         </member>
+        <member name="M:Samraksh_Mel.Radio.Radio_802_15_4_Base.SetSpreadingFactor(System.Byte,System.Int32)">
+            <summary>Set the radio spreading factor</summary>
+            <param name="radioName">Radio name</param>
+            <param name="spreadFactor">spreading factor to use</param>
+            <returns>Status of operation</returns>
+        </member>
+        <member name="M:Samraksh_Mel.Radio.Radio_802_15_4_Base.SetCodingRate(System.Byte,System.Int32)">
+            <summary>Set the radio coding rate</summary>
+            <param name="radioName">Radio name</param>
+            <param name="codingRate">coding rate to use</param>
+            <returns>Status of operation</returns>
+        </member>
+        <member name="M:Samraksh_Mel.Radio.Radio_802_15_4_Base.SetBandwidth(System.Byte,System.Int32)">
+            <summary>Set the radio bandwidth</summary>
+            <param name="radioName">Radio name</param>
+            <param name="bandwidth">bandwidth to use</param>
+            <returns>Status of operation</returns>
+        </member>
         <member name="M:Samraksh_Mel.Radio.Radio_802_15_4_Base.GetRadioAddress(System.Byte)">
             <summary>Get the address of the device</summary>
             <remarks>This is the address by which the device is known to the rest of the world.</remarks>
@@ -2232,6 +2250,15 @@
         </member>
         <member name="P:Samraksh_Mel.Radio.Radio_802_15_4_Base.Channel">
             <summary>channel the radio will transmit on</summary>
+        </member>
+        <member name="P:Samraksh_Mel.Radio.Radio_802_15_4_Base.RadioBandwidth">
+            <summary>bandwidth of the radio</summary>
+        </member>
+        <member name="P:Samraksh_Mel.Radio.Radio_802_15_4_Base.CodingRate">
+            <summary>coding rate of the radio</summary>
+        </member>
+        <member name="P:Samraksh_Mel.Radio.Radio_802_15_4_Base.SpreadingFactor">
+            <summary>coding rate of the radio</summary>
         </member>
         <member name="P:Samraksh_Mel.Radio.Radio_802_15_4_Base.RadioName">
             <summary>Type of radio</summary>

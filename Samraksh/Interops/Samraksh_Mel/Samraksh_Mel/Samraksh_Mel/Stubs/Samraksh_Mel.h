@@ -162,7 +162,10 @@ struct Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base
     static const int FIELD___radioAddress = 1;
     static const int FIELD___txPower = 2;
     static const int FIELD___channel = 3;
-    static const int FIELD___radioName = 4;
+    static const int FIELD___bandwidth = 4;
+    static const int FIELD___codingRate = 5;
+    static const int FIELD___spreadingFactor = 6;
+    static const int FIELD___radioName = 7;
 
     TINYCLR_NATIVE_DECLARE(TurnOnRx___SamrakshMelDeviceStatus__U1);
     TINYCLR_NATIVE_DECLARE(Sleep___SamrakshMelDeviceStatus__U1__U1);
@@ -175,6 +178,9 @@ struct Library_Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base
     TINYCLR_NATIVE_DECLARE(SetRadioName___SamrakshMelDeviceStatus__U1);
     TINYCLR_NATIVE_DECLARE(SetTxPower___SamrakshMelDeviceStatus__U1__I4);
     TINYCLR_NATIVE_DECLARE(SetChannel___SamrakshMelDeviceStatus__U1__I4);
+    TINYCLR_NATIVE_DECLARE(SetSpreadingFactor___SamrakshMelDeviceStatus__U1__I4);
+    TINYCLR_NATIVE_DECLARE(SetCodingRate___SamrakshMelDeviceStatus__U1__I4);
+    TINYCLR_NATIVE_DECLARE(SetBandwidth___SamrakshMelDeviceStatus__U1__I4);
     TINYCLR_NATIVE_DECLARE(GetRadioAddress___U2__U1);
     TINYCLR_NATIVE_DECLARE(SetRadioAddress___BOOLEAN__U1__U2);
     TINYCLR_NATIVE_DECLARE(UnInitialize___SamrakshMelDeviceStatus__U1);
@@ -228,7 +234,7 @@ struct Library_Samraksh_Mel_Samraksh_Mel_Radio_SX1276RadioConfiguration
     static const int FIELD__<Channel>k__BackingField = 2;
     static const int FIELD__<CodingRate>k__BackingField = 3;
     static const int FIELD__<SpreadingFactor>k__BackingField = 4;
-    static const int FIELD__<Bandwidth>k__BackingField = 5;
+    static const int FIELD__<RadioBandwidth>k__BackingField = 5;
     static const int FIELD__<RadioName>k__BackingField = 6;
 
 

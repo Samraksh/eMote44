@@ -734,7 +734,7 @@ namespace Samraksh_Mel.Radio
         public int SpreadingFactor { get; set; }
 
         /// <summary>Bandwidth for the radio</summary>
-        public int Bandwidth { get; set; }
+        public int RadioBandwidth { get; set; }
 
         /// <summary>Type of radio</summary>
         public RadioName RadioName { get; set; }
@@ -749,7 +749,7 @@ namespace Samraksh_Mel.Radio
             Channel = (int)channel;
             CodingRate = (int)codingRate;
             SpreadingFactor = (int)spreadingFactors;
-            Bandwidth = (int)bandwidth;
+            RadioBandwidth = (int)bandwidth;
         }
     }
 
