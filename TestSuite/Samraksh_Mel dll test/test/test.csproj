@@ -48,7 +48,11 @@
   <ItemGroup>
     <Reference Include="Microsoft.SPOT.Hardware" />
     <Reference Include="Microsoft.SPOT.Native" />
-    <Reference Include="Samraksh_Mel">
+    <Reference Include="Samraksh_eMote_Net">
+      <HintPath>..\..\..\Samraksh\Executables\Release\Samraksh_eMote_Net\Samraksh_eMote_Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Samraksh_Mel, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\Samraksh\Executables\Release\Samraksh_Mel\Samraksh_Mel.dll</HintPath>
     </Reference>
   </ItemGroup>

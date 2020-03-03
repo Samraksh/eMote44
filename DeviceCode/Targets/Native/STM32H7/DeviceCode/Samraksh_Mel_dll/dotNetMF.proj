@@ -13,12 +13,6 @@
 <Compile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface_mshl.cpp" />
 <HFile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface.h" />
 <Compile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface.cpp" />
-<Compile Include="Samraksh_Mel_Samraksh_Mel_MACBase_mshl.cpp" />
-<HFile Include="Samraksh_Mel_Samraksh_Mel_MACBase.h" />
-<Compile Include="Samraksh_Mel_Samraksh_Mel_MACBase.cpp" />
-<Compile Include="Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base_mshl.cpp" />
-<HFile Include="Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base.h" />
-<Compile Include="Samraksh_Mel_Samraksh_Mel_Radio_Radio_802_15_4_Base.cpp" />
 </ItemGroup>
 <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 </Project>

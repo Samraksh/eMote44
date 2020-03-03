@@ -39,6 +39,7 @@ namespace Samraksh
                 static UNSUPPORTED_TYPE& Get_OnNeighborChange( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_eMote_Net_Samraksh_eMote_Net_MACBase::FIELD__OnNeighborChange ); }
 
                 static UNSUPPORTED_TYPE& Get_OnSendStatus( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_eMote_Net_Samraksh_eMote_Net_MACBase::FIELD__OnSendStatus ); }
+
                 static INT8& Get__cca( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_INT8( pMngObj, Library_Samraksh_eMote_Net_Samraksh_eMote_Net_MACBase::FIELD___cca ); }
 
                 static UINT8& Get__numberOfRetries( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UINT8( pMngObj, Library_Samraksh_eMote_Net_Samraksh_eMote_Net_MACBase::FIELD___numberOfRetries ); }
@@ -69,12 +70,12 @@ namespace Samraksh
                 static INT32 GetPacketWithIndex( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 param0, UINT8 param1, UINT16 param2, HRESULT &hr );
                 static INT32 GetPacketSizeWithIndex( CLR_RT_HeapBlock* pMngObj, UINT8 * param0, UINT16 param1, HRESULT &hr );
                 static UINT16 EnqueueToSend( CLR_RT_HeapBlock* pMngObj, UINT16 param0, UINT8 param1, CLR_RT_TypedArray_UINT8 param2, UINT16 param3, UINT16 param4, HRESULT &hr );
-                static UINT16 EnqueueToSend( CLR_RT_HeapBlock* pMngObj, UINT16 param0, UINT8 param1, CLR_RT_TypedArray_UINT8 param2, UINT16 param3, UINT16 param4, UINT32 eventtime, HRESULT &hr );
+                static UINT16 EnqueueToSend( CLR_RT_HeapBlock* pMngObj, UINT16 param0, UINT8 param1, CLR_RT_TypedArray_UINT8 param2, UINT16 param3, UINT16 param4, UINT32 param5, HRESULT &hr );
                 static INT32 Send( CLR_RT_HeapBlock* pMngObj, UINT16 param0, CLR_RT_TypedArray_UINT8 param1, UINT16 param2, UINT16 param3, UINT32 param4, HRESULT &hr );
                 static INT32 Send( CLR_RT_HeapBlock* pMngObj, UINT16 param0, UINT8 param1, CLR_RT_TypedArray_UINT8 param2, UINT16 param3, UINT16 param4, HRESULT &hr );
                 static INT32 Send( CLR_RT_HeapBlock* pMngObj, UINT16 param0, UINT8 param1, CLR_RT_TypedArray_UINT8 param2, UINT16 param3, UINT16 param4, UINT32 param5, HRESULT &hr );
 				static UINT8 MyAppID;
-                static MACEventHandler_t Event_Handler;
+        		static MACEventHandler_t Event_Handler;
             };
         }
     }

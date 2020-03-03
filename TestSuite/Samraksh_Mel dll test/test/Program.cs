@@ -5,8 +5,9 @@ using System.Threading;
 using System.Collections;
 
 using Samraksh_Mel;
-using Samraksh_Mel.MAC;
-using Samraksh_Mel.Radio;
+using Samraksh.eMote.Net;
+using Samraksh.eMote.Net.MAC;
+using Samraksh.eMote.Net.Radio;
 
 
 //1. This program initializes OMAC as the MAC protocol.
@@ -108,7 +109,7 @@ namespace TestSuite
         static UInt32 totalRecvCounter = 1;
 
         PingPayload pingMsg = new PingPayload();
-        Samraksh_Mel.MAC.OMAC myOMACObj;
+        Samraksh.eMote.Net.MAC.OMAC myOMACObj;
 
         int errors = 0;
         int retransmit = 0;
@@ -132,7 +133,7 @@ namespace TestSuite
                 var radioConfig = new SX1276RadioConfiguration(SX1276TxPower.Power_0dBm, SX1276Channel.Channel_915, SX1276Bandwidth.Bandwidth_500kHz, SX1276CodingRate.CodingRate_4_7, SX1276SpreadingFactor.SpreadingFactor_7);                
 
                 //configure OMAC
-                myOMACObj = new Samraksh_Mel.MAC.OMAC(radioConfig);
+                myOMACObj = new Samraksh.eMote.Net.MAC.OMAC(radioConfig);
                 myOMACObj.OnReceive += Receive;
                 myOMACObj.OnNeighborChange += NeighborChange;
 
@@ -147,10 +148,10 @@ namespace TestSuite
                 chan2.OnReceive += Receive;
                 chan1.OnSendStatus += ReceiveSendStatus2;
 
-                Samraksh_Mel.AudioInterface audI = new AudioInterface(retDataSize);
-                audI.audio_inference_callback += AICallback;
-                audI.start_audio_interference(5000);                
-                audI.stop_audio_interference();
+                //Samraksh_Mel.AudioInterface audI = new AudioInterface(retDataSize);
+                //audI.audio_inference_callback += AICallback;
+                //audI.start_audio_interference(5000);                
+                //audI.stop_audio_interference();
             }
             catch (Exception e)
             {
@@ -169,7 +170,7 @@ namespace TestSuite
         }
 
         //Handles received messages 
-        public void Receive(IMAC macBase, DateTime time, Packet receivedPacket)
+        public void Receive(IMAC macBase, DateTime time, Samraksh.eMote.Net.Packet receivedPacket)
         {
             Debug.Print("---------------------------");
 

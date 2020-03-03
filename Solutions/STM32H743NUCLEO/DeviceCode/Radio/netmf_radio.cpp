@@ -394,6 +394,7 @@ DeviceStatus CPU_Radio_ChangeTxPower(UINT8 radioName, int power)
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
+			status = DS_Success;
 #endif
 			break;
 		default:

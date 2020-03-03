@@ -13,19 +13,17 @@
 
 #include "Samraksh_eMote_Net.h"
 #include "Samraksh_eMote_Net_Samraksh_eMote_Net_MACBase.h"
+#include <tinyhal.h>
 #include <Samraksh/MAC_decl.h>
 #include <Samraksh/MAC.h>
 #include <Samraksh\Buffer.h>
 
 using namespace Samraksh::eMote::Net;
-
 extern CLR_RT_HeapBlock_NativeEventDispatcher *Net_ne_Context;
 
 MACEventHandler_t MACBase::Event_Handler;
 UINT8 MacID = 0;
 UINT8 MACBase::MyAppID;
-
-//extern UINT8 MacName;
 
 enum CallBackTypes
 {
@@ -48,13 +46,9 @@ extern Buffer_15_4_t g_receive_buffer;
 
 UINT8 MACInteropBuffer[IEEE802_15_4_FRAME_LENGTH];
 
-//INT32 MACBase::RemovePacket( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 msgBuffer, HRESULT &hr )
 INT32 MACBase::RemovePacket( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-    //INT32 retVal = 0;
-    //return retVal;
-
-	Message_15_4_t** temp = g_receive_buffer.GetOldestPtr();
+    Message_15_4_t** temp = g_receive_buffer.GetOldestPtr();
     if((*temp) == NULL){
 		return DS_Fail;
 	}
@@ -73,7 +67,7 @@ UINT8 MACBase::PendingSendPacketCount( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 
 INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, CLR_RT_TypedArray_UINT8 payloadTemp, UINT16 offset, UINT16 size, HRESULT &hr )
 {
-	InteropNetOpStatus retVal;
+    InteropNetOpStatus retVal;
     //UINT16 address, offset, length;
     UINT8* payload = payloadTemp.GetBuffer();
     //address=param0;
@@ -91,14 +85,15 @@ INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, CLR_RT_TypedArra
 
 INT32 MACBase::UnInitialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	DeviceStatus status;
+    DeviceStatus status;
 	status = MAC_UnInitialize();
     return status;
 }
 
 INT32 MACBase::InternalInitialize( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 marshalBuffer, UINT8 macname, HRESULT &hr )
 {
-	INT32 result = DS_Success;
+	hal_printf("MAC base init\r\n");
+    INT32 result = DS_Success;
 	UINT8* configParams = marshalBuffer.GetBuffer();
 	MACConfig config;
 
@@ -128,7 +123,7 @@ INT32 MACBase::InternalInitialize( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_
 
 INT32 MACBase::InternalReConfigure( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 marshalBuffer, HRESULT &hr )
 {
-	INT32 result = DS_Success;
+    INT32 result = DS_Success;
 	UINT8* configParams = marshalBuffer.GetBuffer();
 	MACConfig config;
 
@@ -151,13 +146,13 @@ INT32 MACBase::InternalReConfigure( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray
 
 INT32 MACBase::GetNextPacket( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 nativeBuffer, HRESULT &hr )
 {
-	UINT8* managedBuffer = nativeBuffer.GetBuffer();
+    UINT8* managedBuffer = nativeBuffer.GetBuffer();
 	return MAC_GetNextPacket(&managedBuffer);
 }
 
 INT32 MACBase::GetNeighborInternal( CLR_RT_HeapBlock* pMngObj, UINT16 macAddress, CLR_RT_TypedArray_UINT8 neighborlist, HRESULT &hr )
 {
-   return MAC_GetNeighborStatus(macAddress, neighborlist.GetBuffer());
+    return MAC_GetNeighborStatus(macAddress, neighborlist.GetBuffer());
 }
 
 INT32 MACBase::GetNeighborListInternal( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT16 neighborlist, HRESULT &hr )
@@ -177,13 +172,13 @@ INT32 MACBase::GetMACNeighborListInternal( CLR_RT_HeapBlock* pMngObj, CLR_RT_Typ
 
 INT32 MACBase::GetPacketWithIndex( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 nativeBuffer, UINT8 buffersize, UINT16 index, HRESULT &hr )
 {
-	UINT8* managedBuffer = nativeBuffer.GetBuffer();
+    UINT8* managedBuffer = nativeBuffer.GetBuffer();
 	return MAC_GetPacketWithIndex(&managedBuffer, buffersize, index);
 }
 
 INT32 MACBase::GetPacketSizeWithIndex( CLR_RT_HeapBlock* pMngObj, UINT8 * buffersize, UINT16 index, HRESULT &hr )
 {
-	return MAC_GetPacketSizeWithIndex(buffersize, index);
+    return MAC_GetPacketSizeWithIndex(buffersize, index);
 }
 
 UINT16 MACBase::EnqueueToSend(  CLR_RT_HeapBlock* pMngObj, UINT16 address, UINT8 payloadType, CLR_RT_TypedArray_UINT8 payloadTemp, UINT16 offset, UINT16 size, HRESULT &hr )
@@ -213,7 +208,7 @@ INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, UINT8 payloadTyp
 	else
 		retVal = E_MacSendError;
 
-	return retVal;
+    return retVal;
 }
 
 INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, CLR_RT_TypedArray_UINT8 payloadTemp, UINT16 offset, UINT16 size, UINT32 eventTime, HRESULT &hr )
@@ -232,7 +227,7 @@ INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, CLR_RT_TypedArra
 	else
 		retVal = E_MacSendError;
 
-	return retVal;
+    return retVal;
 }
 
 INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, UINT8 payloadType, CLR_RT_TypedArray_UINT8 payloadTemp, UINT16 offset, UINT16 size, UINT32 eventTime, HRESULT &hr )
@@ -251,7 +246,7 @@ INT32 MACBase::Send( CLR_RT_HeapBlock* pMngObj, UINT16 address, UINT8 payloadTyp
 	else
 		retVal = E_MacSendError;
 
-	return retVal;
+    return retVal;
 }
 
 void ReceiveDoneCallbackFn(void* msg, UINT16 payloadType)

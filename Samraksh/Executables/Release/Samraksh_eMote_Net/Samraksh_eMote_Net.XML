@@ -760,6 +760,9 @@
         <member name="F:Samraksh.eMote.Net.Radio.RadioName.SI4468">
             <summary>Long range (433 MHz) radio</summary>
         </member>
+        <member name="F:Samraksh.eMote.Net.Radio.RadioName.SX1276">
+            <summary>sx1276</summary>
+        </member>
         <member name="T:Samraksh.eMote.Net.Radio.RF231TxPower">
             <summary>
             Power levels supported by the RF231 radio (onboard and long range)
@@ -812,6 +815,68 @@
         </member>
         <member name="F:Samraksh.eMote.Net.Radio.RF231TxPower.Power_Minus17dBm">
             <summary>-17.0 dB</summary>
+        </member>
+        <member name="T:Samraksh.eMote.Net.Radio.SX1276TxPower">
+            <summary>
+            Power levels supported by the SX1276 radio
+            </summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_14dBm">
+            <summary>14 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_13dBm">
+            <summary>13 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_12dBm">
+            <summary>12 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_11dBm">
+            <summary>11 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_10dBm">
+            <summary>10 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_9dBm">
+            <summary>9 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_8dBm">
+            <summary>8 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_7dBm">
+            <summary>7 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_6dBm">
+            <summary>6 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_5dBm">
+            <summary>5 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_4dBm">
+            <summary>4 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_3dBm">
+            <summary>3 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_2dBm">
+            <summary>2 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_1dBm">
+            <summary>1 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_0dBm">
+            <summary>0 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_Minus_1dBm">
+            <summary>-1 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_Minus_2dBm">
+            <summary>-2 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_Minus_3dBm">
+            <summary>-3 dB</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276TxPower.Power_Minus_4dBm">
+            <summary>-4 dB</summary>
         </member>
         <member name="T:Samraksh.eMote.Net.Radio.SI4468TxPower">
             <summary>
@@ -1202,6 +1267,146 @@
         <member name="F:Samraksh.eMote.Net.Radio.SI4468TxPower.Power_Minus19Point7dBm">
             <summary>-19.7 dB</summary>
         </member>
+        <member name="T:Samraksh.eMote.Net.Radio.SX1276Bandwidth">
+            <summary>
+            Bandwidth supported by SX1276 radio
+            </summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Bandwidth.Bandwidth_125kHz">
+            <summary>Bandwidth 125kHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Bandwidth.Bandwidth_250kHz">
+            <summary>Bandwidth 250kHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Bandwidth.Bandwidth_500kHz">
+            <summary>Bandwidth 500kHz</summary>
+        </member>
+        <member name="T:Samraksh.eMote.Net.Radio.SX1276CodingRate">
+            <summary>
+            Coding rate supported by SX1276 radio
+            </summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276CodingRate.CodingRate_4_5">
+            <summary>Coding Rate 4/5</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276CodingRate.CodingRate_4_6">
+            <summary>Coding Rate 4/6</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276CodingRate.CodingRate_4_7">
+            <summary>Coding Rate 4/7</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276CodingRate.CodingRate_4_8">
+            <summary>Coding Rate 4/8</summary>
+        </member>
+        <member name="T:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor">
+            <summary>
+            Spreading factors supported by SX1276 radio
+            </summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor.SpreadingFactor_7">
+            <summary>Spreading Factor 7</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor.SpreadingFactor_8">
+            <summary>Spreading Factor 8</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor.SpreadingFactor_9">
+            <summary>Spreading Factor 9</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor.SpreadingFactor_10">
+            <summary>Spreading Factor 10</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor.SpreadingFactor_11">
+            <summary>Spreading Factor 11</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276SpreadingFactor.SpreadingFactor_12">
+            <summary>Spreading Factor 12</summary>
+        </member>
+        <member name="T:Samraksh.eMote.Net.Radio.SX1276Channel">
+            <summary>
+            Channels supported by SX1276 radio
+            </summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_902">
+            <summary>902 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_903">
+            <summary>903 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_904">
+            <summary>904 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_905">
+            <summary>905 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_906">
+            <summary>906 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_907">
+            <summary>907 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_908">
+            <summary>908 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_909">
+            <summary>909 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_910">
+            <summary>910 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_911">
+            <summary>911 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_912">
+            <summary>912 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_913">
+            <summary>913 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_914">
+            <summary>914 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_915">
+            <summary>915 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_916">
+            <summary>916 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_917">
+            <summary>917 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_918">
+            <summary>918 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_919">
+            <summary>919 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_920">
+            <summary>920 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_921">
+            <summary>921 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_922">
+            <summary>922 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_923">
+            <summary>923 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_924">
+            <summary>924 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_925">
+            <summary>925 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_926">
+            <summary>926 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_927">
+            <summary>927 MHz</summary>
+        </member>
+        <member name="F:Samraksh.eMote.Net.Radio.SX1276Channel.Channel_928">
+            <summary>928 MHz</summary>
+        </member>
         <member name="T:Samraksh.eMote.Net.Radio.RF231Channel">
             <summary>
             Channels supported by RF231 radio
@@ -1381,6 +1586,32 @@
             <summary>Channel the radio will transmit on</summary>
         </member>
         <member name="P:Samraksh.eMote.Net.Radio.SI4468RadioConfiguration.RadioName">
+            <summary>Type of radio</summary>
+        </member>
+        <member name="T:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration">
+            <summary>SX1276 Radio configuration</summary>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.#ctor(Samraksh.eMote.Net.Radio.SX1276TxPower,Samraksh.eMote.Net.Radio.SX1276Channel,Samraksh.eMote.Net.Radio.SX1276Bandwidth,Samraksh.eMote.Net.Radio.SX1276CodingRate,Samraksh.eMote.Net.Radio.SX1276SpreadingFactor)">
+            <summary>Radio configuration constructor</summary>
+            <param name="power">Transmission power</param>
+            <param name="channel">Channel</param>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.TxPower">
+            <summary>Transmission power of the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.Channel">
+            <summary>Channel the radio will transmit on</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.CodingRate">
+            <summary>Coding Rate for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.SpreadingFactor">
+            <summary>Spreading Factor for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.RadioBandwidth">
+            <summary>Bandwidth for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SX1276RadioConfiguration.RadioName">
             <summary>Type of radio</summary>
         </member>
         <member name="T:Samraksh.eMote.Net.Radio.IRadio">
@@ -1600,6 +1831,30 @@
         </member>
         <member name="P:Samraksh.eMote.Net.MACPipe.MACType">
             <summary>The type of MAC (OMAC, CSMA)</summary>
+        </member>
+        <member name="T:Samraksh.eMote.Net.OMAC">
+            <summary>OMAC class</summary>
+        </member>
+        <member name="M:Samraksh.eMote.Net.OMAC.#ctor(Samraksh.eMote.Net.Radio.IRadioConfiguration,System.UInt32,System.Byte,System.Byte,System.Boolean,System.Byte)">
+            <summary>OMAC constructor</summary>
+            <param name="radioConfiguration">Radio configuration to use</param>
+            <param name="cca">Use clear channel assessment</param>
+            <param name="numberOfRetries">Number of times to retry sending a packet</param>
+            <param name="ccaSenseTime">cca sense time</param>
+            <param name="bufferSize">Size of send buffer</param>
+            <param name="neighborLivenessDelay">Time to wait (in milliseconds) before declaring a neighbor dead</param>
+        </member>
+        <member name="T:Samraksh.eMote.Net.MAC.OMAC">
+            <summary>OMAC class</summary>
+        </member>
+        <member name="M:Samraksh.eMote.Net.MAC.OMAC.#ctor(Samraksh.eMote.Net.Radio.IRadioConfiguration,System.UInt32,System.Byte,System.Byte,System.Boolean,System.Byte)">
+            <summary>OMAC constructor</summary>
+            <param name="radioConfiguration">Radio configuration to use</param>
+            <param name="cca">Use clear channel assessment</param>
+            <param name="numberOfRetries">Number of times to retry sending a packet</param>
+            <param name="ccaSenseTime">cca sense time</param>
+            <param name="bufferSize">Size of send buffer</param>
+            <param name="neighborLivenessDelay">Time to wait (in milliseconds) before declaring a neighbor dead</param>
         </member>
         <member name="T:Samraksh.eMote.Net.PayloadType">
             <summary>
@@ -1823,21 +2078,6 @@
             <param name="size">size of the payload buffer</param>
             <param name="isPacketTimeStamped">Is packet timestamped?</param>
         </member>
-        <member name="T:Samraksh.eMote.Net.MAC.OMAC">
-            <summary>OMAC class</summary>
-        </member>
-        <member name="M:Samraksh.eMote.Net.MAC.OMAC.#ctor(Samraksh.eMote.Net.Radio.IRadioConfiguration,System.UInt32,System.Byte,System.Byte,System.Boolean,System.Byte)">
-            <summary>OMAC constructor</summary>
-            <param name="radioConfiguration">Radio configuration to use</param>
-            <param name="cca">Use clear channel assessment</param>
-            <param name="numberOfRetries">Number of times to retry sending a packet</param>
-            <param name="ccaSenseTime">cca sense time</param>
-            <param name="bufferSize">Size of send buffer</param>
-            <param name="neighborLivenessDelay">Time to wait (in milliseconds) before declaring a neighbor dead</param>
-        </member>
-        <member name="T:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468">
-            <summary>Generic radio object</summary>
-        </member>
         <member name="T:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base">
             <summary>
             802.15.4 radio configuration
@@ -1864,6 +2104,24 @@
             <summary>Set the radio _channel</summary>
             <param name="radioName">Radio name</param>
             <param name="channel">channel to use</param>
+            <returns>Status of operation</returns>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.SetSpreadingFactor(System.Byte,System.Int32)">
+            <summary>Set the radio spreading factor</summary>
+            <param name="radioName">Radio name</param>
+            <param name="spreadFactor">spreading factor to use</param>
+            <returns>Status of operation</returns>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.SetCodingRate(System.Byte,System.Int32)">
+            <summary>Set the radio coding rate</summary>
+            <param name="radioName">Radio name</param>
+            <param name="codingRate">coding rate to use</param>
+            <returns>Status of operation</returns>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.SetBandwidth(System.Byte,System.Int32)">
+            <summary>Set the radio bandwidth</summary>
+            <param name="radioName">Radio name</param>
+            <param name="bandwidth">bandwidth to use</param>
             <returns>Status of operation</returns>
         </member>
         <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.GetRadioAddress(System.Byte)">
@@ -1952,24 +2210,20 @@
         <member name="P:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.Channel">
             <summary>channel the radio will transmit on</summary>
         </member>
+        <member name="P:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.RadioBandwidth">
+            <summary>bandwidth of the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.CodingRate">
+            <summary>coding rate of the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.SpreadingFactor">
+            <summary>coding rate of the radio</summary>
+        </member>
         <member name="P:Samraksh.eMote.Net.Radio.Radio_802_15_4_Base.RadioName">
             <summary>Type of radio</summary>
         </member>
-        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468.#ctor">
-            <summary>Constructor</summary>
-        </member>
-        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468.#ctor(Samraksh.eMote.Net.Radio.RadioUser)">
-            <summary>Constructor</summary>
-            <param name="user">Radio user</param>
-        </member>
-        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468.Radio_802_15_4_SI4468_UnInitialize">
-            <summary>
-            
-            </summary>
-            <returns></returns>
-        </member>
         <member name="T:Samraksh.eMote.Net.Radio.Radio_802_15_4_RF231">
-            <summary>Generic radio object</summary>
+            <summary>RF231 radio object</summary>
         </member>
         <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_RF231.#ctor">
             <summary>Constructor</summary>
@@ -1984,17 +2238,33 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="T:Samraksh.eMote.Net.Radio.Radio_802_15_4_RF231_LR">
-            <summary>Long range radio</summary>
+        <member name="T:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468">
+            <summary>SI4468 radio object</summary>
         </member>
-        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_RF231_LR.#ctor">
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468.#ctor">
             <summary>Constructor</summary>
         </member>
-        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_RF231_LR.#ctor(Samraksh.eMote.Net.Radio.RadioUser)">
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468.#ctor(Samraksh.eMote.Net.Radio.RadioUser)">
             <summary>Constructor</summary>
-            <param name="user"></param>
+            <param name="user">Radio user</param>
         </member>
-        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_RF231_LR.Radio_802_15_4_RF231_LR_UnInitialize">
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SI4468.Radio_802_15_4_SI4468_UnInitialize">
+            <summary>
+            
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="T:Samraksh.eMote.Net.Radio.Radio_802_15_4_SX1276">
+            <summary>SX1276 radio object</summary>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SX1276.#ctor">
+            <summary>Constructor</summary>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SX1276.#ctor(Samraksh.eMote.Net.Radio.RadioUser)">
+            <summary>Constructor</summary>
+            <param name="user">Radio user</param>
+        </member>
+        <member name="M:Samraksh.eMote.Net.Radio.Radio_802_15_4_SX1276.Radio_802_15_4_SX1276_UnInitialize">
             <summary>
             
             </summary>

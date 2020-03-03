@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FeatureName>Samraksh_Mel</FeatureName>
-    <Guid>{c8ad2b67-13c2-4a5f-ae4e-b03e6c0f15fd}</Guid>
+    <Guid>{b64459a1-bbea-4ff8-b075-370f29466ae4}</Guid>
     <Description>&lt;Add Feature Description Here&gt;</Description>
     <Groups />
     <SAMRAKSH_MEL_FEATUREPROJ>True</SAMRAKSH_MEL_FEATUREPROJ>
@@ -10,10 +10,6 @@
   <ItemGroup>
     <DriverLibs Include="Samraksh_Mel.$(LIB_EXT)" />
     <InteropFeature Include="Samraksh_Mel" />
-	<InteropFeature Include="MACCallback" />
-    <InteropFeature Include="OMACCallback" />
-    <InteropFeature Include="AICallback" />
-    <InteropFeature Include="RadioCallback_802_15_4" />
 	<!--<MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_Mel.pe" />-->
     <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_Mel_dll\dotnetmf.proj" />
   </ItemGroup>

@@ -18,6 +18,7 @@
     <Import Condition="'$(SERIALIZATION_FEATUREPROJ)'==''" Project="$(SPOCLIENT)\Framework\Features\Serialization.featureproj" />
     <Import Condition="'$(WINDOWS_DEVICES_FEATUREPROJ)'==''" Project="$(SPOCLIENT)\Framework\Features\Windows_Devices.featureproj" />
 	<Import Project="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_Mel_dll\Samraksh_Mel.featureproj" />
+	<Import Project="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_eMote_Net\Samraksh_eMote_Net.featureproj" />
     <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Interop.Settings" />
     <ItemGroup>
         <!--<DriverLibs Include="CortexMx_ItmPort.$(LIB_EXT)" />-->
@@ -52,10 +53,10 @@
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\Wireless\MAC\dotNetMF.proj" />
         <DriverLibs Include="mac_pal.$(LIB_EXT)"/>
 	</ItemGroup>
-	<!--<ItemGroup>
+	<ItemGroup>
   		<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_eMote_Net\dotNetMF.proj" />
   		<DriverLibs Include="Samraksh_eMote_NET.$(LIB_EXT)" />
-  </ItemGroup>-->
+  </ItemGroup>
 	<ItemGroup>
   		<RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_Mel_dll\dotNetMF.proj" />
   		<DriverLibs Include="Samraksh_Mel.$(LIB_EXT)" />

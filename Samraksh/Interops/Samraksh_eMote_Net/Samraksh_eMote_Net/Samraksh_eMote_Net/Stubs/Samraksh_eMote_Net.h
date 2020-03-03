@@ -31,8 +31,8 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_MACBase
     static const int FIELD___ccaSenseTime = 14;
     static const int FIELD___bufferSize = 15;
     static const int FIELD___neighborLivenessDelay = 16;
-    static const int FIELD__MACType = 17;
-    static const int FIELD__MACRadioObj = 18;
+    static const int FIELD__<MACType>k__BackingField = 17;
+    static const int FIELD__<MACRadioObj>k__BackingField = 18;
 
     TINYCLR_NATIVE_DECLARE(RemovePacket___SamraksheMoteNetDeviceStatus);
     TINYCLR_NATIVE_DECLARE(PendingReceivePacketCount___U1);
@@ -120,9 +120,9 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Packet
 
 struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231LRRadioConfiguration
 {
-    static const int FIELD__TxPower = 1;
-    static const int FIELD__Channel = 2;
-    static const int FIELD__RadioName = 3;
+    static const int FIELD__<TxPower>k__BackingField = 1;
+    static const int FIELD__<Channel>k__BackingField = 2;
+    static const int FIELD__<RadioName>k__BackingField = 3;
 
 
     //--//
@@ -131,9 +131,9 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231LRRadioConfigura
 
 struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231RadioConfiguration
 {
-    static const int FIELD__TxPower = 1;
-    static const int FIELD__Channel = 2;
-    static const int FIELD__RadioName = 3;
+    static const int FIELD__<TxPower>k__BackingField = 1;
+    static const int FIELD__<Channel>k__BackingField = 2;
+    static const int FIELD__<RadioName>k__BackingField = 3;
 
 
     //--//
@@ -204,9 +204,9 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_Radio_802_15_4_SX1276
 
 struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_SI4468RadioConfiguration
 {
-    static const int FIELD__TxPower = 1;
-    static const int FIELD__Channel = 2;
-    static const int FIELD__RadioName = 3;
+    static const int FIELD__<TxPower>k__BackingField = 1;
+    static const int FIELD__<Channel>k__BackingField = 2;
+    static const int FIELD__<RadioName>k__BackingField = 3;
 
 
     //--//
@@ -215,21 +215,18 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_SI4468RadioConfigurat
 
 struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_SX1276RadioConfiguration
 {
-    static const int FIELD__TxPower = 1;
-    static const int FIELD__Channel = 2;
-    static const int FIELD__CodingRate = 3;
-    static const int FIELD__SpreadingFactor = 4;
-    static const int FIELD__Bandwidth = 5;
-    static const int FIELD__RadioName = 6;
+    static const int FIELD__<TxPower>k__BackingField = 1;
+    static const int FIELD__<Channel>k__BackingField = 2;
+    static const int FIELD__<CodingRate>k__BackingField = 3;
+    static const int FIELD__<SpreadingFactor>k__BackingField = 4;
+    static const int FIELD__<RadioBandwidth>k__BackingField = 5;
+    static const int FIELD__<RadioName>k__BackingField = 6;
 
 
     //--//
 
 };
 
-extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_OMACCallback;
-extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_MACCallback;
-extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_RadioCallback_802_15_4;
 
 
 extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_eMote_Net;

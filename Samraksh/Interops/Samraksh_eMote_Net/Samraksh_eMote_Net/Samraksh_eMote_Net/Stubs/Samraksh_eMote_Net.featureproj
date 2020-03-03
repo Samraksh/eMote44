@@ -10,12 +10,7 @@
   <ItemGroup>
     <DriverLibs Include="Samraksh_eMote_Net.$(LIB_EXT)" />
     <InteropFeature Include="Samraksh_eMote_Net" />
-    <InteropFeature Include="Samraksh_Mel" />
-	<InteropFeature Include="MACCallback" />
-    <InteropFeature Include="OMACCallback" />
-    <InteropFeature Include="AICallback" />
-    <InteropFeature Include="RadioCallback_802_15_4" />
-	<!--<MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_Mel.pe" />-->
-    <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_eMote_Net\dotnetmf.proj" />
+    <MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_eMote_Net.pe" />
+    <RequiredProjects Include="D:\Work\MF44\eMote44\Samraksh\Interops\Samraksh_eMote_Net\Samraksh_eMote_Net\Samraksh_eMote_Net\Stubs\dotnetmf.proj" />
   </ItemGroup>
 </Project>

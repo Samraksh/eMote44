@@ -14,10 +14,8 @@
 #include "Samraksh_eMote_Net.h"
 #include "Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_Radio_802_15_4_Base.h"
 #include <Samraksh/Radio_decl.h>
-//#include <Samraksh/Radio.h>
 
 using namespace Samraksh::eMote::Net::Radio;
-
 
 INT32 Radio_802_15_4_Base::UnInitialize( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, HRESULT &hr )
 {
@@ -76,6 +74,42 @@ INT32 Radio_802_15_4_Base::SetChannel( CLR_RT_HeapBlock* pMngObj, UINT8 radioNam
 	DeviceStatus status;
 	//BOOL ret = MAC_SetRadioChannel(channel);
 	BOOL ret = CPU_Radio_ChangeChannel(radioName, channel);
+	if(ret)
+		status = DS_Success;
+	else
+		status = DS_Fail;
+
+	return status;
+}
+
+INT32 Radio_802_15_4_Base::SetSpreadingFactor( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, INT32 spreadingFactor, HRESULT &hr )
+{
+    DeviceStatus status;
+	BOOL ret = CPU_Radio_ChangeSpreadingFactor(radioName, spreadingFactor);
+	if(ret)
+		status = DS_Success;
+	else
+		status = DS_Fail;
+
+	return status;
+}
+
+INT32 Radio_802_15_4_Base::SetCodingRate( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, INT32 codingRate, HRESULT &hr )
+{
+    DeviceStatus status;
+	BOOL ret = CPU_Radio_ChangeCodingRate(radioName, codingRate);
+	if(ret)
+		status = DS_Success;
+	else
+		status = DS_Fail;
+
+	return status;
+}
+
+INT32 Radio_802_15_4_Base::SetBandwidth( CLR_RT_HeapBlock* pMngObj, UINT8 radioName, INT32 bandwidth, HRESULT &hr )
+{
+   DeviceStatus status;
+	BOOL ret = CPU_Radio_ChangeBandwidth(radioName, bandwidth);
 	if(ret)
 		status = DS_Success;
 	else
