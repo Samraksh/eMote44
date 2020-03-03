@@ -40,6 +40,7 @@
   <PropertyGroup />
   <ItemGroup>		
 	<HFiles Include="SX1276.h" />
+	<HFiles Include="SX1276_interop_definitions.h" />
 	<Compile Include="SX1276.cpp" />
 	<Compile Include="SX1276_driver.cpp" />	
 	<!--<Compile Include="..\netmf_radio.cpp" />-->

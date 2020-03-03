@@ -32,6 +32,7 @@
 
 #ifdef RADIO_LORA
 #include "SX1276\SX1276_driver.h"
+#include "SX1276\SX1276.h"
 //extern EMOTE_SX1276_LORA::Samraksh_SX1276_hal_netmfadapter gsx1276radio_netmf_adapter;
 #endif
 
@@ -459,6 +460,7 @@ DeviceStatus CPU_Radio_ChangeChannel(UINT8 radioName, int channel)
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
+			status = sx1276_interop_change_channel(channel);
 #endif
 			break;
 		default:

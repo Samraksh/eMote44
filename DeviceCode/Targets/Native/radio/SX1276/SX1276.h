@@ -38,6 +38,9 @@
   *
   ******************************************************************************
   */
+#ifndef __SX1276_H__
+#define __SX1276_H__
+
 
 //#include "EmoteLoraHat.h"
 #include <tinyhal.h>
@@ -47,6 +50,8 @@
 #include "radio.h"
 #include "sx1276Regs-Fsk.h"
 #include "sx1276Regs-LoRa.h"
+#include "SX1276_interop_definitions.h"
+#include <Samraksh/Radio_decl.h>
 
 /*!
  * Radio wake-up time from sleep
@@ -298,6 +303,9 @@ void SX1276SetModem( RadioModems_t modem );
  * \param [IN] freq         Channel RF frequency
  */
 void SX1276SetChannel( uint32_t freq );
+
+
+DeviceStatus sx1276_interop_change_channel(int interopChannel);
 
 /*!
  * \brief Checks if the channel is free for the given time
@@ -603,3 +611,5 @@ void SX1276BoardSetAntSwLowPower( bool status );
 void SX1276BoardSetRfTxPower( int8_t power );
 
 void SX1276BoardSetAntSw( uint8_t opMode );
+
+#endif

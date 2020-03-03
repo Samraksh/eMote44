@@ -41,9 +41,9 @@
   ******************************************************************************
   */
   
+#include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
 #include "SX1276.h"
-//#include "..\..\stm32h7xx_main.h"
 
 /*
  * Local types definition
@@ -306,6 +306,24 @@ void SX1276SetChannel( uint32_t freq )
     SX1276Write( REG_FRFMID, ( uint8_t )( ( channel >> 8 ) & 0xFF ) );
     SX1276Write( REG_FRFLSB, ( uint8_t )( channel & 0xFF ) );
 }
+
+DeviceStatus sx1276_interop_change_channel(int interopChannel){
+	DeviceStatus ret = DS_Success;
+
+	switch ( interopChannel ){
+		case(Channel_902):
+			//SX1276SetChannel(902000000);
+			hal_printf("setting radio 902MHz\r\n");
+			break;
+		default:
+			SX1276SetChannel(915000000);
+			break;
+	}
+
+	return ret;
+}
+
+
 
 void SX1276SetRadioRegistersInit() 
 {
