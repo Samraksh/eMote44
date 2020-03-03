@@ -14,6 +14,12 @@
 #ifndef _SAMRAKSH_MEL_SAMRAKSH_MEL_AUDIOINTERFACE_H_
 #define _SAMRAKSH_MEL_SAMRAKSH_MEL_AUDIOINTERFACE_H_
 
+// from libSONYC_ML.a
+extern "C" {
+void MX_X_CUBE_AI_Init(void);
+int aiRun(const void *in_data, void *out_data);
+}
+
 namespace Samraksh_Mel
 {
     struct AudioInterface
