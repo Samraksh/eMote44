@@ -57,10 +57,10 @@
 // System Clock
 //#define SYSTEM_CLOCK_HZ                  400000000  // 400 MHz
 //#define SYSTEM_CYCLE_CLOCK_HZ            400000000  // 400 MHz
-#define SYSTEM_CLOCK_HZ                  200000000  // 200 MHz
-#define SYSTEM_CYCLE_CLOCK_HZ            200000000  // 200 MHz
-#define SYSTEM_APB1_CLOCK_HZ             25000000  // 25 MHz
-#define SYSTEM_APB2_CLOCK_HZ             50000000  // 50 MHz
+#define SYSTEM_CLOCK_HZ                  480000000  // 480 MHz
+#define SYSTEM_CYCLE_CLOCK_HZ            480000000  // 480 MHz
+#define SYSTEM_APB1_CLOCK_HZ             15000000  // 15 MHz APB1 (NOT x2 TIM CLOCK)
+#define SYSTEM_APB2_CLOCK_HZ             15000000  // 15 MHz APB2 (NOT x2 TIM CLOCK)
 
 
 // System Clock
