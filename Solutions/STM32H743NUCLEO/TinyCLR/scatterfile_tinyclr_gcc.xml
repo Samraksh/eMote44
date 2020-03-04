@@ -1,8 +1,6 @@
 <?xml version="1.0"?>
 <ScatterFile xmlns="http://schemas.microsoft.com/netmf/ScatterfileSchema.xsd">
 
-    <!-- STM32H743 with 1M Flash, 256K SRAM and 64K DTCM -->
-
     <Set Name="Valid" Value="false"/>
 
     <!-- ################################################################################ -->
@@ -11,41 +9,25 @@
          by making Symbolic names available instead of a bunch of numbers. These values are
          fixed in hardware and therefore, don't change.
     -->
-    <!-- Internal FLASH Bank1 (1MB) -->
+    <!-- Internal FLASH Bank1 (2MB) -->
     <Set Name="IFLASH_BaseAddress"      Value="0x08000000"/>
-    <Set Name="IFLASH_Size"             Value="0x00100000"/><!-- 1MB -->
-
-    <!-- Internal FLASH Bank2 (1MB) -->
-    <Set Name="IFLASH_BANK2_BaseAddress"      Value="0x08100000"/>
-    <Set Name="IFLASH_BANK2_Size"             Value="0x00100000"/><!-- 1MB -->
+    <Set Name="IFLASH_Size"             Value="0x00200000"/><!-- 2MB -->
 	
     <!-- Internal Data Tighly Coupled Memory (DTCM) -->
     <Set Name="DTCM_BaseAddress"        Value="0x20000000"/>
-    <Set Name="DTCM_Size"               Value="0x00020000"/><!-- 64KB -->
+    <Set Name="DTCM_Size"               Value="0x00020000"/><!-- 128KB -->
 
     <!-- Domain1 AXI_SRAM (512K) -->
     <Set Name="AXI_SRAM_BaseAddress"        Value="0x24000000"/>
     <Set Name="AXI_SRAM_Size"               Value="0x00080000"/>
 	
-    <!-- Domain2 SRAM1 (128K) -->
+    <!-- Domain2 SRAM1 (288K) -->
     <Set Name="SRAM1_BaseAddress"        Value="0x30000000"/>
-    <Set Name="SRAM1_Size"               Value="0x00020000"/>
-
-    <!-- Domain2 SRAM2 (128K) -->
-    <Set Name="SRAM2_BaseAddress"        Value="0x30020000"/>
-    <Set Name="SRAM2_Size"               Value="0x00020000"/>
-	
-    <!-- Domain2 SRAM3 (32K) -->
-    <Set Name="SRAM3_BaseAddress"        Value="0x30040000"/>
-    <Set Name="SRAM3_Size"               Value="0x00008000"/>
+    <Set Name="SRAM1_Size"               Value="0x00048000"/>
 	
 	<!-- Domain3 SRAM4 (64K) -->
     <Set Name="SRAM4_BaseAddress"        Value="0x38000000"/>
     <Set Name="SRAM4_Size"               Value="0x00010000"/>
-	
-	<!-- Domain3 Backup SRAM (4K) -->
-    <Set Name="BACKUP_SRAM_BaseAddress"        Value="0x38800000"/>
-    <Set Name="BACKUP_SRAM_Size"               Value="0x00001000"/>
 
 	<Set Name="Heap_End"       			Value="0x2001EBFF"/> <!-- 1KB -->
 	<Set Name="Custom_Heap_Begin"       Value="0x2001EC00"/> <!-- 1KB -->
@@ -63,12 +45,13 @@
     <Set Name="BooterCode_Size"         Value="0x00020000"/><!-- 128KB -->
 
     <!-- Configuration section -->
-    <Set Name="Config_BaseAddress"      Value="%BooterCode_BaseAddress% + %BooterCode_Size%"/>
-    <Set Name="Config_Size"             Value="0x00020000"/><!-- 128KB -->
+    <Set Name="Config_BaseAddress"      Value="0x081DF000"/>
+    <Set Name="Config_Size"             Value="0x00001000"/><!-- 4KB -->
 
     <!-- Native Code section -->
-    <Set Name="Code_BaseAddress"        Value="0x08040000"/>
-    <Set Name="Code_Size"               Value="0x00080000"/><!-- 384KB -->
+    <Set Name="Code_BaseAddress"        Value="0x08000000"/>
+	<!--Set Name="Code_BaseAddress"        Value="0x08020000"/-->
+    <Set Name="Code_Size"               Value="0x001BF000"/><!-- SONYC: 1664KB MIN WITH MODEL AS OF 2020-03-02-->
 	
     <!-- Deployment fills the rest of flash... -->
 
@@ -93,12 +76,9 @@
 	
     <NamedGroup Name="MEMORY">
         <LoadRegion Name="D_CCM" Base="%DTCM_BaseAddress%" Size="%DTCM_Size%" />
-        <LoadRegion Name="AXI_SRAM" Base="%AXI_SRAM_BaseAddress%" Size="%AXI_SRAM_Size%" />
-		<LoadRegion Name="SRAM1" Base="%SRAM1_BaseAddress%" Size="%SRAM1_Size%" />
-		<LoadRegion Name="SRAM2" Base="%SRAM2_BaseAddress%" Size="%SRAM2_Size%" />
-		<LoadRegion Name="SRAM3" Base="%SRAM3_BaseAddress%" Size="%SRAM3_Size%" />
-		<LoadRegion Name="SRAM4" Base="%SRAM4_BaseAddress%" Size="%SRAM4_Size%" />
-		<LoadRegion Name="BACKUP_SRAM" Base="%BACKUP_SRAM_BaseAddress%" Size="%BACKUP_SRAM_Size%" />
+        <LoadRegion Name="RAM_D1" Base="%AXI_SRAM_BaseAddress%" Size="%AXI_SRAM_Size%" />
+		<LoadRegion Name="RAM_D2" Base="%SRAM1_BaseAddress%" Size="%SRAM1_Size%" />
+		<LoadRegion Name="RAM_D3" Base="%SRAM4_BaseAddress%" Size="%SRAM4_Size%" />
 		<LoadRegion Name="LR_%TARGETLOCATION%" Base="%Code_BaseAddress%" Size="%Code_Size%" />
         <LoadRegion Name="LR_CONFIG" Base="%Config_BaseAddress%" Size="%Config_Size%"/>
     </NamedGroup>
@@ -109,7 +89,7 @@
         <ExecRegion Name="ER_%TARGETLOCATION%" Options="&gt;LR_%TARGETLOCATION%"> 
 			<FileMapping Name="KEEP" Options="(*(.isr_vector))" />	
 			<FileMapping Name="*" Options="(i.Reset_Handler)" />			
-			<FileMapping Name="*" Options="(SectionForFlashOperations)"/>
+			<!--FileMapping Name="*" Options="(SectionForFlashOperations)"/-->
             <FileMapping Name="*" Options="(.text*)" />
             <FileMapping Name="*" Options="(.rodata*)" />
             <FileMapping Name="*" Options="(rodata)" />
@@ -146,9 +126,9 @@
             <!-- <FileMapping Name="*" Options="(SectionForFlashOperations)" /> -->
         </ExecRegion>
 
-		<ExecRegion Name=".dma_buffer" Align="0x10" Base="(NOLOAD)" Options="&gt;SRAM1">
+		<!--ExecRegion Name=".dma_buffer" Align="0x10" Base="(NOLOAD)" Options="&gt;SRAM1">
 			<FileMapping Name="KEEP" Options="(*(.dma_buffer))" />
-        </ExecRegion>
+        </ExecRegion-->
 		
         <ExecRegion Name=".bss" Align="0x10" Base="(NOLOAD)" Options="&gt;D_CCM">
 			<FileMapping Name="_sbss = .;" />
@@ -158,6 +138,18 @@
             <FileMapping Name="*" Options="(.zidata*)" />
             <FileMapping Name="*" Options="(COMMON)" />
 			<FileMapping Name="_ebss = .;" />
+        </ExecRegion>
+
+        <ExecRegion Name=".RAM_D1" Base="(NOLOAD)" Options="&gt;RAM_D1">
+			<FileMapping Name="*(.ram_d1)" />
+        </ExecRegion>
+
+        <ExecRegion Name=".RAM_D2" Base="(NOLOAD)" Options="&gt;RAM_D2">
+			<FileMapping Name="*(.ram_d2)" />
+        </ExecRegion>
+
+        <ExecRegion Name=".RAM_D3" Base="(NOLOAD)" Options="&gt;RAM_D3">
+			<FileMapping Name="*(.ram_d3)" />
         </ExecRegion>
 
         <ExecRegion Name="/DISCARD/">
