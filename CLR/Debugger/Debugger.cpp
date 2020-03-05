@@ -1011,7 +1011,7 @@ MfReleaseInfo::Init( clrInfo.m_clrReleaseInfo, VERSION_MAJOR, VERSION_MINOR, VER
     }
 }
 
-
+#ifndef BUILD_RTM // Use version from Debugger_minimal.cpp (which I think is the same but whatever...)
 void MfReleaseInfo::Init(MfReleaseInfo& mfReleaseInfo, UINT16 major, UINT16 minor, UINT16 build, UINT16 revision, const char *info, size_t infoLen)
 {
     MFVersion::Init( mfReleaseInfo.version, major, minor, build, revision );
@@ -1022,6 +1022,7 @@ void MfReleaseInfo::Init(MfReleaseInfo& mfReleaseInfo, UINT16 major, UINT16 mino
         hal_strncpy_s( (char*)&mfReleaseInfo.infoString[ 0 ], sizeof(mfReleaseInfo.infoString), info, len );
     }
 }
+#endif // #ifndef BUILD_RTM
 
 //--//
 

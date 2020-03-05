@@ -41,14 +41,14 @@
     <POS_DEPENDENT></POS_DEPENDENT>
     <POS_INDEPENDENT>-fpic</POS_INDEPENDENT>
     <CC_CPP_COMMON_FLAGS>$(CC_CPP_COMMON_FLAGS) -ffunction-sections -fdata-sections -fdollars-in-identifiers -fshort-wchar -funsigned-char</CC_CPP_COMMON_FLAGS>
-    <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >$(CC_CPP_TARGETTYPE_FLAGS) -O3</CC_CPP_TARGETTYPE_FLAGS>
+    <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >$(CC_CPP_TARGETTYPE_FLAGS) -Os</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"        >$(CC_CPP_TARGETTYPE_FLAGS) -Og -ggdb3</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'" >$(CC_CPP_TARGETTYPE_FLAGS) -O0</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >$(CC_CPP_TARGETTYPE_FLAGS) -Os</CC_CPP_TARGETTYPE_FLAGS>
 
     <CC_FLAGS>$(CC_FLAGS)-xc</CC_FLAGS>
     
-    <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >-O3</ARCH_TARGETTYPE_FLAGS>
+    <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >-Os</ARCH_TARGETTYPE_FLAGS>
     <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"        >-Og -ggdb3</ARCH_TARGETTYPE_FLAGS>
     <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'" >-O0</ARCH_TARGETTYPE_FLAGS>
     <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >-Os</ARCH_TARGETTYPE_FLAGS>
