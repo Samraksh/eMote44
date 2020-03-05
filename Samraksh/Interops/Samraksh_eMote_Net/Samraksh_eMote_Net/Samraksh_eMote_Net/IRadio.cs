@@ -638,6 +638,15 @@ namespace Samraksh.eMote.Net.Radio
         /// <summary>Channel</summary>
         int Channel { get; set; }
 
+        /// <summary>Coding Rate for the radio</summary>
+        int CodingRate { get; set; }
+
+        /// <summary>Spreading Factor for the radio</summary>
+        int SpreadingFactor { get; set; }
+
+        /// <summary>Bandwidth for the radio</summary>
+        int RadioBandwidth { get; set; }
+
         /// <summary>Radio name</summary>
         RadioName RadioName { get; set; }
     }
@@ -654,6 +663,15 @@ namespace Samraksh.eMote.Net.Radio
 
         /// <summary>Channel the radio will transmit on</summary>
         public int Channel { get; set; }
+
+        /// <summary>Coding Rate for the radio</summary>
+        public int CodingRate { get; set; }
+
+        /// <summary>Spreading Factor for the radio</summary>
+        public int SpreadingFactor { get; set; }
+
+        /// <summary>Bandwidth for the radio</summary>
+        public int RadioBandwidth { get; set; }
 
         /// <summary>Type of radio</summary>
         public RadioName RadioName { get; set; }
@@ -681,6 +699,15 @@ namespace Samraksh.eMote.Net.Radio
         /// <summary>Channel the radio will transmit on</summary>
         public int Channel { get; set; }
 
+        /// <summary>Coding Rate for the radio</summary>
+        public int CodingRate { get; set; }
+
+        /// <summary>Spreading Factor for the radio</summary>
+        public int SpreadingFactor { get; set; }
+
+        /// <summary>Bandwidth for the radio</summary>
+        public int RadioBandwidth { get; set; }
+
         /// <summary>Type of radio</summary>
         public RadioName RadioName { get; set; }
 
@@ -703,6 +730,15 @@ namespace Samraksh.eMote.Net.Radio
 
         /// <summary>Channel the radio will transmit on</summary>
         public int Channel { get; set; }
+
+        /// <summary>Coding Rate for the radio</summary>
+        public int CodingRate { get; set; }
+
+        /// <summary>Spreading Factor for the radio</summary>
+        public int SpreadingFactor { get; set; }
+
+        /// <summary>Bandwidth for the radio</summary>
+        public int RadioBandwidth { get; set; }
 
         /// <summary>Type of radio</summary>
         public RadioName RadioName { get; set; }

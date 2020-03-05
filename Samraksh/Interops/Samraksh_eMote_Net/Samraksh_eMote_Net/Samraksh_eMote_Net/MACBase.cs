@@ -682,8 +682,14 @@ namespace Samraksh.eMote.Net
             MACRadioObj.RadioName = radioConfiguration.RadioName;
             MACRadioObj.Channel = radioConfiguration.Channel;
             MACRadioObj.TxPower = radioConfiguration.TxPower;
+            if (radioConfiguration.RadioName == RadioName.SX1276)
+            {
+                MACRadioObj.RadioBandwidth = radioConfiguration.RadioBandwidth;
+                MACRadioObj.SpreadingFactor = radioConfiguration.SpreadingFactor;
+                MACRadioObj.CodingRate = radioConfiguration.CodingRate;
+            }
 
-            if (status != DeviceStatus.Success)
+                if (status != DeviceStatus.Success)
             {
                 throw new MACNotConfiguredException("MAC initialization failed. One reason for failure could be that a USB cable is attached to the DotNow.\n");
             }

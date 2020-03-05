@@ -394,7 +394,7 @@ DeviceStatus CPU_Radio_ChangeTxPower(UINT8 radioName, int power)
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
-			status = DS_Success;
+			status = sx1276_interop_change_power(power);
 #endif
 			break;
 		default:
@@ -481,6 +481,7 @@ DeviceStatus CPU_Radio_ChangeSpreadingFactor(UINT8 radioName, int spreadingFacto
 	{
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
+			status = sx1276_interop_change_spreadingFactor(spreadingFactor);
 #endif
 			break;
 		default:
@@ -499,7 +500,8 @@ DeviceStatus CPU_Radio_ChangeCodingRate(UINT8 radioName, int codingRate)
 	switch(radioName)
 	{
 		case SX1276RADIO:
-#if defined(__RADIO_SX1276__)		
+#if defined(__RADIO_SX1276__)
+		status = sx1276_interop_change_codingRate(codingRate);
 #endif
 			break;
 		default:
@@ -519,6 +521,7 @@ DeviceStatus CPU_Radio_ChangeBandwidth(UINT8 radioName, int bandwidth)
 	{
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
+			status = sx1276_interop_change_bandwidth(bandwidth);
 #endif
 			break;
 		default:

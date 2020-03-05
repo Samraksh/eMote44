@@ -310,19 +310,146 @@ void SX1276SetChannel( uint32_t freq )
 DeviceStatus sx1276_interop_change_channel(int interopChannel){
 	DeviceStatus ret = DS_Success;
 
-	switch ( interopChannel ){
-		case(Channel_902):
-			//SX1276SetChannel(902000000);
-			hal_printf("setting radio 902MHz\r\n");
+	int freq = 902000000 + (interopChannel * 1000000);
+	hal_printf("setting SX1276 radio to %d MHz\r\n", freq);
+	
+	SX1276SetChannel(freq);
+
+	return ret;
+}
+
+DeviceStatus sx1276_interop_change_power(int interopPower){
+	DeviceStatus ret = DS_Success;
+
+	hal_printf("power to be changed (%d)...not implemented yet in SX1276.cpp\r\n", interopPower);
+
+	switch (interopPower){
+		case (Power_14dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
 			break;
+		case (Power_13dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;
+		case (Power_12dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_11dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_10dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_9dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_8dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_7dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_6dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_5dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_4dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_3dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_2dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_1dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_0dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_Minus_1dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_Minus_2dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_Minus_3dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
+		case (Power_Minus_4dBm):
+			//SX1276BoardSetRfTxPower(xxxx);
+			break;			
 		default:
-			SX1276SetChannel(915000000);
+			//SX1276BoardSetRfTxPower(xxxx);
 			break;
 	}
 
 	return ret;
 }
 
+DeviceStatus sx1276_interop_change_bandwidth(int interopBandwidth){
+	DeviceStatus ret = DS_Success;
+	hal_printf("interop change interopBandwidth %d not implemented yet\r\n", interopBandwidth);
+
+	switch (interopBandwidth){
+		case (Bandwidth_125kHz):
+			break;
+		case (Bandwidth_250kHz):
+			break;
+		case (Bandwidth_500kHz):
+			break;
+		default:
+			break;
+	}
+
+	return ret;
+}
+
+DeviceStatus sx1276_interop_change_spreadingFactor(int interopSF){
+	DeviceStatus ret = DS_Success;
+	hal_printf("interop change interopSF %d not implemented yet\r\n", interopSF);
+
+	switch (interopSF){
+		case (SpreadingFactor_7):
+			break;
+		case (SpreadingFactor_8):
+			break;
+		case (SpreadingFactor_9):
+			break;
+		case (SpreadingFactor_10):
+			break;
+		case (SpreadingFactor_11):
+			break;
+		case (SpreadingFactor_12):
+			break;
+		default:
+			break;
+	}
+
+	return ret;
+}
+
+DeviceStatus sx1276_interop_change_codingRate(int interopCodingRate){
+	DeviceStatus ret = DS_Success;
+	hal_printf("interop change interopCodingRate %d not implemented yet\r\n", interopCodingRate);
+
+	switch (interopCodingRate){
+		case (CodingRate_4_5):
+			break;
+		case (CodingRate_4_6):
+			break;
+		case (CodingRate_4_7):
+			break;
+		case (CodingRate_4_8):
+			break;
+		default:
+			break;
+	}
+
+	return ret;
+}
 
 
 void SX1276SetRadioRegistersInit() 

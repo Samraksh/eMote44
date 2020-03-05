@@ -122,7 +122,10 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231LRRadioConfigura
 {
     static const int FIELD__TxPower = 1;
     static const int FIELD__Channel = 2;
-    static const int FIELD__RadioName = 3;
+    static const int FIELD__CodingRate = 3;
+    static const int FIELD__SpreadingFactor = 4;
+    static const int FIELD__RadioBandwidth = 5;
+    static const int FIELD__RadioName = 6;
 
 
     //--//
@@ -133,7 +136,10 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231RadioConfigurati
 {
     static const int FIELD__TxPower = 1;
     static const int FIELD__Channel = 2;
-    static const int FIELD__RadioName = 3;
+    static const int FIELD__CodingRate = 3;
+    static const int FIELD__SpreadingFactor = 4;
+    static const int FIELD__RadioBandwidth = 5;
+    static const int FIELD__RadioName = 6;
 
 
     //--//
@@ -206,7 +212,10 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_SI4468RadioConfigurat
 {
     static const int FIELD__TxPower = 1;
     static const int FIELD__Channel = 2;
-    static const int FIELD__RadioName = 3;
+    static const int FIELD__CodingRate = 3;
+    static const int FIELD__SpreadingFactor = 4;
+    static const int FIELD__RadioBandwidth = 5;
+    static const int FIELD__RadioName = 6;
 
 
     //--//

@@ -305,7 +305,6 @@ void SX1276SetModem( RadioModems_t modem );
 void SX1276SetChannel( uint32_t freq );
 
 
-DeviceStatus sx1276_interop_change_channel(int interopChannel);
 
 /*!
  * \brief Checks if the channel is free for the given time
@@ -611,5 +610,11 @@ void SX1276BoardSetAntSwLowPower( bool status );
 void SX1276BoardSetRfTxPower( int8_t power );
 
 void SX1276BoardSetAntSw( uint8_t opMode );
+
+DeviceStatus sx1276_interop_change_channel(int interopChannel);
+DeviceStatus sx1276_interop_change_power(int interopPower);
+DeviceStatus sx1276_interop_change_bandwidth(int interopBandwidth);
+DeviceStatus sx1276_interop_change_spreadingFactor(int interopSF);
+DeviceStatus sx1276_interop_change_codingRate(int interopCodingRate);
 
 #endif

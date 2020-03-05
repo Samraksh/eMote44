@@ -122,7 +122,10 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231LRRadioConfigura
 {
     static const int FIELD__<TxPower>k__BackingField = 1;
     static const int FIELD__<Channel>k__BackingField = 2;
-    static const int FIELD__<RadioName>k__BackingField = 3;
+    static const int FIELD__<CodingRate>k__BackingField = 3;
+    static const int FIELD__<SpreadingFactor>k__BackingField = 4;
+    static const int FIELD__<RadioBandwidth>k__BackingField = 5;
+    static const int FIELD__<RadioName>k__BackingField = 6;
 
 
     //--//
@@ -133,7 +136,10 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_RF231RadioConfigurati
 {
     static const int FIELD__<TxPower>k__BackingField = 1;
     static const int FIELD__<Channel>k__BackingField = 2;
-    static const int FIELD__<RadioName>k__BackingField = 3;
+    static const int FIELD__<CodingRate>k__BackingField = 3;
+    static const int FIELD__<SpreadingFactor>k__BackingField = 4;
+    static const int FIELD__<RadioBandwidth>k__BackingField = 5;
+    static const int FIELD__<RadioName>k__BackingField = 6;
 
 
     //--//
@@ -206,7 +212,10 @@ struct Library_Samraksh_eMote_Net_Samraksh_eMote_Net_Radio_SI4468RadioConfigurat
 {
     static const int FIELD__<TxPower>k__BackingField = 1;
     static const int FIELD__<Channel>k__BackingField = 2;
-    static const int FIELD__<RadioName>k__BackingField = 3;
+    static const int FIELD__<CodingRate>k__BackingField = 3;
+    static const int FIELD__<SpreadingFactor>k__BackingField = 4;
+    static const int FIELD__<RadioBandwidth>k__BackingField = 5;
+    static const int FIELD__<RadioName>k__BackingField = 6;
 
 
     //--//

@@ -1530,6 +1530,15 @@
         <member name="P:Samraksh.eMote.Net.Radio.IRadioConfiguration.Channel">
             <summary>Channel</summary>
         </member>
+        <member name="P:Samraksh.eMote.Net.Radio.IRadioConfiguration.CodingRate">
+            <summary>Coding Rate for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.IRadioConfiguration.SpreadingFactor">
+            <summary>Spreading Factor for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.IRadioConfiguration.RadioBandwidth">
+            <summary>Bandwidth for the radio</summary>
+        </member>
         <member name="P:Samraksh.eMote.Net.Radio.IRadioConfiguration.RadioName">
             <summary>Radio name</summary>
         </member>
@@ -1548,6 +1557,15 @@
         </member>
         <member name="P:Samraksh.eMote.Net.Radio.RF231RadioConfiguration.Channel">
             <summary>Channel the radio will transmit on</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.RF231RadioConfiguration.CodingRate">
+            <summary>Coding Rate for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.RF231RadioConfiguration.SpreadingFactor">
+            <summary>Spreading Factor for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.RF231RadioConfiguration.RadioBandwidth">
+            <summary>Bandwidth for the radio</summary>
         </member>
         <member name="P:Samraksh.eMote.Net.Radio.RF231RadioConfiguration.RadioName">
             <summary>Type of radio</summary>
@@ -1568,6 +1586,15 @@
         <member name="P:Samraksh.eMote.Net.Radio.RF231LRRadioConfiguration.Channel">
             <summary>Channel the radio will transmit on</summary>
         </member>
+        <member name="P:Samraksh.eMote.Net.Radio.RF231LRRadioConfiguration.CodingRate">
+            <summary>Coding Rate for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.RF231LRRadioConfiguration.SpreadingFactor">
+            <summary>Spreading Factor for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.RF231LRRadioConfiguration.RadioBandwidth">
+            <summary>Bandwidth for the radio</summary>
+        </member>
         <member name="P:Samraksh.eMote.Net.Radio.RF231LRRadioConfiguration.RadioName">
             <summary>Type of radio</summary>
         </member>
@@ -1584,6 +1611,15 @@
         </member>
         <member name="P:Samraksh.eMote.Net.Radio.SI4468RadioConfiguration.Channel">
             <summary>Channel the radio will transmit on</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SI4468RadioConfiguration.CodingRate">
+            <summary>Coding Rate for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SI4468RadioConfiguration.SpreadingFactor">
+            <summary>Spreading Factor for the radio</summary>
+        </member>
+        <member name="P:Samraksh.eMote.Net.Radio.SI4468RadioConfiguration.RadioBandwidth">
+            <summary>Bandwidth for the radio</summary>
         </member>
         <member name="P:Samraksh.eMote.Net.Radio.SI4468RadioConfiguration.RadioName">
             <summary>Type of radio</summary>

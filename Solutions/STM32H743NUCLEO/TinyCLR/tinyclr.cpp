@@ -74,6 +74,9 @@ void ApplicationEntryPoint()
     CLR_SETTINGS clrSettings;
 
 	//hal_printf(" CLR 20 ");
+	// Initial delay to allow UART terminals to start and catch startup messages
+    HAL_Delay(5000);
+
 	memset(&clrSettings, 0, sizeof(CLR_SETTINGS));
 
     clrSettings.MaxContextSwitches         = 50;
