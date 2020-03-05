@@ -19,8 +19,8 @@ struct Library_Samraksh_Mel_Samraksh_Mel_AudioInterface
     TINYCLR_NATIVE_DECLARE(Initialize___BOOLEAN__I4);
     TINYCLR_NATIVE_DECLARE(Uninitialize___BOOLEAN);
     TINYCLR_NATIVE_DECLARE(GetResultData___BOOLEAN__SZARRAY_R4);
-    TINYCLR_NATIVE_DECLARE(start_audio_interference___BOOLEAN__I4);
-    TINYCLR_NATIVE_DECLARE(stop_audio_interference___BOOLEAN);
+    TINYCLR_NATIVE_DECLARE(start_audio_inference___BOOLEAN__I4);
+    TINYCLR_NATIVE_DECLARE(stop_audio_inference___BOOLEAN);
 
     //--//
 

@@ -27,8 +27,8 @@ namespace Samraksh_Mel
         static INT8 Initialize( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr );
         static INT8 Uninitialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
         static INT8 GetResultData( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr );
-        static INT8 start_audio_interference( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr );
-        static INT8 stop_audio_interference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
+        static INT8 start_audio_inference( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr );
+        static INT8 stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
     };
 }
 #endif  //_SAMRAKSH_MEL_SAMRAKSH_MEL_AUDIOINTERFACE_H_

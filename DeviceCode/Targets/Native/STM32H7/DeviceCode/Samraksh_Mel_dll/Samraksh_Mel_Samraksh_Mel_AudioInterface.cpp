@@ -120,7 +120,7 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray
     return retVal;
 }
 
-INT8 AudioInterface::start_audio_interference( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr )
+INT8 AudioInterface::start_audio_inference( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr )
 {
     INT8 retVal = 0; 
 	if (is_SONYC_ML_init == FALSE) {
@@ -133,7 +133,7 @@ INT8 AudioInterface::start_audio_interference( CLR_RT_HeapBlock* pMngObj, INT32 
     return retVal;
 }
 
-INT8 AudioInterface::stop_audio_interference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
+INT8 AudioInterface::stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
     INT8 retVal = 0; 
 	if (is_SONYC_ML_init == FALSE) {

@@ -67,7 +67,7 @@ HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::GetResultData___BOOLEA
     TINYCLR_NOCLEANUP();
 }
 
-HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_interference___BOOLEAN__I4( CLR_RT_StackFrame& stack )
+HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_inference___BOOLEAN__I4( CLR_RT_StackFrame& stack )
 {
     TINYCLR_HEADER(); hr = S_OK;
     {
@@ -78,7 +78,7 @@ HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_interferen
         INT32 param0;
         TINYCLR_CHECK_HRESULT( Interop_Marshal_INT32( stack, 1, param0 ) );
 
-        INT8 retVal = AudioInterface::start_audio_interference( pMngObj,  param0, hr );
+        INT8 retVal = AudioInterface::start_audio_inference( pMngObj,  param0, hr );
         TINYCLR_CHECK_HRESULT( hr );
         SetResult_INT8( stack, retVal );
 
@@ -86,7 +86,7 @@ HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_interferen
     TINYCLR_NOCLEANUP();
 }
 
-HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_interference___BOOLEAN( CLR_RT_StackFrame& stack )
+HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_inference___BOOLEAN( CLR_RT_StackFrame& stack )
 {
     TINYCLR_HEADER(); hr = S_OK;
     {
@@ -94,7 +94,7 @@ HRESULT Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_interferenc
 
         FAULT_ON_NULL(pMngObj);
 
-        INT8 retVal = AudioInterface::stop_audio_interference( pMngObj,  hr );
+        INT8 retVal = AudioInterface::stop_audio_inference( pMngObj,  hr );
         TINYCLR_CHECK_HRESULT( hr );
         SetResult_INT8( stack, retVal );
 

@@ -109,7 +109,7 @@ namespace TestSuite
         static UInt32 totalRecvCounter = 1;
 
         PingPayload pingMsg = new PingPayload();
-        Samraksh.eMote.Net.MAC.OMAC myOMACObj;
+        Samraksh.eMote.Net.MAC.OMAC myOMACObj;             
 
         int errors = 0;
         int retransmit = 0;
@@ -150,8 +150,8 @@ namespace TestSuite
 
                 //Samraksh_Mel.AudioInterface audI = new AudioInterface(retDataSize);
                 //audI.audio_inference_callback += AICallback;
-                //audI.start_audio_interference(5000);                
-                //audI.stop_audio_interference();
+                //audI.start_audio_inference(5000);
+                //audI.stop_audio_inference();
             }
             catch (Exception e)
             {

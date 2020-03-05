@@ -20,8 +20,8 @@ static const CLR_RT_MethodHandler method_lookup[] =
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Initialize___BOOLEAN__I4,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Uninitialize___BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::GetResultData___BOOLEAN__SZARRAY_R4,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_interference___BOOLEAN__I4,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_interference___BOOLEAN,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_inference___BOOLEAN__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_inference___BOOLEAN,
     NULL,
     NULL,
     NULL,
@@ -31,7 +31,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0x1B283CDB,
+    0x4314F32E,
     method_lookup
 };
 

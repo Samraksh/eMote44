@@ -38,13 +38,13 @@
             </summary>
             <returns>The result of AudioInterface uninitialization: Success, Fail</returns>
         </member>
-        <member name="M:Samraksh_Mel.AudioInterface.start_audio_interference(System.Int32)">
+        <member name="M:Samraksh_Mel.AudioInterface.start_audio_inference(System.Int32)">
             <summary>
             Starts the audio interface at <param name="rate"></param>
             </summary>
             <returns>The result of AudioInterface starting: Success, Fail</returns>
         </member>
-        <member name="M:Samraksh_Mel.AudioInterface.stop_audio_interference">
+        <member name="M:Samraksh_Mel.AudioInterface.stop_audio_inference">
             <summary>
             Stops the audio interface
             </summary>

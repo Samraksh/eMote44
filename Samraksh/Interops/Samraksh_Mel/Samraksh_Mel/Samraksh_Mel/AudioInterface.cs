@@ -76,13 +76,13 @@ namespace Samraksh_Mel
         /// </summary>
         /// <returns>The result of AudioInterface starting: Success, Fail</returns>
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern bool start_audio_interference(int rate);
+        public extern bool start_audio_inference(int rate);
 
         /// <summary>
         /// Stops the audio interface
         /// </summary>
         /// <returns>The result of AudioInterface stops: Success, Fail</returns>
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern bool stop_audio_interference();
+        public extern bool stop_audio_inference();
     }
 }

@@ -1868,18 +1868,6 @@
         <member name="P:Samraksh.eMote.Net.MACPipe.MACType">
             <summary>The type of MAC (OMAC, CSMA)</summary>
         </member>
-        <member name="T:Samraksh.eMote.Net.OMAC">
-            <summary>OMAC class</summary>
-        </member>
-        <member name="M:Samraksh.eMote.Net.OMAC.#ctor(Samraksh.eMote.Net.Radio.IRadioConfiguration,System.UInt32,System.Byte,System.Byte,System.Boolean,System.Byte)">
-            <summary>OMAC constructor</summary>
-            <param name="radioConfiguration">Radio configuration to use</param>
-            <param name="cca">Use clear channel assessment</param>
-            <param name="numberOfRetries">Number of times to retry sending a packet</param>
-            <param name="ccaSenseTime">cca sense time</param>
-            <param name="bufferSize">Size of send buffer</param>
-            <param name="neighborLivenessDelay">Time to wait (in milliseconds) before declaring a neighbor dead</param>
-        </member>
         <member name="T:Samraksh.eMote.Net.MAC.OMAC">
             <summary>OMAC class</summary>
         </member>
