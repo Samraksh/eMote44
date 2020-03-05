@@ -513,7 +513,7 @@ void ApplicationEntryPoint()
 
 	VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
 	VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, OMACClockSpecifier);
 	VirtTimer_Start(VIRT_TIMER_LED_RED);
 	
     do

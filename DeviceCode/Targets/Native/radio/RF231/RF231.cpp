@@ -2574,7 +2574,9 @@ void RF231Radio::HandleInterrupt()
 							//hal_printf("(CMD_RX_AACK)Received DATA; payload[1]: %d; payload[2]: %d; payload[3]: %d; payload[4]: %d; payload[8]: %d\n\n", payloadMSG[1], payloadMSG[2], payloadMSG[3], payloadMSG[4], payloadMSG[8]);
 							hal_printf("(CMD_RX_AACK)Received DATA; payload[0]: %d; payload[1]: %d; payload[2]: %d; payload[3]: %d; payload[8]: %d\n\n", payloadMSG[0], payloadMSG[1], payloadMSG[2], payloadMSG[3], payloadMSG[8]);
 							//hal_printf("(CMD_RX_AACK)header->fcf: %d;header->dsn: %d;header->dest: %d;header->destpan: %d;header->src: %d;header->srcpan: %d;header->length: %d;header->mac_id: %d;header->type: %d;header->flags: %d\n\n", header->fcf,header->dsn,header->dest,header->destpan,header->src,header->srcpan,header->length,header->mac_id,header->type,header->flags);
-							hal_printf("(CMD_RX_AACK)header->fcf: %d;header->dsn: %d;header->dest: %d;header->destpan: %d;header->src: %d;header->srcpan: %d\n\n", header->fcf,header->dsn,header->dest,header->destpan,header->src,header->srcpan);
+							//hal_printf("(CMD_RX_AACK)header->fcf: %d;header->dsn: %d;header->dest: %d;header->destpan: %d;header->src: %d;header->srcpan: %d\n\n", header->fcf,header->dsn,header->dest,header->destpan,header->src,header->srcpan);
+							hal_printf("(CMD_RX_AACK)header->dsn: %d;header->dest: %d;header->destpan: %d;header->src: %d;header->srcpan: %d\n\n", header->dsn,header->dest,header->destpan,header->src,header->srcpan);
+
 						}
 #endif
 

@@ -316,7 +316,7 @@ DeviceStatus DiscoveryHandler::Beacon(RadioAddress_t dst, Message_15_4_t* msgPtr
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, FALSE );
 #endif
 
-	while(1){
+	/*while(1){
 		//Check CCA
 		DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
 		if(DS != DS_Success){
@@ -330,7 +330,7 @@ DeviceStatus DiscoveryHandler::Beacon(RadioAddress_t dst, Message_15_4_t* msgPtr
 		if( true || g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_Clock.GetCurrentTimeinTicks() - y) > CCA_PERIOD_MICRO){
 			break;
 		}
-	}
+	}*/
 #ifdef OMAC_DEBUG_GPIO
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, TRUE );
 	OMAC_CPU_GPIO_SetPinState(  DISCO_SYNCSENDPIN, FALSE );
@@ -384,7 +384,7 @@ void DiscoveryHandler::BeaconAckHandler(Message_15_4_t* msg, UINT8 len, NetOpSta
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
 		}
-		OMAC_HAL_PRINTF("Disco Message1 Sent\r\n");
+		//OMAC_HAL_PRINTF("Disco Message1 Sent\r\n");
 		break;
 	case BEACON2_SEND_START:
 		m_state = BEACON2_SEND_DONE;
@@ -392,7 +392,7 @@ void DiscoveryHandler::BeaconAckHandler(Message_15_4_t* msg, UINT8 len, NetOpSta
 		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  1, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
-		OMAC_HAL_PRINTF("Disco Message2 Sent\r\n");
+		//OMAC_HAL_PRINTF("Disco Message2 Sent\r\n");
 		break;
 	default:
 #ifdef OMAC_DEBUG_PRINTF

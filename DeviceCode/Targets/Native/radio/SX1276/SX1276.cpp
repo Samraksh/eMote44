@@ -78,14 +78,6 @@ static inline void wait_nss_30ns(void) {
 	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
 	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
 	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
-	__NOP(); __NOP(); __NOP(); __NOP(); __NOP();
 }
 #else
 #error "FIX ME: MAKE PORTABLE AND SANE"
@@ -888,6 +880,9 @@ void SX1276Send( uint8_t *buffer, uint8_t size, UINT32 eventTime)
         break;
     case MODEM_LORA:
         {
+			CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+			CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );		
+	
             if( SX1276.Settings.LoRa.IqInverted == true )
             {
                 SX1276Write( REG_LR_INVERTIQ, ( ( SX1276Read( REG_LR_INVERTIQ ) & RFLR_INVERTIQ_TX_MASK & RFLR_INVERTIQ_RX_MASK ) | RFLR_INVERTIQ_RX_OFF | RFLR_INVERTIQ_TX_ON ) );
@@ -908,6 +903,9 @@ void SX1276Send( uint8_t *buffer, uint8_t size, UINT32 eventTime)
             SX1276Write( REG_LR_FIFOTXBASEADDR, 0 );
             SX1276Write( REG_LR_FIFOADDRPTR, 0 );
 
+			CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+			CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );	
+			
             // FIFO operations can not take place in Sleep mode
             if( ( SX1276Read( REG_OPMODE ) & ~RF_OPMODE_MASK ) == RF_OPMODE_SLEEP )
             {
@@ -915,6 +913,9 @@ void SX1276Send( uint8_t *buffer, uint8_t size, UINT32 eventTime)
                 ///DelayMs( 1 );
 				HAL_Delay(1);////
             }
+			
+			CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+			CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );	
 			
 	        // Write payload buffer
             SX1276WriteFifo( buffer, size );
@@ -924,7 +925,13 @@ void SX1276Send( uint8_t *buffer, uint8_t size, UINT32 eventTime)
         break;
     }
 
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );	
+			
     SX1276SetTx( txTimeout );
+
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );	
 }
 
 
@@ -1736,7 +1743,8 @@ void SX1276OnDio0Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 SX1276.Settings.State = RF_IDLE;
                 if( ( RadioEvents != NULL ) && ( RadioEvents->TxDone != NULL ) )
                 {
-						
+					CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+					CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );						
 					RadioEvents->TxDone( );
                 }
                 break;

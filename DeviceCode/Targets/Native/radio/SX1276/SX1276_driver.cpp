@@ -142,6 +142,12 @@ void SX1276_HAL_DataStatusCallback ( bool success, UINT16 number_of_bytes_in_buf
 
 
 DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
+	
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_ON, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_OFF, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	
 
 	internal_radio_properties.SetDefaults(10, 10, 1000, 1000, MODEM_LORA);
 	
@@ -166,15 +172,19 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 		UINT8 cpuserial[12];
 		memset(cpuserial, 0, 12);
 		GetCPUSerial(cpuserial, 12);
-		UINT16 tempNum=0;
-		UINT16 * temp = (UINT16 *) cpuserial;
+		UINT8 tempNum=0;
+		UINT8 * temp = (UINT8 *) cpuserial;
 		for (int i=0; i< 6; i++){
 			tempNum=tempNum ^ temp[i]; //XOR 72-bit number to generate 16-bit hash
 		}
 		SX1276_HAL_SetAddress(tempNum);
 		//SX1276_HAL_SetAddress(25084);
 
-		//hal_printf("Address: %d\r\n", tempNum);
+		hal_printf("\r\n Address : ");
+		for (int i=0; i< 12; i++){
+			hal_printf(":%02X", cpuserial[i]);
+		}
+		hal_printf("\r\n");
 	}
 	
 	received_ts_ticks = UNSET_TS;
@@ -230,6 +240,7 @@ void* SX1276_HAL_Send(void* msg, UINT16 size, UINT32 eventTime, bool request_ack
 	
 	//if radio layer accepted pkt return true, else return false.
 	//SX1276Send(SX1276_Packet_GetPayload(), size, eventTime);
+
 	SX1276Send(static_cast<uint8_t *>(msg), size, eventTime);
 	SX1276_HAL_DataStatusCallback(true,size);	
 	return msg;
@@ -457,6 +468,14 @@ UINT32 SX1276_HAL_ReadRssi() {
 	return value;
 }
 
+
+DeviceStatus SX1276_HAL_TxPower(int power) {
+	
+	SX1276BoardSetRfTxPower(power);
+	
+	return DS_Success;
+}
+
 RadioMode_t SX1276_HAL_GetRadioState() {
 	return m_rm;
 }
@@ -472,6 +491,7 @@ BOOL SX1276_HAL_SetAddress(UINT16 address){
 INT8 SX1276_HAL_GetRadioName(){
 	return radioName;
 }
+
 void SX1276_HAL_SetRadioName(INT8 rn){
 	radioName = rn;
 }

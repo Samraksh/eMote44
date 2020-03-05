@@ -116,6 +116,11 @@ void DataTransmissionHandler::Initialize(){
 	CPU_GPIO_EnableOutputPin(DATATX_SendACKHandler_PIN_TOGGLER, TRUE);
 	CPU_GPIO_SetPinState( DATATX_SendACKHandler_PIN_TOGGLER, FALSE );
 	
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_ON, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_OFF, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+
 
 #endif
 	m_curTime_in_ticks = 0;
@@ -533,7 +538,10 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 
 
 
-
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );		
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+#endif
 
 		bool rv = Send();
 
@@ -770,7 +778,10 @@ void DataTransmissionHandler::SelectRetrySlotNumForNeighborBackOff(){
 }
 
 void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radioAckStatus){
-
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );		
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+#endif
 
 #if OMAC_DTH_DEBUG_SendACKHandler //Mark 7
 	if(DATATX_SendACKHandler_PIN_TOGGLER != DISABLED_PIN){
@@ -1001,7 +1012,10 @@ void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radi
 }
 
 void DataTransmissionHandler::ReceiveDATAACK(UINT16 sourceaddress){ //Mark 8
-
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );		
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+#endif
 	//2) Check if DataTransmissionHandler is active
 	//1) SOFTWARE_ACKs are used
 	//3) If the sourceID is equal to the destination of the original message

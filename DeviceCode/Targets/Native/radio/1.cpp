@@ -885,6 +885,10 @@ DeviceStatus CPU_Radio_ClearChannelAssesment(UINT8 radioName, UINT32 numberMicro
 			status = si446x_hal_cca_ms(radioName, numberMicroSecond);
 #endif
 			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
 			break;
@@ -977,3 +981,126 @@ UINT32 CPU_Radio_SetDefaultRxState(UINT8 state){
 #endif	
 	}
 }
+
+// Spreading factor, coding rate, frequency, and bandwidth are specifically for LoRa radio
+DeviceStatus CPU_Radio_SetSpreadingFactor(UINT8 radioName, UINT32 spreadingfactor)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+DeviceStatus CPU_Radio_SetCodingRate(UINT8 radioName, UINT8 codingrate)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+DeviceStatus CPU_Radio_SetBandwidth(UINT8 radioName, UINT32 bandwidth)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+DeviceStatus CPU_Radio_SetFrequency(UINT8 radioName, UINT32 frequency)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+

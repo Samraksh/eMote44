@@ -83,6 +83,8 @@ BOOL SX1276_HAL_SetAddress(UINT16 address);
 INT8 SX1276_HAL_GetRadioName();
 void SX1276_HAL_SetRadioName(INT8 rn);
 
+DeviceStatus SX1276_HAL_TxPower(int power);
+
 bool SX1276_Packet_PreparePayload(void* msg, UINT16 size, const UINT64& t, ClockIdentifier_t c);
 void SX1276_Packet_ClearPayload();
 void SX1276_Packet_MarkUploaded();

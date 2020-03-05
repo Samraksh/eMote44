@@ -56,9 +56,9 @@ void OMACTest_ReceiveHandler (void* msg, UINT16 PacketType){
 	UINT64 packetID;
 	memcpy(&packetID,packet_ptr->GetPayload(),sizeof(UINT64));
 #if OMACTEST_PRINT_RX_PACKET_INFO
-//	hal_printf("\r\n OMACTest_RX: rx_packet_count = %llu ", gOMACTest.rx_packet_count);
-//	hal_printf("src = %u PacketID = %llu \r\n", packet_ptr->GetHeader()->src, packetID );
-	hal_printf("\r\n OMACTest_RX: rx_packet_count = %s\r\n", l2s(gOMACTest.rx_packet_count,0));
+	hal_printf("\r\n OMACTest_RX: rx_packet_count = %llu, PacketID = %llu \r\n ", gOMACTest.rx_packet_count, packetID);
+	//hal_printf("src = %u PacketID = %llu \r\n", packet_ptr->GetHeader()->src, packetID );
+//	hal_printf("\r\n OMACTest_RX: rx_packet_count = %s\r\n", l2s(gOMACTest.rx_packet_count,0));
 	//hal_printf("src = %s ", l2s(packet_ptr->GetHeader()->src,0));
 	//hal_printf("PacketID = %s \r\n", l2s(packetID,0));
 
@@ -93,7 +93,7 @@ void OMACTest_SendAckHandler (void* msg, UINT16 size, NetOpStatus status, UINT8 
 
 	g_NeighborTable.DeletePacket(packet_ptr);
 
-	hal_printf("\r\n OMACTest_SendAckHandler: send_packet = %s \r\n", l2s(gOMACTest.sent_packet_count,0));
+	hal_printf("\r\n OMACTest_SendAckHandler: send_packet = %llu, PacketID = %llu \r\n", gOMACTest.sent_packet_count, packetID);
 	//hal_printf(" dest = %u  PacketID = %llu rx_packet_count = %llu \r\n",packet_ptr->GetHeader()->dest, packetID,  gOMACTest.rx_packet_count );
 	//hal_printf("\r\n dest = %s ",l2s(packet_ptr->GetHeader()->dest,0));
 	//hal_printf("PacketID = %s ", l2s(packetID,0));
@@ -153,8 +153,8 @@ void CMaxTSNeighborClockMonitorTimerHandler(void * arg) {
 		 || (y < gOMACTest.TargetTimeinTicks) && (gOMACTest.TargetTimeinTicks - y > 8000)
 		){
 
-			//hal_printf("\r\n TargetTimeinTicks = %llu y = %llu \r\n", gOMACTest.TargetTimeinTicks, y );
-			hal_printf("\r\n TargetTimeinTicks = %s y = %s \r\n", l2s(gOMACTest.TargetTimeinTicks,0), l2s(y,0) );
+			hal_printf("\r\n TargetTimeinTicks = %llu y = %llu \r\n", gOMACTest.TargetTimeinTicks, y );
+			//hal_printf("\r\n TargetTimeinTicks = %s y = %s \r\n", l2s(gOMACTest.TargetTimeinTicks,0), l2s(y,0) );
 
 		}
 #endif
@@ -201,7 +201,9 @@ BOOL OMACTest::Initialize(){
 
 	hal_printf("Initialize OMACTest");
 
-
+	srand(g_OMAC.GetMyAddress());
+	
+	RandomSendingPeriod = rand() % 50;
 
 #ifdef DEBUG_GPIO_EMOTE_AUSTERE
 	if(AUSTERE_RADIO_GPIO_PIN == DISABLED_PIN ) {
@@ -315,7 +317,7 @@ void OMACTest::SendPacketToNeighbor(){
 	//	if( (sent_packet_count % 20 < 10 && sequence_number % 10 == 0)
 	//	||  (sent_packet_count % 20 >= 10 && sequence_number % 300 == 0)
 	//	)
-		if (sequence_number % 30 == 0)
+		if (sequence_number % (50+RandomSendingPeriod) == 0)
 		{
 			//Choose neighbor to send
 			hal_printf("\r\n Choosing Neighbor \r\n");
@@ -350,6 +352,9 @@ void OMACTest::SendPacketToNeighbor(){
 						hal_printf("\r\n PACKET REJECTED!!\r\n");
 					}
 				}
+				sequence_number = 0;
+				RandomSendingPeriod = rand() % 50;
+				hal_printf("\r\n Next Data Sending = %d\r\n", RandomSendingPeriod+50);
 		}
 
 	}

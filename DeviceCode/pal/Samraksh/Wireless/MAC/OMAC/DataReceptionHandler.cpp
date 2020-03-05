@@ -95,6 +95,10 @@ void DataReceptionHandler::Initialize(UINT8 radioID, UINT8 macID){
 	CPU_GPIO_EnableOutputPin(DATARX_EXEC_EVENT, TRUE);
 	CPU_GPIO_SetPinState( DATARX_EXEC_EVENT, FALSE );
 		
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_ON, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	CPU_GPIO_EnableOutputPin( RX_RADIO_TURN_OFF, TRUE);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	
 #endif
 	RadioID = radioID;
@@ -386,6 +390,10 @@ void DataReceptionHandler::HandleRadioInterrupt(){ // This is the beginning of a
 }
 
 void DataReceptionHandler::SendACKHandler(){ // Handler for end of tranmission interupt from the radio
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );		
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+#endif
 	if(CPU_Radio_GetRadioAckType() == SOFTWARE_ACK) { //Only happens in SOFTWARE_ACK case
 		VirtualTimerReturnMessage rm;
 		// m_isreceiving = false;
@@ -498,6 +506,10 @@ void DataReceptionHandler::HandleEndofReception(UINT16 address){
 
 
 void DataReceptionHandler::SendDataACK(){ // This prepares a software ACK packet and sends it to the radiocontroller
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );		
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+#endif
 	VirtualTimerReturnMessage rm;
 	//ASSERT_SP(m_receptionstate == DRS_RX_END);
 	if(m_receptionstate != DRS_RX_END){

@@ -20,46 +20,33 @@
 //				v0.4 - Added initial support for Si446x driver (Nathan Stohs)
 
 #include <tinyhal.h>
-#ifdef RADIO_RF231
+
+#if defined(__RADIO_RF231__)
 #include "RF231\RF231.h"
 #endif
 
-#ifdef RADIO_SI446X
+#if defined(__RADIO_SI4468__)
 #include "SI4468\si446x.h"
+#endif
+
+#if defined(__RADIO_SX1276__)
+#include "SX1276\SX1276_driver.h"
+#endif
+
+#define SOFT_BREAKPOINT() ASSERT(0)
+#define ASSERT_NOFAIL(x) {if(x==DS_Fail){ SOFT_BREAKPOINT(); }}
+
+#if defined(__RADIO_SI4468__)
 #define SI4468_SPI2_POWER_OFFSET 16
 #define SI4468_SPI2_CHANNEL_OFFSET 16
 #endif
 
-#ifdef RADIO_LORA
-#include "SX1276\SX1276_driver.h"
-//extern EMOTE_SX1276_LORA::Samraksh_SX1276_hal_netmfadapter gsx1276radio_netmf_adapter;
-#endif
-
-#define ASSERT_NOFAIL(x) {if(x==DS_Fail){ HAL_AssertEx(); }}
 const char * strUfoRadio = "[NATIVE] Error in function %s : Unidentified radio \r\n";
 #define PRINTF_UNIDENTIFIED_RADIO()  hal_printf( strUfoRadio , __func__ );
 
 
 INT8 currentRadioName;
 INT8 currentRadioAckType;
-
-extern "C"
-{
-	void* DefaultReceiveHandler(void *msg, UINT16 Size)
-	{
-		return NULL;
-	}
-
-	void DefaultSendAckHandler(void *msg, UINT16 Size, NetOpStatus status, UINT8 radioAckStatus)
-	{
-
-	}
-
-	BOOL DefaultRadioInterruptHandler(RadioInterrupt Interrupt, void *param)
-	{
-		return FALSE;
-	}
-}
 
 // Calls the corresponding radio object initialize function based on the radio chosen
 DeviceStatus CPU_Radio_Initialize(RadioEventHandler* eventHandlers, UINT8 radioName, UINT8 numberRadios, UINT8 macName )
@@ -392,7 +379,8 @@ DeviceStatus CPU_Radio_ChangeTxPower(UINT8 radioName, int power)
 #endif
 			break;
 		case SX1276RADIO:
-#if defined(__RADIO_SX1276__)		
+#if defined(__RADIO_SX1276__)	
+			status = SX1276_HAL_TxPower(power);
 #endif
 			break;
 		default:
@@ -583,7 +571,7 @@ void* CPU_Radio_Send(UINT8 radioName, void* msg, UINT16 size)
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
-			ptr_temp = SX1276_HAL_Send(msg, size, 0, 0 ,0);
+			ptr_temp = SX1276_HAL_Send(msg, size, 0, 0 ,1);
 #endif
 			break;
 		default:
@@ -620,7 +608,7 @@ void* CPU_Radio_Send_TimeStamped(UINT8 radioName, void* msg, UINT16 size, UINT32
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
-			ptr_temp = SX1276_HAL_Send(msg, size, eventTime, 0, 0);
+			ptr_temp = SX1276_HAL_Send(msg, size, eventTime, 0, 1);
 #endif			
 			break;
 		default:
@@ -864,7 +852,6 @@ DeviceStatus CPU_Radio_ClearChannelAssesment (UINT8 radioName)
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
 			status = SX1276_HAL_ChannelActivityDetection();
-			//status = DS_Success;
 #endif
 			break;
 		default:
@@ -899,6 +886,10 @@ DeviceStatus CPU_Radio_ClearChannelAssesment(UINT8 radioName, UINT32 numberMicro
 			status = si446x_hal_cca_ms(radioName, numberMicroSecond);
 #endif
 			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
 		default:
 			PRINTF_UNIDENTIFIED_RADIO();
 			break;
@@ -991,3 +982,126 @@ UINT32 CPU_Radio_SetDefaultRxState(UINT8 state){
 #endif	
 	}
 }
+
+// Spreading factor, coding rate, frequency, and bandwidth are specifically for LoRa radio
+DeviceStatus CPU_Radio_SetSpreadingFactor(UINT8 radioName, UINT32 spreadingfactor)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+DeviceStatus CPU_Radio_SetCodingRate(UINT8 radioName, UINT8 codingrate)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+DeviceStatus CPU_Radio_SetBandwidth(UINT8 radioName, UINT32 bandwidth)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+DeviceStatus CPU_Radio_SetFrequency(UINT8 radioName, UINT32 frequency)
+{
+	DeviceStatus status  = DS_Fail;
+	
+	switch(radioName)
+	{
+		case RF231RADIO:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case RF231RADIOLR:
+#if defined(__RADIO_RF231__)		
+#endif
+			break;
+		case SI4468_SPI2:
+#if defined(__RADIO_SI4468__)		
+#endif
+			break;
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+#endif
+			break;			
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+

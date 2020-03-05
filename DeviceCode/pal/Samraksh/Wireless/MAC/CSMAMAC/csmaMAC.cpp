@@ -228,7 +228,7 @@ BOOL csmaMAC::SendTimeStamped(UINT16 dest, UINT8 dataType, void* msg, int Size, 
 	header->fcf->IEEE802_15_4_Header_FCF_BitValue.frameVersion = 1;
 	header->fcf->IEEE802_15_4_Header_FCF_BitValue.srcAddrMode = 2;*/
 	/**************************************************************/
-	header->fcf.fcfWordValue = FCF_WORD_VALUE;
+	//header->fcf.fcfWordValue = FCF_WORD_VALUE;
 	finalSeqNumber = GetMyAddress() ^ 0xAA;
 	finalSeqNumber += ((GetMyAddress() >> 8) ^ 0x55);
 	finalSeqNumber += seqNumber;
@@ -300,7 +300,7 @@ BOOL csmaMAC::Send(UINT16 dest, UINT8 dataType, void* msg, int Size){
 	header->fcf->IEEE802_15_4_Header_FCF_BitValue.frameVersion = 1;
 	header->fcf->IEEE802_15_4_Header_FCF_BitValue.srcAddrMode = 2;*/
 	/**************************************************************/
-	header->fcf.fcfWordValue = FCF_WORD_VALUE;
+	//header->fcf.fcfWordValue = FCF_WORD_VALUE;
 	finalSeqNumber = GetMyAddress() ^ 0xAA;
 	finalSeqNumber += ((GetMyAddress() >> 8) ^ 0x55);
 	finalSeqNumber += seqNumber;
