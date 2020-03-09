@@ -21,7 +21,7 @@
         <OutputType>Executable</OutputType>
         <MultipleOutputSections Condition="'$(MEMORY)'=='FLASH'">true</MultipleOutputSections>
         <ADD_LOAD_IMAGE_CRC>true</ADD_LOAD_IMAGE_CRC>
-        <ExtraTargets>BuildSigFiles;CompressImage</ExtraTargets>
+        <!-- <ExtraTargets>BuildSigFiles;CompressImage</ExtraTargets> -->
         <ExtraEXETargets>MetaDataProcessorDat;TinyClrDat</ExtraEXETargets>
         <ImageLocation Condition="'$(MEMORY)'=='FLASH'">\ER_FLASH</ImageLocation>
         <LINK_FLAGS Condition="'$(COMPILER_TOOL)'!='GCC'">$(LINK_FLAGS) --verbose $(SWTC)keep *(.init_array)</LINK_FLAGS>
