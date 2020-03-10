@@ -175,44 +175,14 @@ UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 
 UINT64 CPU_TicksToTime( UINT64 Ticks, UINT16 Timer )
 {
-    UINT8 i;
-	UINT32 timerFrequency = TIM_CLK_HZ;
-
-	for (i=0; i<g_CountOfHardwareTimers; i++){
-		if (Timer == g_HardwareTimerIDs[i]){
-			timerFrequency = g_HardwareTimerFrequency[i];
-		}
-	}
-
-
-		Ticks *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
-		Ticks /= (timerFrequency/CLOCK_COMMON_FACTOR);
-
-	return Ticks;
+	// A unit of Time is 100us
+	return (UINT64)(CPU_TicksToMicroseconds(Ticks, Timer) * 100);
 }
 
 UINT64 CPU_TicksToTime( UINT32 Ticks32, UINT16 Timer )
 {
-    UINT32 timerFrequency = TIM_CLK_HZ;
-	UINT8 i;
-
-	for (i=0; i<g_CountOfHardwareTimers; i++){
-		if (Timer == g_HardwareTimerIDs[i]){
-			timerFrequency = g_HardwareTimerFrequency[i];
-		}
-	}
-
-
-		// this reduces to multiplying by 1 if CLOCK_COMMON_FACTOR == 1000000
-		if (CLOCK_COMMON_FACTOR != 1000000){
-			Ticks32 *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);				 
-		}
-		if (timerFrequency == 8000000){
-			Ticks32 >> 3;
-		} else {
-			Ticks32 /= (timerFrequency/CLOCK_COMMON_FACTOR);
-		}
-		return Ticks32;
+	// A unit of Time is 100us
+	return (UINT64)(CPU_TicksToMicroseconds(Ticks32, Timer) * 100);
 }
 
 //--//
@@ -301,13 +271,13 @@ int CPU_MicrosecondsToSystemClocks( int uSec )
 
 //--//
 
-int CPU_SystemClocksToMicroseconds( int Ticks )
+/*int CPU_SystemClocksToMicroseconds( int Ticks )
 {
     Ticks *= (ONE_MHZ        /CLOCK_COMMON_FACTOR);
     Ticks /= (TIM_CLK_HZ/CLOCK_COMMON_FACTOR);
 
     return Ticks;
-}
+}*/
 
 UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 {
