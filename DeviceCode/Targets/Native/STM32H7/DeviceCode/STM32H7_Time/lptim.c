@@ -406,6 +406,9 @@ void MX_LPTIM_Init(void) {
 
 	my_start_lptim_vt(vt_lptim);
 	my_start_lptim(my_lptim);
+
+	// HAL_Delay is now driven from LPTIM2 so we can turn off SysTick
+	HAL_SuspendTick();
 }
 
 // Called from HAL_LPTIM_Init()
