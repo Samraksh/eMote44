@@ -1,4 +1,4 @@
-Wed, Mar 11, 2020  4:41:45 PM
+Wed, Mar 11, 2020  6:04:32 PM
    text	   data	    bss	    dec	    hex	filename
-1743656	  18340	 189185	1951181	 1dc5cd	BuildOutput/THUMB2FP/GCC6.3/le/FLASH/debug/STM32H743NUCLEO/bin/tinyclr.axf
-b2ebef9de83bd228cf7ddfdb68b0aae14f210f8f
+1743976	  18340	 189225	1951541	 1dc735	binaries/tinyclr.axf
+884c5bd70d37694035f689e98023e23cb624dbb2
