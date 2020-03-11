@@ -95,7 +95,7 @@ static bool timer5running = FALSE;
 
 HAL_CALLBACK_FPN earlyRtcCallBackISR;
 UINT32 earlyRtcCallBackISR_Param;
-static HAL_CONTINUATION RTC_interrupt_continuation;
+//static HAL_CONTINUATION RTC_interrupt_continuation;
 
 /**
   * @brief  This function is executed in case of error occurrence.
@@ -160,10 +160,10 @@ UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 	{
 		maxTicks = 0xFFFFFFFF;
 	}
-	else if(Timer == RTC_32BIT)
+	/*else if(Timer == RTC_32BIT)
 	{
 		maxTicks = 0xFFFFFFFF;
-	}
+	}*/
 	else if(Timer == LPTIM)
 	{
 		maxTicks = 0x1FFFF;
@@ -318,9 +318,9 @@ UINT64 CPU_Timer_CurrentTicks(UINT16 Timer)
 	/*if (Timer == ADVTIMER_32BIT){
 		retVal = (UINT64)(TimHandle5.Instance->CNT);
 	} 
-	else */if (Timer == RTC_32BIT) {
+	else if (Timer == RTC_32BIT) {
 		retVal = (UINT64) CPU_RTC_GetTimerValue();
-	} else
+	} else */
 	if (Timer == LPTIM){
 		// LPTIM time is in microseconds (although it is based off a 32kH physical clock)
 		return requestLptimCounter();
@@ -406,7 +406,7 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 		}
 
 	} 
-	else if(Timer == RTC_32BIT)
+	/*else if(Timer == RTC_32BIT)
 	{
 		volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
 		//uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
@@ -423,7 +423,7 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 		} else {
 			CPU_RTC_SetAlarm(timerRtc);
 		}
-	}
+	}*/
 	else if (Timer == LPTIM) 
 	{
 		// LPTIM time is in microseconds already (although it is based off a 32kH physical clock)
@@ -528,12 +528,14 @@ BOOL CPU_Timer_Initialize_System_time(){
 	return TRUE;
 }
 
+/*
 void Early_RTC_Irq_Handler(void *arg){
 			//CPU_GPIO_SetPinState(GPIO_1, TRUE);
 			//CPU_GPIO_SetPinState(GPIO_1, FALSE);
 	earlyRtcCallBackISR(&earlyRtcCallBackISR_Param);
 	return;
 }
+*/
 
 
 BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CALLBACK_FPN ISR)
@@ -561,7 +563,7 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 			Error_Handler();
 		}
 	}
-	else if(Timer == RTC_32BIT )
+	/*else if(Timer == RTC_32BIT )
 	{
 		callBackISR_Param = RTC_32BIT;
 		//hal_printf("init rtc 32bit\r\n"); // serial console is not up yet
@@ -572,7 +574,7 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 
 		// this will handle firing the RTC callback if timeout is too short
 		RTC_interrupt_continuation.InitializeCallback(Early_RTC_Irq_Handler, NULL);
-	} else if (Timer == LPTIM) 
+	}*/ else if (Timer == LPTIM) 
 	{
 		lptimCallBackISR = ISR;
 		lptimCallBackISR_Param = LPTIM;
@@ -629,10 +631,10 @@ BOOL CPU_Timer_UnInitialize(UINT16 Timer)
 			/* Initialization Error */
 			Error_Handler();
 		} 
-	} else if(Timer == RTC_32BIT )
+	} /*else if(Timer == RTC_32BIT )
 	{
 	
-	}
+	}*/
     //CPU_INTC_DeactivateInterrupt(TIM_32_IRQn);
     
     //TIM_16->CR1 &= ~TIM_CR1_CEN; // disable timers

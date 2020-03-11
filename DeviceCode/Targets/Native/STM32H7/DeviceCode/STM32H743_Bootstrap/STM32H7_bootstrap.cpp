@@ -82,7 +82,7 @@ static void MaxSystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_USART2
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2
                               |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_SPI3
                               |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_USB
 							  |RCC_PERIPHCLK_LPTIM2|RCC_PERIPHCLK_QSPI
@@ -96,7 +96,6 @@ static void MaxSystemClock_Config(void)
   PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
   PeriphClkInitStruct.Lptim1ClockSelection = RCC_LPTIM1CLKSOURCE_LSE;
   PeriphClkInitStruct.Lptim2ClockSelection = RCC_LPTIM2CLKSOURCE_LSE;
-  PeriphClkInitStruct.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
   {
     Error_Handler();
