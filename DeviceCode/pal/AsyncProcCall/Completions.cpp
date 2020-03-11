@@ -192,8 +192,11 @@ void HAL_COMPLETION::WaitForInterrupts( UINT64 Expire, UINT32 sleepLevel, UINT64
         state = 0;
     }
 
-    if(state & c_SetCompare) HAL_Time_SetCompare( Expire );
-
+	// TODO when sleep is enabled
+	// uncomment the following two lines to enable sleep
+	// currently without sleep enabled, this set compare is hit again and again very quickly which can 
+	// cause the virtual timer code to be called excessively causing the high-freq VT to lose accuracy
+    //if(state & c_SetCompare) HAL_Time_SetCompare( Expire );
     //CPU_Sleep( (SLEEP_LEVEL)sleepLevel, wakeEvents );
 
     if(state & (c_ResetCompare | c_NilCompare))
