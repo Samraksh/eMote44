@@ -113,7 +113,7 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray
 	// populating data with bogus values to test
 	// TODO: populate with actual data
 	static int testCnt = 1;
-	for (int i = 0; i < sizeof(ai_output); i++){
+	for (int i = 0; i < sizeof(ai_output)/sizeof(ai_output[0]); i++){
 		data[i] = ai_output[i];
 	}
 
