@@ -1,4 +1,4 @@
-BuildOutput/THUMB2FP/GCC6.3/le/FLASH/debug/STM32H743NUCLEO/bin/tinybooter.axf
-BuildOutput/THUMB2FP/GCC6.3/le/FLASH/debug/STM32H743NUCLEO/bin/tinyclr.axf
-Wed, Mar  5, 2020  
-0a3d2ccd598eb1a792a4b16476dd1b55abcec0c6
+Wed, Mar 11, 2020  4:41:45 PM
+   text	   data	    bss	    dec	    hex	filename
+1743656	  18340	 189185	1951181	 1dc5cd	BuildOutput/THUMB2FP/GCC6.3/le/FLASH/debug/STM32H743NUCLEO/bin/tinyclr.axf
+b2ebef9de83bd228cf7ddfdb68b0aae14f210f8f

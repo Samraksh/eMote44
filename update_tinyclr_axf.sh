@@ -11,3 +11,4 @@ cp $AXF_FILE binaries/
 date > $LOG_FILE
 arm-none-eabi-size $AXF_FILE >> $LOG_FILE
 git describe --always --abbrev=0 >> $LOG_FILE
+dos2unix $LOG_FILE
