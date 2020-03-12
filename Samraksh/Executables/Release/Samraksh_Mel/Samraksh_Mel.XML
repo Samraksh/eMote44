@@ -9,10 +9,9 @@
             Audio Interface 
             </summary>
         </member>
-        <member name="M:Samraksh_Mel.AudioInterface.#ctor(System.Int32)">
+        <member name="M:Samraksh_Mel.AudioInterface.#ctor">
             <summary>
             Audio Interface constructor
-            <param name="callbackDataSizeInit">Size of float array sent to callback function</param>
             </summary>
         </member>
         <member name="M:Samraksh_Mel.AudioInterface.Finalize">

@@ -13,14 +13,10 @@ namespace Samraksh_Mel
         private int callbackDataSize;
         /// <summary>
         /// Audio Interface constructor
-        /// <param name="callbackDataSizeInit">Size of float array sent to callback function</param>
         /// </summary>
-        public AudioInterface(int callbackDataSizeInit) : base("AICallback", 2345)
+        public AudioInterface() : base("AICallback", 2345)
         {
-            if ((callbackDataSize > 0) && (callbackDataSizeInit < 1024))
-                callbackDataSize = callbackDataSizeInit;
-            else
-                callbackDataSize = 6;
+            callbackDataSize = 8;
             Initialize(callbackDataSize);
             OnInterrupt += aiCallbackFunction;
         }
