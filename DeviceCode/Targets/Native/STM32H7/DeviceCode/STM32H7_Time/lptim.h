@@ -4,6 +4,8 @@
 extern "C" {
 #endif
 
+#define MAX_LPTIM_TICKS 0xFFFF
+
 typedef enum {
 	lptim_err_none	= 0,
 	lptim_err_busy	= -1,

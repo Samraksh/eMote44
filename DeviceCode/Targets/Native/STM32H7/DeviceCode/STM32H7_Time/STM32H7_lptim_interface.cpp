@@ -10,7 +10,6 @@ extern "C" {
 
 #include "lptim.h"
 
-
 void LptimInit(){
 	// Starts all LPTIM
 	MX_LPTIM_Init();
@@ -24,6 +23,11 @@ int callLptimSetCompareMicroseconds(uint32_t us){
 	int retCode = 0;
 	
 		retCode = lptim_set_delay_us(us, LPTIM_VT);
+		if (retCode == lptim_err_long) { // Desired intervall too long. Default to max interval.
+			retCode = lptim_set_delay_ticks(MAX_LPTIM_TICKS, LPTIM_VT);
+			return retCode;
+		}
+		else
 		if (retCode == lptim_err_short){
 			retCode = lptim_set_delay_us(MIN_LPTIM_COUNT, LPTIM_VT);
 			return retCode;
