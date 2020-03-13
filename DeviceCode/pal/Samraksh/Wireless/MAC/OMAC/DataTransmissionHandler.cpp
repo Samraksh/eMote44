@@ -981,6 +981,7 @@ void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radi
 		}
 	}
 	else {
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, 0, TRUE, OMACClockSpecifier );
 #if OMAC_DTH_TIMER_TARGET_TIME_CORRECTION||OMAC_DTH_DEBUG_UNEXPECTED_POST_EX
 		m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( 0);
@@ -1079,6 +1080,7 @@ void DataTransmissionHandler::ReceiveDATAACK(UINT16 sourceaddress){ //Mark 8
 		}
 
 		if(rm == TimerSupported){
+			rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER);
 			rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, 0, TRUE, OMACClockSpecifier );
 #if OMAC_DTH_TIMER_TARGET_TIME_CORRECTION||OMAC_DTH_DEBUG_UNEXPECTED_POST_EX
 			m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( 0);

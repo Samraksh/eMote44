@@ -245,6 +245,7 @@ BOOL VirtualTimerMapper::StopTimer(UINT8 timer_id)
 
 	g_VirtualTimerInfo[VTimerIndex].set_m_is_running(FALSE);
 	g_VirtualTimerInfo[VTimerIndex].set_m_reserved(FALSE);
+	SetAlarmForTheNextTimer();
 	return TRUE;
 }
 
@@ -413,9 +414,7 @@ void VirtualTimerCallback(void *arg)
 {
 	UINT32 ticks = 0, startDelay = 0;
 	UINT16 i = 0;
-#if defined(PLATFORM_ARM_SmartFusion2)
-	MSS_TIM2_clear_irq();
-#endif
+	
 	// the timer used (RTC_32BIT, ADVTIMER_32BIT) is passed as the argument
 	UINT32 currentHardwareTimerId = *(UINT32*)arg;
 	UINT8 currentVTMapper = 0;
@@ -427,17 +426,14 @@ void VirtualTimerCallback(void *arg)
 	}
 
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].is_callback_running = true;
-	UINT16 currentVirtualTimerCount = gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_cnt_;
-	if(gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_ == NO_CURRENT_TIMER){
-		//ASSERT(0);
-		return;
-	}
+	//UINT16 currentVirtualTimerCount = gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_cnt_;
+	if(gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_ != NO_CURRENT_TIMER){
 		VirtualTimerInfo* runningTimer = &gVirtualTimerObject.virtualTimerMapper[currentVTMapper].g_VirtualTimerInfo[gVirtualTimerObject.virtualTimerMapper[currentVTMapper].m_current_timer_running_];
 
 		// calling the timer callback that just fired IF it is running and should have matched by now. 
 		// It is possible that while we are queueing up a timer to fire another timer fires and then m_current_timer_running_ gets changed, that exits, the timer interrupt gets processed and we process the wrong timer
 		// So we double check here.
-	if (runningTimer->get_m_is_running() && (runningTimer->get_m_ticks_when_match_() < CPU_Timer_CurrentTicks(currentHardwareTimerId))){
+		if (runningTimer->get_m_is_running() && (runningTimer->get_m_ticks_when_match_() < CPU_Timer_CurrentTicks(currentHardwareTimerId))){
 			if ( runningTimer->get_m_timer_id() <= VIRT_TIMER_INTERRUPT_CONTEXT_MARKER){
 				(runningTimer->get_m_callback())(NULL);
 			} else {
@@ -452,7 +448,7 @@ void VirtualTimerCallback(void *arg)
 			runningTimer->set_m_ticks_when_match_(VirtTimer_GetTicks(runningTimer->get_m_timer_id()) + runningTimer->get_m_period());
 			}
 		}
-
+	} 
 	
 
 	gVirtualTimerObject.virtualTimerMapper[currentVTMapper].is_callback_running = false;

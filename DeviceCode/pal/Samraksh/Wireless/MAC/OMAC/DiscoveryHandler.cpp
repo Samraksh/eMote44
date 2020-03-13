@@ -211,6 +211,7 @@ void DiscoveryHandler::ExecuteEvent(){
 	if (e == DS_Success){
 		m_state = DISCO_LISTEN_SUCCESS;
 		///rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 20000, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 1, TRUE, OMACClockSpecifier );
 #ifdef OMAC_DEBUG_GPIO
 		CPU_GPIO_SetPinState( OMAC_DISCO_EXEC_EVENT, FALSE );
@@ -225,6 +226,7 @@ void DiscoveryHandler::ExecuteEvent(){
 	}
 	else {
 		m_state = DISCO_LISTEN_FAIL;
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 1, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
@@ -259,6 +261,7 @@ void DiscoveryHandler::PostExecuteEvent(){
 		OMAC_HAL_PRINTF(" \r\n OMACScheduler::PostPostExecution() Radio stop failure! m_num_sleep_retry_attempts = %u  \r\n", m_num_sleep_retry_attempts);
 		if(m_num_sleep_retry_attempts < MAX_SLEEP_RETRY_ATTEMPTS){
 			++m_num_sleep_retry_attempts;
+			rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, RADIO_STOP_RETRY_PERIOD_IN_MICS, TRUE, OMACClockSpecifier );
 			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 			if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
@@ -445,6 +448,7 @@ void DiscoveryHandler::Beacon1(){
 	if(ds == DS_Success) {
 
     	//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, 44337/2, TRUE, OMACClockSpecifier );// g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
@@ -454,6 +458,7 @@ void DiscoveryHandler::Beacon1(){
 	}
 	else {
 		m_state = BEACON1_SKIPPED;
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
@@ -476,6 +481,7 @@ void DiscoveryHandler::BeaconN(){
 	}
 	if(ds == DS_Success) {
 		///rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_SLOT_PERIOD_MICRO/2, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
@@ -486,9 +492,10 @@ void DiscoveryHandler::BeaconN(){
 	}
 	else {
 		m_state = BEACON2_SKIPPED;
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0, g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_SLOT_PERIOD_MICRO/2, TRUE, OMACClockSpecifier );
-		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
+			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 			PostExecuteEvent();
 		}
@@ -532,6 +539,7 @@ void DiscoveryHandler::BeaconNTimerHandler(){
 #endif
 		if(!g_OMAC.isSendDone){
 			//rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO/2, TRUE, OMACClockSpecifier );
+			rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 			rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.DISCO_PACKET_TX_TIME_MICRO, TRUE, OMACClockSpecifier );
 		
 			rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
@@ -543,6 +551,7 @@ void DiscoveryHandler::BeaconNTimerHandler(){
 	case BEACON1_SEND_DONE:
 		// BK: This was  a hack to wait additional time before sending second beacon. Commening it out.
 		m_state = WAIT_AFTER_BEACON1;
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_DISCOVERY);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_DISCOVERY, 0,  g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_DISCOVERY);
 		if(rm == TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately

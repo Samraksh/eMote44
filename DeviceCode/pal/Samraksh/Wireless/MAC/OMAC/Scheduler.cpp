@@ -296,6 +296,7 @@ void OMACScheduler::ScheduleNextEvent(){
 		m_state = I_IDLE ;
 	}
 		
+	rm = VirtTimer_Stop(VIRT_TIMER_OMAC_SCHEDULER);
 	rm = VirtTimer_Change(VIRT_TIMER_OMAC_SCHEDULER, 0, nextWakeupTimeInMicSec, TRUE, OMACClockSpecifier); //1 sec Timer in micro seconds
 	//	
 	//ASSERT_SP(rm == TimerSupported);

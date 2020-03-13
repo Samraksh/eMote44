@@ -193,7 +193,7 @@ void HAL_COMPLETION::WaitForInterrupts( UINT64 Expire, UINT32 sleepLevel, UINT64
     }
 
 	// TODO when sleep is enabled
-	// uncomment the following two lines to enable sleep
+	// uncomment the following two lines to enable sleep (and the HAL_Time_SetCompare on line 207)
 	// currently without sleep enabled, this set compare is hit again and again very quickly which can 
 	// cause the virtual timer code to be called excessively causing the high-freq VT to lose accuracy
     //if(state & c_SetCompare) HAL_Time_SetCompare( Expire );
@@ -204,7 +204,7 @@ void HAL_COMPLETION::WaitForInterrupts( UINT64 Expire, UINT32 sleepLevel, UINT64
         // let's get the first node again
         // it could have changed since CPU_Sleep re-enabled interrupts
         ptr = (HAL_COMPLETION*)g_HAL_Completion_List.FirstNode();
-        HAL_Time_SetCompare( (state & c_ResetCompare) ? ptr->EventTimeTicks : HAL_Completion_IdleValue );
+        //HAL_Time_SetCompare( (state & c_ResetCompare) ? ptr->EventTimeTicks : HAL_Completion_IdleValue );
     }
 }
 

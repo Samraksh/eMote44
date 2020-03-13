@@ -266,6 +266,8 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_TIMER_MAC_BEACON 16
 #define VIRT_TIMER_MAC_FLUSHBUFFER 17
 
+//#define VIRT_TIMER_OMAC_SCHEDULER 18
+#define LocalClockMonitor_TIMER1 19
 #define VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE 20
 // The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
 // Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
@@ -298,9 +300,7 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_RX_TIMEOUT_TIMER 73
 #define VIRT_RX_TIMEOUT_SYNC_WORD 74
 
-//#define VIRT_TIMER_OMAC_SCHEDULER 18
 
-#define LocalClockMonitor_TIMER1 19
 
 #define VIRT_CONT_TEST_TIMER1 33
 #define VIRT_CONT_TEST_TIMER2 34
