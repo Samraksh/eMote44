@@ -55,54 +55,11 @@ void HAL_CPU_Sleep( SLEEP_LEVEL level, UINT64 wakeEvents )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_POWER();
 
-    switch(level)
-    {
-    case SLEEP_LEVEL__DEEP_SLEEP: // stop
-        // stop peripherals if needed
-        if (g_STM32H7_stopHandler != NULL)
-            g_STM32H7_stopHandler();
-
-        // TODO: Explicitly clear PWR_CR1_PDDS ?
-//        PWR->CR1 |= PWR_CR1_FLPS | PWR_CR1_LPDS; // low power deepsleep
-//        SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-//        __WFI(); // stop clocks and wait for external interrupt
-
-//#if SYSTEM_CRYSTAL_CLOCK_HZ != 0
-//        RCC->CR |= RCC_CR_HSEON;             // HSE on
-//#endif
-//        SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;  // reset deepsleep
-
-//        while(!(RCC->CR & RCC_CR_HSERDY));
-//        RCC->CR |= RCC_CR_PLLON;             // pll on
-//        while(!(RCC->CR & RCC_CR_PLLRDY));
-//        RCC->CFGR |= RCC_CFGR_SW_PLL1;        // sysclk = pll out
-//#if SYSTEM_CRYSTAL_CLOCK_HZ != 0
-//        RCC->CR &= ~RCC_CR_HSION;            // HSI off
-//#endif
-		HAL_PWR_EnterSTOPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
-
-        // restart peripherals if needed
-        if (g_STM32H7_restartHandler != NULL)
-            g_STM32H7_restartHandler();
-        return;
-		
-    case SLEEP_LEVEL__OFF: // standby
-        // stop peripherals if needed
-       // if (g_STM32H7_stopHandler != NULL)
-       //     g_STM32H7_stopHandler();
-
-       // PWR->CPUCR |= PWR_CPUCR_PDDS_D1; //PWR_CR1_PDDS; // power down deepsleep
-       // SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
-      //  __WFI(); // soft power off, never returns
-        HAL_PWR_EnterSTANDBYMode();
-		return;
-
-    default: // sleep
-        // TODO: Clear SLEEPDEEP bit in SCB->SCR ?
-        //PWR->CR |= PWR_CR_CWUF;
-        //__WFI(); // sleep and wait for interrupt
-		HAL_PWR_EnterSLEEPMode(PWR_LOWPOWERREGULATOR_ON, PWR_STOPENTRY_WFI);
-        return;
+    switch(level) {
+		case SLEEP_LEVEL__SLEEP: __WFI(); break;
+		case SLEEP_LEVEL__DEEP_SLEEP:
+		case SLEEP_LEVEL__OFF:
+		default: __BKPT(); // No other sleep levels are supported
     }
 }
 
