@@ -165,7 +165,7 @@
 //#define OMACClockSpecifier HFCLOCKID
 //#define OMACClockFreq 8000
 //#define OMACClocktoSystemClockFreqRatio 1
-#define OMACClocktoSystemClockFreqRatio 50//1525.87890625
+#define OMACClocktoSystemClockFreqRatio 30//1525.87890625
 
 #define INITIALIZATION_TIMESYNC_INTERVAL_INMICS 10000000   // Controls the interval during the neighbor intiialization period after a discovery. This interval is faster than the regular intervals in order to fill the neighbor's timesync table with the samples from the current node.
 

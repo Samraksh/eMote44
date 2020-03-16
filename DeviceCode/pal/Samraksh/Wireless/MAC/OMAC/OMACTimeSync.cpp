@@ -131,6 +131,7 @@ void OMACTimeSync::ExecuteEvent(){
 	//		Send(sn->MacAddress);
 	//	}
 	VirtualTimerReturnMessage rm;
+	rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TIMESYNC);
 	rm = VirtTimer_Start(VIRT_TIMER_OMAC_TIMESYNC);
 	if(rm != TimerSupported){ //Could not start the timer to turn the radio off. Turn-off immediately
 		PostExecuteEvent();
@@ -274,17 +275,17 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 	if(ReceiveTS > rcv_ltime){
 		l_offset = ReceiveTS - rcv_ltime;
 		l_offset = l_offset*-1;
-		//hal_printf("\r1:ReceiveTS=%s ",l2s(ReceiveTS/48,0));
-		//hal_printf("rcv=%s ",l2s(rcv_ltime/48,0));
-		//hal_printf("sdelay=%s ",l2s(SenderDelay/48,0));
-		//hal_printf("offset=-%s\r\n",l2s((ReceiveTS - rcv_ltime)/48,0));
+		hal_printf("\r1:ReceiveTS=%s ",l2s(ReceiveTS/48,0));
+		hal_printf("rcv=%s ",l2s(rcv_ltime/48,0));
+		hal_printf("sdelay=%s ",l2s(SenderDelay/48,0));
+		hal_printf("offset=-%s\r\n",l2s((ReceiveTS - rcv_ltime)/48,0));
 	}
 	else{
 		l_offset = rcv_ltime - ReceiveTS;	
-		//hal_printf("\r2:ReceiveTS=%s ",l2s(ReceiveTS/48,0));
-		//hal_printf("rcv=%s ",l2s(rcv_ltime/48,0));
-		//hal_printf("sdelay=%s ",l2s(SenderDelay/48,0));
-		//hal_printf("offset=%s\r\n",l2s((rcv_ltime - ReceiveTS)/48,0));
+		hal_printf("\r2:ReceiveTS=%s ",l2s(ReceiveTS/48,0));
+		hal_printf("rcv=%s ",l2s(rcv_ltime/48,0));
+		hal_printf("sdelay=%s ",l2s(SenderDelay/48,0));
+		hal_printf("offset=%s\r\n",l2s((rcv_ltime - ReceiveTS)/48,0));
 	}
 	
 	//l_offset = 0;

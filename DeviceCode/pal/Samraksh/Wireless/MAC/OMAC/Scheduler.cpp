@@ -239,9 +239,9 @@ void OMACScheduler::ScheduleNextEvent(){
 	//	hal_printf(" txEvent=%s", l2s(txEventOffset,0));
 	//	hal_printf(" beaconent=%s", l2s(beaconEventOffset,0));
 	
-	//hal_printf("rxEvent=%d ", rxEventOffset);
-	//hal_printf("txEvent=%d \n ", txEventOffset);
-	//hal_printf("beaconent=%d ", beaconEventOffset);
+	//hal_printf("rxEvent=%llu ", rxEventOffset);
+	//hal_printf("txEvent=%llu  ", txEventOffset);
+	//hal_printf("beaconent=%llu ", beaconEventOffset);
 	
 	if(rxEventOffset == nextWakeupTimeInMicSec) {
 		m_state = I_DATA_RCV_PENDING;

@@ -649,7 +649,10 @@ BOOL OMACType::IsPcktValid(Message_15_4_t* msg, int Size){
 		case MFM_OMAC_DISCOVERY:
 		case MFM_OMAC_DATA_ACK:
 		case MFM_OMAC_DATA_BEACON_TYPE:
+		case MFM_DATA:
 		case TYPE31:
+		case TYPE01:
+		case TYPE02:
 			break;
 		default:
 			return FALSE;

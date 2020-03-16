@@ -30,7 +30,7 @@ UINT64 OMACClock::ConvertTickstoMicroSecs(const UINT64& ticks){ //This function 
 	///	return ticks*30.517578125; // JH: LSE clock (32.768Khz) => 1000000us / 32768Hz
 	///}
 	///else {
-		return ticks/50; //TICKS_PER_MICRO
+		return ticks/30; //TICKS_PER_MICRO
 	///}
 };
 UINT64 OMACClock::ConvertMicroSecstoTicks(const UINT64& microsecs){ //This function gets the time ticks required for OMAC
@@ -39,7 +39,7 @@ UINT64 OMACClock::ConvertMicroSecstoTicks(const UINT64& microsecs){ //This funct
 	///	return ( microsecs * (1<<15))/ 1000000;	
 	///}
 	///else {
-		return microsecs*50; //TICKS_PER_MICRO
+		return microsecs*30; //TICKS_PER_MICRO
 	///}
 };
 UINT64 OMACClock::ConvertSlotstoTicks(const UINT64& slots){ //This function gets the time ticks required for OMAC
@@ -48,7 +48,7 @@ UINT64 OMACClock::ConvertSlotstoTicks(const UINT64& slots){ //This function gets
 	///	return ( slots * 16 * MILLISECINMICSEC * (1<<15))/ 1000000; //JH: SLOT PERIOD is 16 in SLOT_PERIOD_MILLI 	
 	///}
 	///else {
-		return slots*4000000; //SLOT_PERIOD_TICKS
+		return slots*2400000; //SLOT_PERIOD_TICKS
 	///}
 }
 
