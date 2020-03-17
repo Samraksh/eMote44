@@ -59,7 +59,17 @@
     <HFiles Include="$(SPOCLIENT)\clr\libraries\spot_hardware\spot_hardware_native.h" />
     <HFiles Include="$(SPOCLIENT)\clr\libraries\spot_net\spot_net_native.h" />
     <HFiles Include="$(SPOCLIENT)\clr\libraries\spot_net_security\spot_net_security_native.h" />
+	<HFiles Include="$(SPOCLIENT)\DeviceCode\include\Samraksh\githash.h" />
+	<HFiles Include="$(SPOCLIENT)\DeviceCode\include\Samraksh\teamid.h" />
     <HFiles Include="clrstartup.h" />
   </ItemGroup>
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
+  <Import Project="$(SPOCLIENT)\tools\targets\Samraksh.Emote.Targets" />
+  <PropertyGroup>
+    <PreBuildDependsOn>
+      CreateGitRevisionHeader;
+      CreateTeamHeader;
+      $(PreBuildDependsOn);
+    </PreBuildDependsOn>
+  </PropertyGroup>
 </Project>

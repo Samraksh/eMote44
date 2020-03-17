@@ -1,0 +1,31 @@
+<Project  xmlns="http://schemas.microsoft.com/developer/msbuild/2003"  ToolsVersion="4.0">
+
+  <PropertyGroup>
+    <ProgramFiles32
+      Condition="Exists('$(PROGRAMFILES) (x86)')">$(PROGRAMFILES) (x86)</ProgramFiles32>
+    <ProgramFiles32
+      Condition="$(ProgramFiles32) == ''">$(PROGRAMFILES)</ProgramFiles32>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GITBIN>$(ProgramFiles32)\Git\bin\sh.exe</GITBIN>
+	<GITBIN64 Condition="!Exists('$(GITBIN)')">c:\Program Files\Git\bin\sh.exe</GITBIN64> <!--HACK 32/64 bit issues. Also see below, script is different. Not a proper fix. UGH.-->
+  </PropertyGroup>
+
+  <Target Name='CreateGitRevisionHeader'>
+        <!-- always reset the githash.h version file.  It's in the .gitignore, otherwise run command "git update-index - -assume-unchanged MicroFrameworkPK_v4_3\DeviceCode\Include\githash.h" -->
+        <Exec Command="echo #define GIT_HASH_AT_BUILD &quot;VCS not available during build.&quot; > $(SPOCLIENT)\DeviceCode\Include\Samraksh\githash.h " />
+        <Exec Command="echo #define GIT_INDEX_STATUS_AT_BUILD &quot;ENOGIT&quot; >> $(SPOCLIENT)\DeviceCode\Include\Samraksh\githash.h " />
+        <Exec Condition="Exists('$(GITBIN)')" Command="&quot;$(GITBIN)&quot; --norc -c 'echo &quot;#define GIT_HASH_AT_BUILD \&quot;`/bin/git rev-parse HEAD`\&quot;&quot; > $(SPOCLIENT)\DeviceCode\Include\Samraksh\githash.h '" />
+        <Exec Condition="Exists('$(GITBIN)')" Command="&quot;$(GITBIN)&quot; --norc -c 'echo -n &quot;#define GIT_INDEX_STATUS_AT_BUILD  \&quot;&quot; ; if `/bin/git diff-index --quiet HEAD`; then echo -n &quot;clean&quot; ; else echo -n &quot;modified&quot; ; fi ; echo -n &quot;\&quot;&quot; >> $(SPOCLIENT)\DeviceCode\Include\Samraksh\githash.h '" />
+        <Exec Condition="Exists('$(GITBIN64)')" Command="&quot;$(GITBIN64)&quot; --norc -c 'echo &quot;#define GIT_HASH_AT_BUILD \&quot;`/mingw64/bin/git rev-parse HEAD`\&quot;&quot; > $(SPOCLIENT)\DeviceCode\Include\Samraksh\githash.h '" />
+        <Exec Condition="Exists('$(GITBIN64)')" Command="&quot;$(GITBIN64)&quot; --norc -c 'echo -n &quot;#define GIT_INDEX_STATUS_AT_BUILD  \&quot;&quot; ; if `/mingw64/bin/git diff-index --quiet HEAD`; then echo -n &quot;clean&quot; ; else echo -n &quot;modified&quot; ; fi ; echo -n &quot;\&quot;&quot; >> $(SPOCLIENT)\DeviceCode\Include\Samraksh\githash.h '" />
+  </Target>
+
+  <Target Name='CreateTeamHeader'>
+        <!-- always reset the teamid.h version file.  It's in the .gitignore, otherwise run command "git update-index - -assume-unchanged MicroFrameworkPK_v4_3\DeviceCode\Include\teamid.h" -->
+        <Exec Command="echo #define YOU_ARE_AWESOME &quot;no builder ID provided.&quot; > $(SPOCLIENT)\DeviceCode\Include\Samraksh\teamid.h " />
+        <Exec Condition="'$(USERNAME)'!=''" Command="echo #define YOU_ARE_AWESOME &quot;%username%&quot; > $(SPOCLIENT)\DeviceCode\Include\Samraksh\teamid.h " />
+  </Target>
+
+</Project>

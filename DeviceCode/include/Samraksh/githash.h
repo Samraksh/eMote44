@@ -1,2 +1,0 @@
-#define GIT_HASH_AT_BUILD "f1ecb5321c26a109b92163fcf7d85d6e5edd395e"
-#define GIT_INDEX_STATUS_AT_BUILD  "modified"
