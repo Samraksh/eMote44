@@ -12,5 +12,6 @@ cp $AXF_FILE binaries/
 date > $LOG_FILE
 arm-none-eabi-size binaries/$AXF_FILE_BASE >> $LOG_FILE
 git describe --always --abbrev=0 >> $LOG_FILE
+md5sum binaries/$AXF_FILE_BASE >> $LOG_FILE
 gzip -9 -f binaries/$AXF_FILE_BASE
 dos2unix $LOG_FILE
