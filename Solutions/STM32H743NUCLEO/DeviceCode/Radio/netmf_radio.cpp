@@ -646,7 +646,7 @@ void* CPU_Radio_Send(UINT8 radioName, void* msg, UINT16 size)
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
-			ptr_temp = SX1276_HAL_Send(msg, size, 0, 0 ,0);
+			ptr_temp = SX1276_HAL_Send(msg, size, 0, 0 ,1);
 #endif
 			break;
 		default:
@@ -683,7 +683,7 @@ void* CPU_Radio_Send_TimeStamped(UINT8 radioName, void* msg, UINT16 size, UINT32
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
-			ptr_temp = SX1276_HAL_Send(msg, size, eventTime, 0, 0);
+			ptr_temp = SX1276_HAL_Send(msg, size, eventTime, 0, 1);
 #endif			
 			break;
 		default:
