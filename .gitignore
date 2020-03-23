@@ -54,3 +54,6 @@ Listings/
 #ignore header files generated at compile-time
 DeviceCode/include/Samraksh/githash.h
 DeviceCode/include/Samraksh/teamid.h
+
+# Added by Dhrubo...since we're saving zipped TinyCLR now
+binaries/tinyclr.axf
