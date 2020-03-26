@@ -39,3 +39,8 @@ Version History:
 2020-02-12
 1a07e521bc226bcbaa5cf38e9c37cb4f *build/libsonyc_ml.a
 Initial
+
+2020-03-26
+9c9b251bf3bb030211f895449a258810 *libsonyc_ml.a
+New split-model (2) architecture
+Proper quantized learning
