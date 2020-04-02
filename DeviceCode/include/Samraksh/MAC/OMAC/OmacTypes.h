@@ -1,7 +1,7 @@
 #ifndef _OMAC_TYPES_H_
 #define _OMAC_TYPES_H_
 
-#define MAX_DATA_PCKT_SIZE 32
+#define MAX_DATA_PCKT_SIZE 130
 
 #define MAX_UINT16 	(0xFFFF)
 #define MAX_UINT32 	(0xFFFFFFFF)

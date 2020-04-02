@@ -2078,7 +2078,7 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		//hal_printf("DIO3IRQ\n\r");
  	   	if( SX1276.Settings.State == RF_RX_RUNNING){ //BK: Adding interrupt for packet detected
     		if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_VALIDHEADER ) == RFLR_IRQFLAGS_VALIDHEADER ){ //BK:Adding callback for
-				//hal_printf("Valid Header\n\r");
+				hal_printf("Valid Header\n\r");
 				// Clear Irq
 				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_VALIDHEADER );
 				if( ( RadioEvents != NULL ) && ( RadioEvents->ValidHeaderDetected != NULL ) )

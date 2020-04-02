@@ -275,17 +275,17 @@ DeviceStatus OMACTimeSync::Receive(RadioAddress_t msg_src, TimeSyncMsg* rcv_msg,
 	if(ReceiveTS > rcv_ltime){
 		l_offset = ReceiveTS - rcv_ltime;
 		l_offset = l_offset*-1;
-		hal_printf("\r1:ReceiveTS=%llu ",ReceiveTS/48);
-		hal_printf("rcv=%llu ", rcv_ltime/48);
-		hal_printf("sdelay=%llu ", SenderDelay/48);
-		hal_printf("offset=-%llu\r\n", (ReceiveTS - rcv_ltime)/48);
+		//hal_printf("\r1:ReceiveTS=%llu ",ReceiveTS/30);
+		//hal_printf("rcv=%llu ", rcv_ltime/30);
+		//hal_printf("sdelay=%llu ", SenderDelay/30);
+		//hal_printf("offset=-%llu\r\n", (ReceiveTS - rcv_ltime)/30);
 	}
 	else{
 		l_offset = rcv_ltime - ReceiveTS;	
-		hal_printf("\r2:ReceiveTS=%llu ",ReceiveTS/48);
-		hal_printf("rcv=%llu ", rcv_ltime/48);
-		hal_printf("sdelay=%llu ", SenderDelay/48);
-		hal_printf("offset=%llu\r\n",(rcv_ltime - ReceiveTS)/48);
+		//hal_printf("\r2:ReceiveTS=%llu ",ReceiveTS/30);
+		//hal_printf("rcv=%llu ", rcv_ltime/30);
+		//hal_printf("sdelay=%llu ", SenderDelay/30);
+		//hal_printf("offset=%llu\r\n",(rcv_ltime - ReceiveTS)/30);
 	}
 	
 	//l_offset = 0;

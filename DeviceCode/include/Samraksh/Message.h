@@ -191,7 +191,7 @@ enum PayloadTypeNative{
 
 //IEEE802.15.4 Message structure
 ///#define IEEE802_15_4_FRAME_LENGTH 128 
-#define IEEE802_15_4_FRAME_LENGTH 64 //JH: For LoRa, reduce the payload size
+#define IEEE802_15_4_FRAME_LENGTH 153 //JH: For LoRa, reduce the payload size
 
 //All fields up to 'network' are 802.15.4 specification fields, network is a option field for 6LowPAN compatibility
 //mac_id is Samraksh's Radio API to demultiplex radio packets

@@ -422,6 +422,8 @@ void SX1276_HAL_ChooseRadioConfig() {
     SX1276SetChannel( RF_FREQUENCY );
 
 #if defined( USE_MODEM_LORA )
+	SX1276SetMaxPayloadLength( MODEM_LORA, 255 );
+
 	SX1276SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
                                    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
                                    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,

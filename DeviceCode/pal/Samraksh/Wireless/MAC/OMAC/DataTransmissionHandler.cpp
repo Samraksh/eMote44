@@ -770,7 +770,10 @@ void DataTransmissionHandler::SelectRetrySlotNumForNeighborBackOff(){
 }
 
 void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radioAckStatus){
-
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 
 #if OMAC_DTH_DEBUG_SendACKHandler //Mark 7
 	if(DATATX_SendACKHandler_PIN_TOGGLER != DISABLED_PIN){
@@ -954,7 +957,7 @@ void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radi
 #ifdef OMAC_DEBUG_PRINTF
 			OMAC_HAL_PRINTF("Waiting RX ACK \r\n");
 #endif
-		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_RX_DURATION_MICRO + g_OMAC.ACK_RX_MAX_DURATION_MICRO, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.ACK_RX_MAX_DURATION_MICRO, TRUE, OMACClockSpecifier );
 #if OMAC_DTH_TIMER_TARGET_TIME_CORRECTION||OMAC_DTH_DEBUG_UNEXPECTED_POST_EX
 		m_scheduledTimer_in_ticks = g_OMAC.m_Clock.GetCurrentTimeinTicks() + g_OMAC.m_Clock.ConvertMicroSecstoTicks( g_OMAC.ACK_RX_MAX_DURATION_MICRO);
 #endif
@@ -1002,7 +1005,8 @@ void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radi
 }
 
 void DataTransmissionHandler::ReceiveDATAACK(UINT16 sourceaddress){ //Mark 8
-
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 	//2) Check if DataTransmissionHandler is active
 	//1) SOFTWARE_ACKs are used
 	//3) If the sourceID is equal to the destination of the original message

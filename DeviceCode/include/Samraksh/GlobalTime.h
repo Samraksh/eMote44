@@ -156,33 +156,62 @@ private:
 
 	void Compute(UINT16 nbr){
 		NeighborIndex_t nbrIndex = FindNeighbor(nbr);
+		NeighborIndex_t i;
 		if(nbrIndex==c_bad_nbrIndex){
 			return;
 		}
 		double *nbrLocalTimes = samples[nbrIndex].recordedTime;
 		double *nbrOffset = samples[nbrIndex].offsetBtwNodes;
 		UINT8 numSamples = samples[nbrIndex].numSamples;
-
+		
 		if (numSamples < 2) {
 			return;
 		}
-
-	    NeighborIndex_t firstIdx, lastIdx, i;
+		double meanOffset = 0;
+		double standardDeviationOffset = 0;
+		UINT8 numOfValueOffset = 0;
+		// when an offset is totally different from other offsets. 
+		BOOL includedComputingOffset[numSamples]; 
+		for (i = 0; i < numSamples; i++) {
+			meanOffset = meanOffset + nbrOffset[i];
+		}
+		meanOffset = meanOffset/numSamples;
+		
+		for (i = 0; i < numSamples; i++) {
+			standardDeviationOffset += pow(nbrOffset[i] - meanOffset, 2);
+		}
+		standardDeviationOffset = sqrt(standardDeviationOffset/numSamples);
+		
+		for (i = 0; i < numSamples; i++) {
+			if(meanOffset - standardDeviationOffset > nbrOffset[i] || meanOffset + standardDeviationOffset < nbrOffset[i])
+				includedComputingOffset[i] = FALSE;
+			else {
+				includedComputingOffset[i] = TRUE;			
+				numOfValueOffset++;
+			}
+		}
+		
+		if (numOfValueOffset < 1) {
+			return;
+		}
+		
+	    NeighborIndex_t firstIdx, lastIdx;
 	    firstIdx = lastIdx = i = 1;
 	    double latestLocalTime, earliestLocalTime;
 		//Find latestLocalTime and earliestLocalTime in the buffer
 		latestLocalTime = nbrLocalTimes[lastIdx];
 		earliestLocalTime = nbrLocalTimes[firstIdx];
 		for (i = 0; i < MAX_SAMPLES; i++) {
-			//if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
-			if( samples[nbrIndex].isused[i]){
-				if (nbrLocalTimes[i] > latestLocalTime) {
-					latestLocalTime = nbrLocalTimes[i];
-					lastIdx = i;
-				}
-				if (nbrLocalTimes[i] < earliestLocalTime) {
-					earliestLocalTime = nbrLocalTimes[i];
-					firstIdx = i;
+			if( includedComputingOffset[i] == TRUE ) {
+				if( samples[nbrIndex].isused[i]){
+					if (nbrLocalTimes[i] > latestLocalTime) {
+						latestLocalTime = nbrLocalTimes[i];
+						lastIdx = i;
+					}
+					if (nbrLocalTimes[i] < earliestLocalTime) {
+						earliestLocalTime = nbrLocalTimes[i];
+						firstIdx = i;
+					}
 				}
 			}
 		}
@@ -194,20 +223,28 @@ private:
 		//samples[nbrIndex].relativeFreq = 0;
 		for (i = 0; i < MAX_SAMPLES; i++) {
 			//if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
-			if( samples[nbrIndex].isused[i]){
-				sum_y += nbrLocalTimes[i];
-				sum_x += nbrLocalTimes[i] - nbrOffset[i] ;
+			if( includedComputingOffset[i] == TRUE ) {
+				if( samples[nbrIndex].isused[i]){
+					sum_y += nbrLocalTimes[i];
+					sum_x += nbrLocalTimes[i] - nbrOffset[i] ;
+				}
 			}
 		}
 		for (i = 0; i < MAX_SAMPLES; i++) {
 			//if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
-			if( samples[nbrIndex].isused[i]){
-				SSxx += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples)) * ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples));
-				SSxy += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples)) * ((nbrLocalTimes[i])  - sum_y/((double)numSamples));
+			if( includedComputingOffset[i] == TRUE ) {
+				if( samples[nbrIndex].isused[i]){
+					//SSxx += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples)) * ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples));
+					//SSxy += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples)) * ((nbrLocalTimes[i])  - sum_y/((double)numSamples));
+					SSxx += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numOfValueOffset)) * ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numOfValueOffset));
+					SSxy += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numOfValueOffset)) * ((nbrLocalTimes[i])  - sum_y/((double)numOfValueOffset));				
+				
+				}
 			}
 		}
 		samples[nbrIndex].relativeFreq = SSxy/SSxx;
-		samples[nbrIndex].y_intercept = sum_y/((double)numSamples) - sum_x/((double)numSamples) * samples[nbrIndex].relativeFreq;
+		//samples[nbrIndex].y_intercept = sum_y/((double)numSamples) - sum_x/((double)numSamples) * samples[nbrIndex].relativeFreq;
+		samples[nbrIndex].y_intercept = sum_y/((double)numOfValueOffset) - sum_x/((double)numOfValueOffset) * samples[nbrIndex].relativeFreq;
 
 		samples[nbrIndex].additional_y_intercept_offset = 0;
 
