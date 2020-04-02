@@ -61,6 +61,7 @@ void ManagedAICallback(UINT32 arg1, UINT32 arg2)
 }
 
 void AudioInterfaceTimerHandler(void *arg){
+	static float upstream[256];
 	float *x = (float *)junk_data_delete_me;
 	if (is_SONYC_ML_init == FALSE) {
 		hal_printf("%s(): ERROR NOT INIT\r\n", __func__);
@@ -69,7 +70,8 @@ void AudioInterfaceTimerHandler(void *arg){
 	for(int i=0; i<sizeof(junk_data_delete_me)/sizeof(junk_data_delete_me[0]); i++) {
 		x[i] = rand_float();
 	}
-	aiRun(junk_data_delete_me, ai_output);
+	aiRun(junk_data_delete_me, upstream);
+	aiRun2(upstream, ai_output);
 	ManagedAICallback(0,0);
 }
 

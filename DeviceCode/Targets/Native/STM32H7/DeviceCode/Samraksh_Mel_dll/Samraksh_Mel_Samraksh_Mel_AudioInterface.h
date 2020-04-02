@@ -18,6 +18,7 @@
 extern "C" {
 void MX_X_CUBE_AI_Init(void);
 int aiRun(const void *in_data, void *out_data);
+int aiRun2(const void *in_data, void *out_data);
 }
 
 namespace Samraksh_Mel
