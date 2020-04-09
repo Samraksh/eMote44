@@ -23,7 +23,11 @@ const int CummulativeDaysForMonth[13] = {0, 31, 59, 90, 120, 151, 181, 212, 243,
 
 /// In absense of any time sync, or built in clock, this will be the UTC time of the system.
 /// We can set it to our RTM date. For now I am setting it to 1/1/2009:00:00:00.000
+#ifndef NO_INITIAL_TIME
 #define INITIAL_TIME               ((UINT64)(YEARS_TO_DAYS(2011) + MONTH_TO_DAYS(2011, 6)) * HOURS_TO_DAY * MINUTES_TO_HOUR * TIMEUNIT_TO_MINUTES)
+#else
+#define INITIAL_TIME 0
+#endif
 
 TimeDriver g_TimeDriver;
 BOOL TimeDriver::m_initialized = FALSE;

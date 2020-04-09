@@ -85,12 +85,11 @@ static HAL_CONTINUATION LPTIM_interrupt_continuation;
 HAL_CALLBACK_FPN tim5CallBackISR;
 UINT32 callBackISR_Param;
 
-UINT64 m_systemTime = 0;
+volatile UINT64 m_systemTime = 0;
 
 const UINT64 TIMER_5_TIME_CUSHION = 500;  // 5 us
 const UINT64 TIMER_5_MAX_ALLOWABLE_WAIT = 0xFFFEFFFF;
 
-static bool ignoreFirstInterrupt = FALSE;
 static bool timer5running = FALSE;
 
 HAL_CALLBACK_FPN earlyRtcCallBackISR;
@@ -112,25 +111,29 @@ extern "C" {
 // calls Virtual Timer callback
 void TIM5_IRQHandler(void)
 {
-  	HAL_TIM_IRQHandler(&TimHandle5);  
-
-	callBackISR_Param = ADVTIMER_32BIT;
-	if (ignoreFirstInterrupt == TRUE){
-	 	ignoreFirstInterrupt = FALSE;
-  	} else {
-		HAL_TIM_Base_Stop_IT(&TimHandle5);
-		if (timer5running == TRUE) 
-	  		tim5CallBackISR(&callBackISR_Param);
-  	}
+  HAL_TIM_IRQHandler(&TimHandle5);
 }
   
 // timer 2 keeps track of system time. Interrupt happens every 0xFFFF FFFF clocks (48MHz)
 void TIM2_IRQHandler(void)
 {
-  m_systemTime += (0x1ull <<32);
-  // Clear interrupt 
   HAL_TIM_IRQHandler(&TimHandle2_SystemTime);	
 }
+
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+	if (htim->Instance == TimHandle2_SystemTime.Instance) {
+		m_systemTime += (0x1ull <<32);
+
+	} else if (htim->Instance == TimHandle5.Instance) {
+		callBackISR_Param = ADVTIMER_32BIT;
+		HAL_TIM_Base_Stop_IT(&TimHandle5);
+		INTERRUPT_START
+		if (timer5running == TRUE)
+			tim5CallBackISR(&callBackISR_Param);
+		INTERRUPT_END
+	}
+}
+
 } // extern "C"
 
 void queueLptimCallback(void){
@@ -175,14 +178,14 @@ UINT32 CPU_Timer_GetMaxTicks(UINT8 Timer)
 
 UINT64 CPU_TicksToTime( UINT64 Ticks, UINT16 Timer )
 {
-	// A unit of Time is 100us
-	return (UINT64)(CPU_TicksToMicroseconds(Ticks, Timer) * 100);
+	// A unit of Time is 100ns
+	return (UINT64)(CPU_TicksToMicroseconds(Ticks, Timer) * 10);
 }
 
 UINT64 CPU_TicksToTime( UINT32 Ticks32, UINT16 Timer )
 {
-	// A unit of Time is 100us
-	return (UINT64)(CPU_TicksToMicroseconds(Ticks32, Timer) * 100);
+	// A unit of Time is 100ns
+	return (UINT64)(CPU_TicksToMicroseconds(Ticks32, Timer) * 10);
 }
 
 //--//
@@ -288,6 +291,7 @@ UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 	for (i=0; i<g_CountOfHardwareTimers; i++){
 		if (Timer == g_HardwareTimerIDs[i]){
 			timerFrequency = g_HardwareTimerFrequency[i];
+			break;
 		}
 	}
 
@@ -297,16 +301,21 @@ UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
 {
 	UINT32 ret;
+	UINT64 calc;
 	UINT64 timerFrequency = TIM_CLK_HZ; // SYSTEM_TIME defaults to this
 	UINT8 i;
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
 		if (Timer == g_HardwareTimerIDs[i]){
 			timerFrequency = g_HardwareTimerFrequency[i];
+			break;
 		}
 	}
 
-	ret = ((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
+	//ret = ((ticks * CLOCK_COMMON_FACTOR) / timerFrequency); // was overflowing trivally
+	calc = ((UINT64)ticks * CLOCK_COMMON_FACTOR) / timerFrequency;
+	if (calc > 0xFFFFFFFF) { ret = 0xFFFFFFFF; __BKPT(); }
+	else ret = calc;
 
 	return ret;
 }
@@ -315,12 +324,6 @@ UINT64 CPU_Timer_CurrentTicks(UINT16 Timer)
 {
 	static UINT64 prevRead = 0;
 	UINT64 retVal = 0;
-	/*if (Timer == ADVTIMER_32BIT){
-		retVal = (UINT64)(TimHandle5.Instance->CNT);
-	} 
-	else if (Timer == RTC_32BIT) {
-		retVal = (UINT64) CPU_RTC_GetTimerValue();
-	} else */
 	if (Timer == LPTIM){
 		// LPTIM time is in microseconds (although it is based off a 32kH physical clock)
 		return requestLptimCounter();
@@ -329,8 +332,8 @@ UINT64 CPU_Timer_CurrentTicks(UINT16 Timer)
 		GLOBAL_LOCK(irq);
 		// ADVTIMER_32BIT
 		// SYSTEM_TIME
-		volatile UINT64 current_systemTime =  m_systemTime;
-		volatile UINT64 currentValue = (UINT64)(TimHandle2_SystemTime.Instance->CNT);
+		UINT64 current_systemTime =  m_systemTime;
+		UINT64 currentValue = (UINT64)(TimHandle2_SystemTime.Instance->CNT);
 		
 		current_systemTime &= (0xFFFFFFFF00000000ull);
 		current_systemTime |= currentValue;
@@ -378,7 +381,7 @@ void CPU_Timer_Sleep_MicroSeconds( UINT32 uSec, UINT16 Timer)
 // The difference between the compareValue and the current time must then be translated into the appropriate compare value for the clock that will be used to generate the interrupt
 BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 {
-	volatile UINT64 now = CPU_Timer_CurrentTicks(SYSTEM_TIME);
+	UINT64 now = CPU_Timer_CurrentTicks(SYSTEM_TIME);
 
 	if (Timer == ADVTIMER_32BIT){
 		// making sure we have enough time before the timer fires to exit SetCompare, the VT callback and the timer interrupt
@@ -386,21 +389,26 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 			compareValue = (now + TIMER_5_TIME_CUSHION);
 		}  
 		
-		volatile UINT64 totalCompareTime = compareValue - now;
+		UINT64 totalCompareTime = compareValue - now;
 		if ( totalCompareTime > TIMER_5_MAX_ALLOWABLE_WAIT ){ 
 			compareValue = TIMER_5_MAX_ALLOWABLE_WAIT; 
 		} 
 
 		timer5running = TRUE;
 
-		UINT64 timer5ticks = CPU_MicrosecondsToTicks(CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME), ADVTIMER_32BIT);
+		//UINT64 timer5ticks = CPU_MicrosecondsToTicks(CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME), ADVTIMER_32BIT);
+		//TimHandle5.Init.Period = timer5ticks;
 
-		TimHandle5.Init.Period = timer5ticks;
+		// The above looks dumb and causes translation errors
+		// I get the point, SYSTEM_TIME and ADVTIMER_32BIT might be different... but they aren't
+		TimHandle5.Init.Period = totalCompareTime;
 
-		ignoreFirstInterrupt = TRUE;
 		if (HAL_TIM_Base_Init(&TimHandle5) != HAL_OK){
 			hal_printf("error init\r\n");
 		}
+
+		__HAL_TIM_CLEAR_IT(&TimHandle5, TIM_IT_UPDATE); // Fires immediately otherwise
+
 		if (HAL_TIM_Base_Start_IT(&TimHandle5) != HAL_OK){
 			hal_printf("error start\r\n");
 		}
@@ -439,11 +447,10 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 		callLptimSetCompareMicroseconds(totalCompareTime);
 	}
 }
+
 //--//
 
-#pragma arm section code = "SectionForFlashOperations"
-
-UINT64 __section("SectionForFlashOperations") HAL_Time_CurrentTicks()
+UINT64 HAL_Time_CurrentTicks()
 {
 	return CPU_Timer_CurrentTicks(SYSTEM_TIME);    
 }
@@ -515,28 +522,15 @@ BOOL CPU_Timer_Initialize_System_time(){
 	}
 
 	//##-2- Start the TIM Base generation in interrupt mode ####################
+	__HAL_TIM_CLEAR_IT(&TimHandle2_SystemTime, TIM_IT_UPDATE); // Fires immediately otherwise
 	if (HAL_TIM_Base_Start_IT(&TimHandle2_SystemTime) != HAL_OK)
 	{
 		// Starting Error 
 		Error_Handler();
 	}
 
-//#ifdef USE_LPTIM1
-//	MX_LPTIM1_Init();
-//#endif //#ifdef USE_LPTIM1
-
 	return TRUE;
 }
-
-/*
-void Early_RTC_Irq_Handler(void *arg){
-			//CPU_GPIO_SetPinState(GPIO_1, TRUE);
-			//CPU_GPIO_SetPinState(GPIO_1, FALSE);
-	earlyRtcCallBackISR(&earlyRtcCallBackISR_Param);
-	return;
-}
-*/
-
 
 BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CALLBACK_FPN ISR)
 {
@@ -700,7 +694,7 @@ INT64 HAL_Time_CurrentTime()
 
 void CPU_GetDriftParameters  ( INT32* a, INT32* b, INT64* c )
 {
-    *a = 1;
+    *a = 0;
     *b = 1;
     *c = 0;
 }

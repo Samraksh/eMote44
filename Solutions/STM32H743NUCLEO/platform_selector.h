@@ -32,6 +32,8 @@
 
 #define PRINTF_MAX_RETRIES 0
 
+#define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
+
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
 #define STARTUP_DELAY_MS 200
