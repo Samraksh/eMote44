@@ -18,6 +18,7 @@ static LPTIM_HandleTypeDef *my_lptim; // Will init to LPTIM2
 static LPTIM_HandleTypeDef *vt_lptim; // Will init to LPTIM1
 
 static volatile bool cmp_set;
+static volatile bool vt_fire_on_roll; // for longer timers, fire every roll until correct epoch
 
 // Upper 32-bits of an effective 48-bit counter (when added with LPTIM)
 static volatile uint32_t lse_counter32;
@@ -189,6 +190,11 @@ void HAL_LPTIM_AutoReloadMatchCallback(LPTIM_HandleTypeDef *hlptim) {
 	else
 		lse_counter32_vt += 1;
 	__DMB();
+
+	if (vt_fire_on_roll && hlptim->Instance == vt_lptim->Instance) {
+		vt_fire_on_roll = false;
+		lptimIRQHandler();
+	}
 }
 
 // Main LPTIM1 IRQ handler
@@ -199,6 +205,11 @@ void LPTIM1_IRQHandler(void) {
 // Main LPTIM2 IRQ handler
 void LPTIM2_IRQHandler(void) {
   HAL_LPTIM_IRQHandler(&hlptim2);
+}
+
+int lptim_set_vt_fire_on_roll(void) {
+	vt_fire_on_roll = true;
+	return 0;
 }
 
 // For debug LPTIM2

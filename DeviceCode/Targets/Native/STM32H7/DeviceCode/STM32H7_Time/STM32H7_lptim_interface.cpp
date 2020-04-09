@@ -24,7 +24,7 @@ int callLptimSetCompareMicroseconds(uint32_t us){
 	
 		retCode = lptim_set_delay_us(us, LPTIM_VT);
 		if (retCode == lptim_err_long) { // Desired intervall too long. Default to max interval.
-			retCode = lptim_set_delay_ticks(MAX_LPTIM_TICKS, LPTIM_VT);
+			retCode = lptim_set_vt_fire_on_roll();
 			return retCode;
 		}
 		else

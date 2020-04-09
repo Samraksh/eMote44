@@ -38,6 +38,7 @@ int  lptim_add_oneshot(lptim_task_t *x);
 void lptim_task_cb(void);
 
 // Generic stuff
+int lptim_set_vt_fire_on_roll(void);
 int lptim_set_delay_ticks(uint16_t ticks, int lptim);
 int lptim_set_delay_ms(uint32_t ms, int lptim);
 int lptim_set_delay_us(uint32_t us, int lptim);
