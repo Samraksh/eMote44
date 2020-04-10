@@ -1,5 +1,5 @@
-Thu, Apr  2, 2020  9:15:32 PM
+Fri, Apr 10, 2020  3:17:11 AM
    text	   data	    bss	    dec	    hex	filename
-1726744	  17420	 193741	1937905	 1d91f1	binaries/tinyclr.axf
-1ec9de829d8258f620718569992cd9de0fc27caf
-fba3e176d12048988f9b7458555fea7d *binaries/tinyclr.axf
+1726800	  17420	 193749	1937969	 1d9231	binaries/tinyclr.axf
+daa44d5fa5098ff83004fea54085ac0ce5d5d27f
+b5a129effdd74b0bab60429868ff5b2c *binaries/tinyclr.axf
