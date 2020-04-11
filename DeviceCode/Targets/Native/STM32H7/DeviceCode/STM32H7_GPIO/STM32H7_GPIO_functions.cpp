@@ -693,6 +693,7 @@ uint32_t CPU_GPIO_Read( GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin )
  */
 void CPU_GPIO_IrqHandler( uint16_t GPIO_Pin )
 {
+  Events_Set(SYSTEM_EVENT_FLAG_IO);
   switch( GPIO_Pin )
   {
     case GPIO_PIN_0: 
