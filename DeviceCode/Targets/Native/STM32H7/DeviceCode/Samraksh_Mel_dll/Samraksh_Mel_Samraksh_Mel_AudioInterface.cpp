@@ -18,9 +18,11 @@
 
 using namespace Samraksh_Mel;
 
-#define DEBUG_MEL_INTEROPS
+//#define DEBUG_MEL_INTEROPS
 #ifndef DEBUG_MEL_INTEROPS
-#define hal_printf (void(0))
+#define ml_printf(...) (void(0))
+#else
+#define ml_printf hal_printf
 #endif
 
 static int16_t lfsr1(void)
@@ -64,22 +66,26 @@ void AudioInterfaceTimerHandler(void *arg){
 	static float upstream[256];
 	float *x = (float *)junk_data_delete_me;
 	if (is_SONYC_ML_init == FALSE) {
-		hal_printf("%s(): ERROR NOT INIT\r\n", __func__);
+		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
 		return;
 	}
 	for(int i=0; i<sizeof(junk_data_delete_me)/sizeof(junk_data_delete_me[0]); i++) {
 		x[i] = rand_float();
 	}
+#ifndef KILL_SONYC_MODEL
 	aiRun(junk_data_delete_me, upstream);
 	aiRun2(upstream, ai_output);
+#endif // #ifndef KILL_SONYC_MODEL
 	ManagedAICallback(0,0);
 }
 
 
 INT8 AudioInterface::Initialize( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr )
 {
-	hal_printf("%s()\r\n", __func__);
+	ml_printf("%s()\r\n", __func__);
+#ifndef KILL_SONYC_MODEL
 	MX_X_CUBE_AI_Init();
+#endif // #ifndef KILL_SONYC_MODEL
 	VirtTimer_SetTimer(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK, 0, 1000000, FALSE, FALSE, AudioInterfaceTimerHandler);
 	is_SONYC_ML_init = TRUE;
 	/*
@@ -93,7 +99,7 @@ INT8 AudioInterface::Initialize( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESUL
 
 INT8 AudioInterface::Uninitialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	hal_printf("%s()\r\n", __func__);
+	ml_printf("%s()\r\n", __func__);
 	is_SONYC_ML_init = FALSE;
     INT8 retVal = 0; 
     return retVal;
@@ -105,10 +111,10 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray
 
     INT8 retVal = 0; 
 	if (is_SONYC_ML_init == FALSE) {
-		hal_printf("%s(): ERROR NOT INIT\r\n", __func__);
+		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
 		return 0;
 	} else {
-		hal_printf("%s()\r\n", __func__);
+		ml_printf("%s()\r\n", __func__);
 	}
 	float* data = param0.GetBuffer();
 
@@ -126,10 +132,10 @@ INT8 AudioInterface::start_audio_inference( CLR_RT_HeapBlock* pMngObj, INT32 par
 {
     INT8 retVal = 0; 
 	if (is_SONYC_ML_init == FALSE) {
-		hal_printf("%s(): ERROR NOT INIT\r\n", __func__);
+		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
 		return 0;
 	} else {
-		hal_printf("%s()\r\n", __func__);
+		ml_printf("%s()\r\n", __func__);
 	}
 	VirtTimer_Start(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK);
     return retVal;
@@ -139,10 +145,10 @@ INT8 AudioInterface::stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &h
 {
     INT8 retVal = 0; 
 	if (is_SONYC_ML_init == FALSE) {
-		hal_printf("%s(): ERROR NOT INIT\r\n", __func__);
+		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
 		return 0;
 	} else {
-		hal_printf("%s()\r\n", __func__);
+		ml_printf("%s()\r\n", __func__);
 	}
 	VirtTimer_Stop(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK);
     return retVal;

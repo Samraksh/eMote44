@@ -31,7 +31,7 @@
 #define STM32H743xx
 
 #define PRINTF_MAX_RETRIES 0
-
+//#define KILL_SONYC_MODEL // Debugging option. Keeps model out of the binary.
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
 
 // Add pause after reset, otherwise JTAG reset will have some fly-through
