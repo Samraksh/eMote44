@@ -25,7 +25,12 @@ BOOL USART_Uninitialize( int ComPortNum )
 
 int USART_Write( int ComPortNum, const char* Data, size_t size )
 {
+#ifdef MEL_REDIRECT_COM0_TO_USB
+	if (ComPortNum == 0)
+		return CPU_USB_write(Data, size);
+#else
     return USART_Driver::Write( ComPortNum, Data, size );
+#endif
 }
 
 int USART_Read( int ComPortNum, char* Data, size_t size )
