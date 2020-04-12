@@ -148,14 +148,10 @@
         <!-- <DriverLibs Include="STM32H7_RTC.$(LIB_EXT)" /> -->
         <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_RTC\dotNetMF.proj" /> -->
     <!-- </ItemGroup> -->
-	<ItemGroup>
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\DSP\dotNetMF.proj" />
-        <DriverLibs Include="CMSIS_DSP_Driver.$(LIB_EXT)"/>
-	</ItemGroup>
-	<ItemGroup>
-        <DriverLibs Include="STM32H7_I2S.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\dotNetMF.proj" />
-    </ItemGroup>
+	<!-- <ItemGroup> -->
+        <!-- <DriverLibs Include="STM32H7_I2S.$(LIB_EXT)" /> -->
+        <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\dotNetMF.proj" /> -->
+    <!-- </ItemGroup> -->
 	<ItemGroup>
         <DriverLibs Include="H7_driver_control.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Shutdown\dotNetMF.proj" />
