@@ -63,6 +63,12 @@
   </ItemGroup>
 	<!-- End of network stack   -->
 	
+	<!-- SONYC   -->
+    <ItemGroup>
+        <DriverLibs Include="SONYC_util.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\SONYC\dotnetmf.proj" />
+    </ItemGroup>
+	<!-- End of SONYC   -->
 	
     <ItemGroup>
         <DriverLibs Include="LargeBuffer_hal_stubs.$(LIB_EXT)" />

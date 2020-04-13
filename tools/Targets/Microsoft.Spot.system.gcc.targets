@@ -214,7 +214,7 @@
     <!-- NOTE: These are renamed by the "specs" provided to the command line-->
     <GCCSTDLIBS>-lstdc++ -lsupc++ -lm -lgcc -lc </GCCSTDLIBS>
 
-	<SONYC_LIBS Condition="'$(DEVICE_TYPE)' == 'cortex-m7'">-lsonyc_ml</SONYC_LIBS>
+	<SONYC_LIBS Condition="'$(DEVICE_TYPE)' == 'cortex-m7'">-lsonyc_ml -larm_cortexM7lfdp_math</SONYC_LIBS>
 
     <!-- Use newlib-nano (default) or newlib -->
     <LINK_NANO_SPECS Condition="'$(NewlibNano)' != 'false'">-specs="nano.specs" </LINK_NANO_SPECS>
