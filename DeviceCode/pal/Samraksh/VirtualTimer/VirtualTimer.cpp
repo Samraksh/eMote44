@@ -294,6 +294,9 @@ UINT64 VirtualTimerMapper::GetNextAlarm(){
 
 void VirtualTimerMapper::SetAlarmForTheNextTimer(){
 	UINT16 i;
+#ifdef _DEBUG
+	UINT64 now = HAL_Time_CurrentTicks();
+#endif
 	// looking to see which timer will be called the earliest
 	if(!is_callback_running){
 		UINT16 nextTimer = 0;
@@ -312,6 +315,11 @@ void VirtualTimerMapper::SetAlarmForTheNextTimer(){
 					nextTimer = i;
 					timerInQueue = true;
 				}
+				#ifdef _DEBUG
+				// FIX ME: This happens way more than it should ?
+				// if (now > smallestTicks)
+					// __BKPT();
+				#endif
 			}
 		}
 

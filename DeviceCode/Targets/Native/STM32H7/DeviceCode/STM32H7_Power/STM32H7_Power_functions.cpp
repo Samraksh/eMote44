@@ -51,9 +51,38 @@ void CPU_ChangePowerLevel(POWER_LEVEL level)
     }
 }
 
+#ifdef _DEBUG
+static int check_pending_isr(void) {
+	return SCB->ICSR & SCB_ICSR_ISRPENDING_Msk;
+}
+
+static int get_count_isr(void) {
+	int ret=0;
+	for(int i=0; i<150; i++) {
+		if (NVIC_GetPendingIRQ((IRQn_Type)i)) {
+			ret++;
+		}
+	}
+	return ret;
+}
+
+static int get_first_isr_after(int after) {
+	for(int i=after; i<150; i++) {
+		if (NVIC_GetPendingIRQ((IRQn_Type)i)) {
+			return i;
+		}
+	}
+	return 0; // we don't use watchdog
+}
+#endif
+
 void HAL_CPU_Sleep( SLEEP_LEVEL level, UINT64 wakeEvents )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_POWER();
+#ifdef _DEBUG
+	//if (check_pending_isr()) return; // sanity check
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+#endif
 
     switch(level) {
 		case SLEEP_LEVEL__SLEEP: __WFI(); break;
@@ -61,6 +90,14 @@ void HAL_CPU_Sleep( SLEEP_LEVEL level, UINT64 wakeEvents )
 		case SLEEP_LEVEL__OFF:
 		default: __BKPT(); // No other sleep levels are supported
     }
+	
+#ifdef _DEBUG
+	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
+	// lets try to figure out who woke us...
+	if (!check_pending_isr()) __BKPT(); // sanity check
+	volatile int count = get_count_isr();
+	volatile int first = get_first_isr_after(0);
+#endif
 }
 
 void CPU_Halt()  // unrecoverable error
