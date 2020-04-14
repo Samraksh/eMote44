@@ -90,8 +90,6 @@ volatile UINT64 m_systemTime = 0;
 const UINT64 TIMER_5_TIME_CUSHION = 500;  // 5 us
 const UINT64 TIMER_5_MAX_ALLOWABLE_WAIT = 0xFFFEFFFF;
 
-static bool timer5running = FALSE;
-
 HAL_CALLBACK_FPN earlyRtcCallBackISR;
 UINT32 earlyRtcCallBackISR_Param;
 //static HAL_CONTINUATION RTC_interrupt_continuation;
@@ -128,8 +126,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 		callBackISR_Param = ADVTIMER_32BIT;
 		HAL_TIM_Base_Stop_IT(&TimHandle5);
 		INTERRUPT_START
-		if (timer5running == TRUE)
-			tim5CallBackISR(&callBackISR_Param);
+		tim5CallBackISR(&callBackISR_Param);
 		INTERRUPT_END
 	}
 }
@@ -381,6 +378,12 @@ void CPU_Timer_Sleep_MicroSeconds( UINT32 uSec, UINT16 Timer)
 // The difference between the compareValue and the current time must then be translated into the appropriate compare value for the clock that will be used to generate the interrupt
 BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 {
+#ifdef _DEBUG
+	static volatile unsigned sets_lptim1 = 0;
+	static volatile unsigned sets_tim5 = 0;
+	if (Timer == ADVTIMER_32BIT) sets_tim5++;
+	else if (Timer == LPTIM) sets_lptim1++;
+#endif
 	UINT64 now = CPU_Timer_CurrentTicks(SYSTEM_TIME);
 
 	if (Timer == ADVTIMER_32BIT){
@@ -394,45 +397,22 @@ BOOL CPU_Timer_SetCompare(UINT16 Timer, UINT64 compareValue)
 			compareValue = TIMER_5_MAX_ALLOWABLE_WAIT; 
 		} 
 
-		timer5running = TRUE;
-
 		//UINT64 timer5ticks = CPU_MicrosecondsToTicks(CPU_TicksToMicroseconds(totalCompareTime, SYSTEM_TIME), ADVTIMER_32BIT);
 		//TimHandle5.Init.Period = timer5ticks;
 
 		// The above looks dumb and causes translation errors
 		// I get the point, SYSTEM_TIME and ADVTIMER_32BIT might be different... but they aren't
-		TimHandle5.Init.Period = totalCompareTime;
 
-		if (HAL_TIM_Base_Init(&TimHandle5) != HAL_OK){
-			hal_printf("error init\r\n");
-		}
-
-		__HAL_TIM_CLEAR_IT(&TimHandle5, TIM_IT_UPDATE); // Fires immediately otherwise
+		__HAL_TIM_DISABLE(&TimHandle5);
+		TimHandle5.Instance->ARR = totalCompareTime;
+		TimHandle5.Instance->EGR = TIM_EGR_UG;
 
 		if (HAL_TIM_Base_Start_IT(&TimHandle5) != HAL_OK){
 			hal_printf("error start\r\n");
 		}
 
 	} 
-	/*else if(Timer == RTC_32BIT)
-	{
-		volatile UINT64 nowRTC = CPU_Timer_CurrentTicks(RTC_32BIT);
-		//uint32_t minTimeout = CPU_RTC_GetMinimumTimeout();
-		uint32_t minTimeout = 500;
-		if (compareValue < nowRTC ){
-			compareValue = nowRTC + 1;
-		}  
-		
-		UINT64 totalCompareTime = compareValue - nowRTC;
-		UINT64 timerRtc = CPU_TicksToMicroseconds(totalCompareTime, RTC_32BIT);		
-		if (timerRtc <  minTimeout){
-			//timerRtc = minTimeout;
-			RTC_interrupt_continuation.Enqueue();
-		} else {
-			CPU_RTC_SetAlarm(timerRtc);
-		}
-	}*/
-	else if (Timer == LPTIM) 
+	else if (Timer == LPTIM)
 	{
 		// LPTIM time is in microseconds already (although it is based off a 32kH physical clock)
 		volatile UINT64 nowLPTIM = CPU_Timer_CurrentTicks(LPTIM);
@@ -522,7 +502,7 @@ BOOL CPU_Timer_Initialize_System_time(){
 	}
 
 	//##-2- Start the TIM Base generation in interrupt mode ####################
-	__HAL_TIM_CLEAR_IT(&TimHandle2_SystemTime, TIM_IT_UPDATE); // Fires immediately otherwise
+	__HAL_TIM_CLEAR_FLAG(&TimHandle2_SystemTime, TIM_FLAG_UPDATE); // Fires immediately otherwise
 	if (HAL_TIM_Base_Start_IT(&TimHandle2_SystemTime) != HAL_OK)
 	{
 		// Starting Error 
@@ -547,28 +527,19 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 
 		TimHandle5.Init.Period            = 10000000;
 		TimHandle5.Init.Prescaler         = 0;	// This has a built in +1
-		TimHandle5.Init.ClockDivision     = 1;
+		TimHandle5.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
 		TimHandle5.Init.CounterMode       = TIM_COUNTERMODE_UP;
-		TimHandle5.Init.RepetitionCounter = 0;
+		TimHandle5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 
 		if (HAL_TIM_Base_Init(&TimHandle5) != HAL_OK)
 		{
 			// Starting Error 
 			Error_Handler();
 		}
+		__HAL_TIM_URS_ENABLE(&TimHandle5);
+		__HAL_TIM_CLEAR_FLAG(&TimHandle5, TIM_FLAG_UPDATE);
 	}
-	/*else if(Timer == RTC_32BIT )
-	{
-		callBackISR_Param = RTC_32BIT;
-		//hal_printf("init rtc 32bit\r\n"); // serial console is not up yet
-		CPU_RTC_Init(ISR, callBackISR_Param);
-
-		earlyRtcCallBackISR = ISR;
-		earlyRtcCallBackISR_Param = callBackISR_Param;
-
-		// this will handle firing the RTC callback if timeout is too short
-		RTC_interrupt_continuation.InitializeCallback(Early_RTC_Irq_Handler, NULL);
-	}*/ else if (Timer == LPTIM) 
+	else if (Timer == LPTIM)
 	{
 		lptimCallBackISR = ISR;
 		lptimCallBackISR_Param = LPTIM;
@@ -578,24 +549,6 @@ BOOL CPU_Timer_Initialize(UINT16 Timer, BOOL IsOneShot, UINT32 Prescaler, HAL_CA
 
 		LptimInit();
 	}
-
-	
-
-	/*if (HAL_TIM_OC_Init(&TimHandle5) != HAL_OK)
-	{
-		// Initialization Error 
-		Error_Handler();
-	}
-	TIM_OC_InitTypeDef sConfigOC;
-	sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
-  	sConfigOC.Pulse = 1000; //0.0001[s] * 20000 = 2 [s] DELAY
-	sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
-  	//sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
-  	HAL_TIM_OC_ConfigChannel(&TimHandle5, &sConfigOC, TIM_CHANNEL_1);
-	
-	HAL_TIM_OC_Start_IT(&TimHandle5, TIM_CHANNEL_1);
-	*/
-
 	return TRUE;
 }
 
