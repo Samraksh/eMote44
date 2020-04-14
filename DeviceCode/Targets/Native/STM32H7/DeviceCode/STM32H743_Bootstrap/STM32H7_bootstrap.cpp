@@ -364,6 +364,9 @@ void BootstrapCode() {
 	MaxSystemClock_Config();
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
+	__HAL_DBGMCU_FREEZE_TIM5();
+	__HAL_DBGMCU_FREEZE_LPTIM1();
+	__HAL_DBGMCU_FREEZE_LPTIM2();
 	#endif
 	MX_CRC_Init();
 	START_UP_DELAY();
