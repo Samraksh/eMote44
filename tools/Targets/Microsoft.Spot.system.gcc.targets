@@ -25,6 +25,7 @@
     <OBJDUMP>"$(GNU_TOOLS_BIN)\$(GNU_TARGET)-objdump.exe"</OBJDUMP>
     <RANLIB>"$(GNU_TOOLS_BIN)\$(GNU_TARGET)-ranlib.exe"</RANLIB>
     <CREATESYMDEF>$(TOOLS_DIR)\CreateSymdef.exe</CREATESYMDEF>
+	<SREC_CAT>$(SPO_SDK)\tools\bin\srec_cat.exe</SREC_CAT>
   </PropertyGroup>
 
   <!-- based on cpu type, setup compiler-->  
@@ -279,6 +280,10 @@
 
     <MakeDir Directories="$(EXEName).bin" Condition="'$(MultipleOutputSections)'=='true' and !Exists('$(EXEName).bin')" />
     <MakeDir Directories="$(EXEName).hex" Condition="'$(MultipleOutputSections)'=='true' and !Exists('$(EXEName).hex')" />
+
+	<Exec Command="$(FROMELF) -S -O srec @(EXEOutput) $(EXEName).srec"/>
+	<Exec Command="$(SREC_CAT) $(SPO_SDK)\Samraksh\SONYC\h7boot.srec $(EXEName).srec -o $(BIN_DIR)\tinyclr_and_bootloader.srec"/>
+	<Exec Command="$(FROMELF) -O elf32-little -I srec $(BIN_DIR)\tinyclr_and_bootloader.srec $(BIN_DIR)\tinyclr_and_bootloader.axf"/>
 
     <Exec Command="$(FROMELF) -S -O binary @(EXEOutput) $(EXEName).bin"                      Condition="'$(MultipleOutputSections)'!='true'" />
     <Exec Command="$(FROMELF) -S -R ER_DAT -R ER_CONFIG -O binary @(EXEOutput) $(EXEName).bin\ER_$(TARGETLOCATION)" Condition="'$(MultipleOutputSections)'=='true'" />

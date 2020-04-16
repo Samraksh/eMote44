@@ -49,9 +49,9 @@
     <Set Name="Config_Size"             Value="0x00001000"/><!-- 4KB -->
 
     <!-- Native Code section -->
-    <Set Name="Code_BaseAddress"        Value="0x08000000"/>
-	<!--Set Name="Code_BaseAddress"        Value="0x08020000"/-->
-    <Set Name="Code_Size"               Value="0x001BF000"/><!-- SONYC: 1664KB MIN WITH MODEL AS OF 2020-03-02-->
+    <!-- <Set Name="Code_BaseAddress"        Value="0x08000000"/> -->
+	<Set Name="Code_BaseAddress"        Value="0x08020000"/>
+    <Set Name="Code_Size"               Value="0x001BF000"/>
 	
     <!-- Deployment fills the rest of flash... -->
 
