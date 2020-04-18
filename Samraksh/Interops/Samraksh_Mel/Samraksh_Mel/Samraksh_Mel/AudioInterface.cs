@@ -11,15 +11,16 @@ namespace Samraksh_Mel
     public class AudioInterface : NativeEventDispatcher
     {
         // Constants
+        private static readonly float[] EMPTY_FLOAT = new float[0];
         private const int DOWNSTREAM_LEN = 8; // floats
         private const int UPSTREAM_LEN = 256; // floats
 
         // State and defaults
         private bool collectUpStream;
-        private const bool up_reset = false;
+        private const bool collectUpStream_reset = false;
 
         private bool collectDownStream;
-        private const bool down_reset = true;
+        private const bool collectDownStream_reset = true;
 
         /// <summary>
         /// Audio Interface constructor
@@ -27,7 +28,7 @@ namespace Samraksh_Mel
         public AudioInterface() : base("AICallback", 0)
         {
             Initialize();
-            set_model_recording(up_reset, down_reset);
+            set_model_recording(collectUpStream_reset, collectDownStream_reset);
             OnInterrupt += aiCallbackFunction;
         }
 
@@ -36,8 +37,6 @@ namespace Samraksh_Mel
         /// </summary>
         ~AudioInterface()
         {
-            collectUpStream = up_reset;
-            collectDownStream = down_reset;
             Uninitialize();
         }
 
@@ -55,18 +54,17 @@ namespace Samraksh_Mel
         }
 
         /// <summary>
-        /// Change the FIR filter. Does not persist across to reboots.
+        /// Change the FIR filter. Does not persist across reboots.
         /// Valid parameters TBD.
         /// </summary>
         /// <param name="num_taps">Number of taps. 0 to disable.</param>
         /// <param name="taps"></param>
         /// <returns>True on success. False on invalid parameters or not supported.</returns>
-        public bool set_fir_taps(int num_taps, float[] taps)
+        public bool set_fir_taps(uint num_taps, float[] taps)
         {
             float[] my_taps;
-            if (num_taps < 0) return false;
 
-            if (taps == null) my_taps = new float[0];
+            if (taps == null) my_taps = EMPTY_FLOAT;
             else my_taps = taps;
 
             if (num_taps > 0 && num_taps > my_taps.Length) return false;
@@ -85,24 +83,24 @@ namespace Samraksh_Mel
             if (collectDownStream)
                 downstream = new float[DOWNSTREAM_LEN];
             else
-                downstream = new float[0];
+                downstream = EMPTY_FLOAT;
 
             if (collectUpStream)
                 upstream = new float[UPSTREAM_LEN];
             else
-                upstream = new float[0];
+                upstream = EMPTY_FLOAT;
 
             GetResultData(ref dbSPL, upstream, downstream);
             audio_inference_callback(dbSPL, upstream, downstream);
         }
 
         /// <summary>
-        /// Called on data collection event, typically after 1-second of collection.
+        /// Called after data collection event, typically 1-second intervals.
         /// Must null check both arrays.
         /// </summary>
         /// <param name="dbSPL"></param>
-        /// <param name="upstream">256-float array. Null if collection disabled.</param>
-        /// <param name="downstream">8-float array. Null if collection disabled.</param>
+        /// <param name="upstream">256-float array. Size 0 if collection disabled.</param>
+        /// <param name="downstream">8-float array. Size 0 if collection disabled.</param>
         public delegate void AudioInterfaceCallback(float dbSPL, float[] upstream, float[] downstream);
 
         /// <summary>
@@ -120,7 +118,7 @@ namespace Samraksh_Mel
         /// <param name="taps"></param>
         /// <returns>True on success. False on invalid parameters.</returns>
         [MethodImpl(MethodImplOptions.InternalCall)]
-        private extern bool set_fir_taps_internal(int num_taps, float[] taps);
+        private extern bool set_fir_taps_internal(uint num_taps, float[] taps);
 
         /// <summary>
         /// Set Model data to collect.
@@ -177,7 +175,7 @@ namespace Samraksh_Mel
         /// <param name="N"></param>
         /// <returns>True on success. False if operation not supported.</returns>
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern bool set_ml_duty_cycle(int M, int N);
+        public extern bool set_ml_duty_cycle(uint M, uint N);
 
         /// <summary>
         /// Turns on or off output of raw data stream over serial
@@ -202,6 +200,6 @@ namespace Samraksh_Mel
         /// <param name="time_ms">Window size in milliseconds. Default 1000ms.</param>
         /// <returns>True on success. False if not supported.</returns>
         [MethodImpl(MethodImplOptions.InternalCall)]
-        public extern bool set_time_interval(int time_ms);
+        public extern bool set_time_interval(uint time_ms);
     }
 }

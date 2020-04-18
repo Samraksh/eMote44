@@ -19,17 +19,18 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_fir_taps_internal___BOOLEAN__I4__SZARRAY_R4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_fir_taps_internal___BOOLEAN__U4__SZARRAY_R4,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_model_recording_internal___VOID__BOOLEAN__BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Initialize___BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Uninitialize___BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::GetResultData___BOOLEAN__BYREF_R4__SZARRAY_R4__SZARRAY_R4,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_inference___BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_inference___VOID,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_ml_duty_cycle___BOOLEAN__I4__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_ml_duty_cycle___BOOLEAN__U4__U4,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_raw_data_output___BOOLEAN__BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_dB_thresh___BOOLEAN__R4,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_time_interval___BOOLEAN__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_time_interval___BOOLEAN__U4,
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -39,7 +40,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0xAC4E2D3F,
+    0xABF3DDB6,
     method_lookup
 };
 

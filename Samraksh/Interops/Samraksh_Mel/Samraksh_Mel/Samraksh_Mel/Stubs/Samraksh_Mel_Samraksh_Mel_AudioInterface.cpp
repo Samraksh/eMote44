@@ -16,7 +16,7 @@
 
 using namespace Samraksh_Mel;
 
-INT8 AudioInterface::set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, INT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr )
+INT8 AudioInterface::set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, UINT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr )
 {
     INT8 retVal = 0; 
     return retVal;
@@ -54,7 +54,7 @@ void AudioInterface::stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &h
 {
 }
 
-INT8 AudioInterface::set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, INT32 param0, INT32 param1, HRESULT &hr )
+INT8 AudioInterface::set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, UINT32 param0, UINT32 param1, HRESULT &hr )
 {
     INT8 retVal = 0; 
     return retVal;
@@ -72,7 +72,7 @@ INT8 AudioInterface::set_dB_thresh( CLR_RT_HeapBlock* pMngObj, float param0, HRE
     return retVal;
 }
 
-INT8 AudioInterface::set_time_interval( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr )
+INT8 AudioInterface::set_time_interval( CLR_RT_HeapBlock* pMngObj, UINT32 param0, HRESULT &hr )
 {
     INT8 retVal = 0; 
     return retVal;
