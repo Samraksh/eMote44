@@ -13,20 +13,25 @@
 #include <TinyCLR_Interop.h>
 struct Library_Samraksh_Mel_Samraksh_Mel_AudioInterface
 {
-    static const int FIELD__callbackDataSize = 5;
-    static const int FIELD__audio_inference_callback = 6;
+    static const int FIELD__collectUpStream = 5;
+    static const int FIELD__collectDownStream = 6;
+    static const int FIELD__audio_inference_callback = 7;
 
-    TINYCLR_NATIVE_DECLARE(Initialize___BOOLEAN__I4);
+	TINYCLR_NATIVE_DECLARE(set_fir_taps_internal___BOOLEAN__I4__SZARRAY_R4);
+    TINYCLR_NATIVE_DECLARE(set_model_recording_internal___VOID__BOOLEAN__BOOLEAN);
+    TINYCLR_NATIVE_DECLARE(Initialize___BOOLEAN);
     TINYCLR_NATIVE_DECLARE(Uninitialize___BOOLEAN);
-    TINYCLR_NATIVE_DECLARE(GetResultData___BOOLEAN__SZARRAY_R4);
-    TINYCLR_NATIVE_DECLARE(start_audio_inference___BOOLEAN__I4);
-    TINYCLR_NATIVE_DECLARE(stop_audio_inference___BOOLEAN);
+    TINYCLR_NATIVE_DECLARE(GetResultData___BOOLEAN__BYREF_R4__SZARRAY_R4__SZARRAY_R4);
+    TINYCLR_NATIVE_DECLARE(start_audio_inference___BOOLEAN);
+    TINYCLR_NATIVE_DECLARE(stop_audio_inference___VOID);
+    TINYCLR_NATIVE_DECLARE(set_ml_duty_cycle___BOOLEAN__I4__I4);
+    TINYCLR_NATIVE_DECLARE(set_raw_data_output___BOOLEAN__BOOLEAN);
+    TINYCLR_NATIVE_DECLARE(set_dB_thresh___BOOLEAN__R4);
+    TINYCLR_NATIVE_DECLARE(set_time_interval___BOOLEAN__I4);
 
     //--//
 
 };
-
-
 
 extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_AICallback;
 
