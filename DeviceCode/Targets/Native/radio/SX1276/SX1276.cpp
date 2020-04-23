@@ -1203,7 +1203,7 @@ void SX1276SetRx( uint32_t timeout )
 
                 // DIO0=RxDone, DIO1=CadDetected, DIO2=FhssChangeChannel, DIO3=ValidHeader  
              	SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
-				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK ) | RFLR_DIOMAPPING1_DIO1_10 ); 
+				//SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK ) | RFLR_DIOMAPPING1_DIO1_10 ); 
 				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO2_MASK ) | RFLR_DIOMAPPING1_DIO2_00 );
 				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_01 );
  			}
@@ -1221,7 +1221,7 @@ void SX1276SetRx( uint32_t timeout )
 
                 // DIO0=RxDone, DIO1=CadDetected, DIO3=ValidHeader
            		SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO0_MASK ) | RFLR_DIOMAPPING1_DIO0_00 );
-				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK ) | RFLR_DIOMAPPING1_DIO1_10 ); 
+				//SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK ) | RFLR_DIOMAPPING1_DIO1_10 ); 
 				SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_01 );
              }
             SX1276Write( REG_LR_FIFORXBASEADDR, 0 );
@@ -1338,6 +1338,8 @@ void SX1276SetTx( uint32_t timeout )
 
 void SX1276StartCad( void )
 {
+	
+	
     switch( SX1276.Settings.Modem )
     {
     case MODEM_FSK:
@@ -1347,6 +1349,7 @@ void SX1276StartCad( void )
         break;
     case MODEM_LORA:
         {
+			//hal_printf("\r\n CAD Started => ");
             SX1276Write( REG_LR_IRQFLAGSMASK, RFLR_IRQFLAGS_RXTIMEOUT |
                                         RFLR_IRQFLAGS_RXDONE |
                                         RFLR_IRQFLAGS_PAYLOADCRCERROR |
@@ -1357,8 +1360,11 @@ void SX1276StartCad( void )
                                         //RFLR_IRQFLAGS_CADDETECTED
                                         );
 
-            // DIO1=CadDetected, DIO3=CADDone
-            SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO1_10 | RFLR_DIOMAPPING1_DIO3_00 );
+            //// DIO1=CadDetected, DIO3=CADDone
+            ////SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO1_MASK & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO1_10 | RFLR_DIOMAPPING1_DIO3_00 );
+			
+			// DIO3=CADDone
+            SX1276Write( REG_DIOMAPPING1, ( SX1276Read( REG_DIOMAPPING1 ) & RFLR_DIOMAPPING1_DIO3_MASK ) | RFLR_DIOMAPPING1_DIO3_00 );
 
             SX1276.Settings.State = RF_CAD;
             SX1276SetOpMode( RFLR_OPMODE_CAD );
@@ -1395,6 +1401,8 @@ void SX1276SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time )
 int16_t SX1276ReadRssi( RadioModems_t modem )
 {
     int16_t rssi = 0;
+	
+	//CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
 
     switch( modem )
     {
@@ -1415,7 +1423,8 @@ int16_t SX1276ReadRssi( RadioModems_t modem )
         rssi = -1;
         break;
     }
-    return rssi;
+    //CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	return rssi;
 }
 
 void SX1276Reset( void )
@@ -1975,20 +1984,6 @@ void SX1276OnDio1Irq(GPIO_PIN Pin, BOOL PinState, void* context )
                 break;
             }
             break;
-		case RF_CAD: 
-// Once the calculation is finished the modrem generated the CadDone interrupt.
-// If the correlation was successful, CadDetected is generated simultaneously
-			if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
-			{
-				hal_printf("CAD Detected\r\n");
-				// Clear Irq
-				SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE);
-				if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
-				{
-					RadioEvents->CadDone( true );
-				}
-			}
-			break;
 		default:
             break;
     }
@@ -2076,7 +2071,7 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
         break;
     case MODEM_LORA:
 		//hal_printf("DIO3IRQ\n\r");
- 	   	if( SX1276.Settings.State == RF_RX_RUNNING){ //BK: Adding interrupt for packet detected
+ 	   	//if( SX1276.Settings.State == RF_RX_RUNNING){ //BK: Adding interrupt for packet detected
     		if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_VALIDHEADER ) == RFLR_IRQFLAGS_VALIDHEADER ){ //BK:Adding callback for
 				hal_printf("Valid Header\n\r");
 				// Clear Irq
@@ -2086,10 +2081,11 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 					RadioEvents->ValidHeaderDetected( );
 				}
 			}
-		}
+		//}
 		else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
 		{
-			hal_printf("CAD Detected\r\n");
+			//hal_printf(" CAD Detected ");
+			
 			// Clear Irq
 			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE);
 			if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
@@ -2099,8 +2095,9 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		}			
         else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDONE ) == RFLR_IRQFLAGS_CADDONE )
         {
-			//hal_printf("CAD Done\r\n");
-            // Clear Irq
+			//hal_printf(" CAD Done ");
+	    
+			// Clear Irq
             SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
             {
