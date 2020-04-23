@@ -941,6 +941,47 @@ DeviceStatus CPU_Radio_ClearChannelAssesment (UINT8 radioName)
 }
 
 
+UINT8 CPU_Radio_CADCurrentStatus(UINT8 radioName)
+{
+	UINT8 status = 3;
+
+	switch(radioName)
+	{
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+			if(SX1276_HAL_GetCADStatus()) status = 1;
+			else status = 2;
+#endif
+			break;
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+
+UINT8 CPU_Radio_CADCurrentRunningStatus(UINT8 radioName)
+{
+	UINT8 status = 3;
+	switch(radioName)
+	{
+		case SX1276RADIO:
+#if defined(__RADIO_SX1276__)		
+			if(SX1276_HAL_GetCADRunningStatus()) status = 1;
+			else status = 2;
+#endif
+			break;
+		default:
+			PRINTF_UNIDENTIFIED_RADIO();
+			break;
+	}
+
+	return status;
+}
+
+
 DeviceStatus CPU_Radio_ClearChannelAssesment(UINT8 radioName, UINT32 numberMicroSecond)
 {
 	DeviceStatus status  = DS_Fail;

@@ -71,10 +71,10 @@
 echo $(TargetDir)le
 cd $(TargetDir)le
 dir *.pe /B &gt; pefiles.txt
-"%25ProgramFiles(x86)%25\Microsoft .NET Micro Framework\v4.4\Tools\MetaDataProcessor.exe" -create_database pefiles.txt "$(ProjectName).dat"
-"%25ProgramFiles(x86)%25\Microsoft .NET Micro Framework\v4.4\Tools\MetaDataProcessor.exe" -dump_dat "$(ProjectName).dat"
-"%25ProgramFiles(x86)%25\Microsoft .NET Micro Framework\v4.4\Tools\binToSrec.exe" -b 80C0000 -i "$(ProjectName).dat" -o "$(ProjectName).s19"
-"%25ProgramFiles(x86)%25\Microsoft .NET Micro Framework\v4.4\Tools\arm-none-eabi-objcopy.exe" "$(ProjectName).s19" "$(ProjectName)_Conv.s19"
-copy /Y "$(ProjectName)_Conv.s19" D:\test\test4_4\empty_Conv.s19"</PostBuildEvent>
+"%25ProgramFiles%25\Microsoft .NET Micro Framework\v4.4\Tools\MetaDataProcessor.exe" -create_database pefiles.txt "$(ProjectName).dat"
+"%25Program Files%25\Microsoft .NET Micro Framework\v4.4\Tools\MetaDataProcessor.exe" -dump_dat "$(ProjectName).dat"
+"C:\MFV44\eMote44\tools\bin\binToSrec.exe" -b 081E0000 -i "$(ProjectName).dat" -o "$(ProjectName).s19"
+"C:\gcc\bin\arm-none-eabi-objcopy.exe" "$(ProjectName).s19" "$(ProjectName)_Conv.s19"
+copy /Y "$(ProjectName)_Conv.s19" C:\test\test4_4\empty_Conv.s19"</PostBuildEvent>
   </PropertyGroup>
 </Project>

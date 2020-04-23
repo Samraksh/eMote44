@@ -44,8 +44,8 @@
 //
 /////////////////////////////////////////////////////////
 
-//#define __MAC_CSMA__
-#define __MAC_OMAC__
+#define __MAC_CSMA__
+//#define __MAC_OMAC__
 
 #define __RADIO_SX1276__
 //#define __RADIO_SI4468__
@@ -312,7 +312,7 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_CONT_TEST_TIMER2 36
 
 
-#if defined(__MAC_OMAC__)
+//#if defined(__MAC_OMAC__)
 #define NEIGHBORCLOCKMONITORPIN 			DISABLED_PIN
 #define LOCALCLOCKMONITORPIN 				DISABLED_PIN
 
@@ -411,10 +411,10 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VTIMER_CALLBACK_LATENCY_PIN			DISABLED_PIN //(<--31)
 
 
-#define RX_RADIO_TURN_ON 					DISABLED_PIN //_P(A,4)//
-#define RX_RADIO_TURN_OFF					DISABLED_PIN //_P(C,10)//
+#define RX_RADIO_TURN_ON 					_P(A,4)//
+#define RX_RADIO_TURN_OFF					_P(C,10)//
+//#endif //__MAC_OMAC__
 
-#endif //__MAC_OMAC__
 
 
 /* Definition for USARTx Pins */

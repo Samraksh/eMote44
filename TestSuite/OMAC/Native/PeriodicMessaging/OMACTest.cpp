@@ -72,9 +72,8 @@ void OMACTest_ReceiveHandler (void* msg, UINT16 PacketType){
 	UINT64 packetID;
 	memcpy(&packetID,packet_ptr->GetPayload(),sizeof(UINT64));
 #if OMACTEST_PRINT_RX_PACKET_INFO
-//	hal_printf("\r\n OMACTest_RX: rx_packet_count = %llu ", gOMACTest.rx_packet_count);
+	hal_printf("\r\n OMACTest_RX: rx_packet_count = %llu ", gOMACTest.rx_packet_count);
 //	hal_printf("src = %u PacketID = %llu \r\n", packet_ptr->GetHeader()->src, packetID );
-	hal_printf("\r\n OMACTest_RX: rx_packet_count = %s\r\n", l2s(gOMACTest.rx_packet_count,0));
 	//hal_printf("src = %s ", l2s(packet_ptr->GetHeader()->src,0));
 	//hal_printf("PacketID = %s \r\n", l2s(packetID,0));
 
@@ -109,7 +108,7 @@ void OMACTest_SendAckHandler (void* msg, UINT16 size, NetOpStatus status, UINT8 
 
 	g_NeighborTable.DeletePacket(packet_ptr);
 
-	hal_printf("\r\n OMACTest_SendAckHandler: send_packet = %s \r\n", l2s(gOMACTest.sent_packet_count,0));
+	hal_printf("\r\n OMACTest_SendAckHandler: send_packet = %llu \r\n", gOMACTest.sent_packet_count);
 	//hal_printf(" dest = %u  PacketID = %llu rx_packet_count = %llu \r\n",packet_ptr->GetHeader()->dest, packetID,  gOMACTest.rx_packet_count );
 	//hal_printf("\r\n dest = %s ",l2s(packet_ptr->GetHeader()->dest,0));
 	//hal_printf("PacketID = %s ", l2s(packetID,0));
@@ -513,7 +512,7 @@ void ApplicationEntryPoint()
 
 	VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 700000, FALSE, FALSE, Timer_Green_Handler);
 	VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, RTC_32BIT);
+	VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 800000, FALSE, FALSE, Timer_Red_Handler, OMACClockSpecifier);
 	VirtTimer_Start(VIRT_TIMER_LED_RED);
 	
     do

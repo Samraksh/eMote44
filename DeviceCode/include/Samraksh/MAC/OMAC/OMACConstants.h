@@ -118,7 +118,7 @@
 //GUARDTIME_MICRO+OMAC_TIME_ERROR - Pessimistic time error
 //GUARDTIME_MICRO - optimistic time error (if there is a re-transmission, tx takes GUARDTIME_MICRO to do CCA
 
-#define EXECUTE_WITH_CCA  0
+#define EXECUTE_WITH_CCA  1
 #define  FAST_RECOVERY 0
 #define  FAST_RECOVERY2 0
 

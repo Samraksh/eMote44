@@ -204,6 +204,9 @@ UINT32 CPU_Radio_GetTxPower(UINT8 radioID);
 
 UINT32 CPU_Radio_GetChannel(UINT8 radioID);
 
+UINT8 CPU_Radio_CADCurrentStatus(UINT8 radioName);
+UINT8 CPU_Radio_CADCurrentRunningStatus(UINT8 radioName);
+
 //}
 
 

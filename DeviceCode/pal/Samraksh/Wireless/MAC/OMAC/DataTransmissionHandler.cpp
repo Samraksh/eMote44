@@ -147,9 +147,11 @@ UINT64 DataTransmissionHandler::CalculateNextTxMicro(UINT16 dest){
 	nextTXmicro = g_OMAC.m_Clock.SubstractMicroSeconds( g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.Neighbor2LocalTime(dest, neigh_ptr->nextwakeupSlot * SLOT_PERIOD_TICKS)) , (g_OMAC.RADIO_TURN_ON_DELAY_TX+g_OMAC.DELAY_FROM_OMAC_TX_TO_RADIO_DRIVER_TX));
 	//nextTXmicro = g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_omac_scheduler.m_TimeSyncHandler.m_globalTime.Neighbor2LocalTime(dest, neigh_ptr->nextwakeupSlot * SLOT_PERIOD_TICKS));
 	if(EXECUTE_WITH_CCA){
-		if(nextTXmicro > g_OMAC.CCA_PERIOD_ACTUAL) {
-			nextTXmicro -= g_OMAC.CCA_PERIOD_ACTUAL ;
-		}
+///		if(nextTXmicro > g_OMAC.CCA_PERIOD_ACTUAL) {
+///			nextTXmicro -= g_OMAC.CCA_PERIOD_ACTUAL ;
+///		}
+/// create different contention window value 
+			
 	}
 	if(FAST_RECOVERY){
 		if(nextTXmicro > GUARDTIME_MICRO) {
@@ -451,8 +453,22 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 			CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
 		}
 #endif
-		DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
+		//DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
 
+		UINT16 randValContentionWindows = g_OMAC.m_omac_scheduler.m_seedGenerator.RandWithMask(&m_backoff_seed, m_backoff_mask);
+		m_backoff_seed = randValContentionWindows;
+		int countRandomValue = 0;
+		
+		hal_printf("rand value is %d start time: %llu \r\n", (randValContentionWindows % g_OMAC.RANDOM_BACKOFF_COUNT_MAX),g_OMAC.m_Clock.GetCurrentTimeinTicks());
+		while(countRandomValue <= (randValContentionWindows % g_OMAC.RANDOM_BACKOFF_COUNT_MAX)*8){
+			++countRandomValue;
+			DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
+			if(DS != DS_Success){
+				canISend = false;
+				break;
+			}
+		}
+		hal_printf("end time: %llu \r\n", g_OMAC.m_Clock.GetCurrentTimeinTicks());
 #if OMAC_DTH_DEBUG_CCA
 		if(DATATX_CCA_PIN_TOGGLER != DISABLED_PIN){
 			CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
