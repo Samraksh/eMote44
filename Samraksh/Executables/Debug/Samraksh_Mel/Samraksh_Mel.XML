@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Samraksh_Mel</name>
+    </assembly>
+    <members>
+        <member name="T:Samraksh_Mel.AudioInterface">
+            <summary>
+            Audio Interface 
+            </summary>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.#ctor">
+            <summary>
+            Audio Interface constructor
+            </summary>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.Finalize">
+            <summary>
+            Audio Interface destructor
+            </summary>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_model_recording(System.Boolean,System.Boolean)">
+            <summary>
+            Set Model data to collect.
+            Setting both to false will disable the model and return only SPL data.
+            </summary>
+            <param name="upstream">Enables or Disables upstream data collection</param>
+            <param name="downstream">Enables or Disables downstream data collection</param>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_fir_taps(System.Int32,System.Single[])">
+            <summary>
+            Change the FIR filter. Does not persist across to reboots.
+            Valid parameters TBD.
+            </summary>
+            <param name="num_taps">Number of taps. 0 to disable.</param>
+            <param name="taps"></param>
+            <returns>True on success. False on invalid parameters or not supported.</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_fir_taps_internal(System.Int32,System.Single[])">
+            <summary>
+            Change the FIR filter. Does not persist across reboots.
+            Valid parameters TBD.
+            </summary>
+            <param name="num_taps">Number of taps. 0 to disable.</param>
+            <param name="taps"></param>
+            <returns>True on success. False on invalid parameters.</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_model_recording_internal(System.Boolean,System.Boolean)">
+            <summary>
+            Set Model data to collect.
+            </summary>
+            <param name="upstream">Enables or Disables upstream data collection</param>
+            <param name="downstream">Enables or Disables downstream data collection</param>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.Initialize">
+            <summary>
+            Initializes AudioInterface
+            </summary>
+            <returns>The result of AudioInterface initialization: Success, Fail</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.Uninitialize">
+            <summary>
+            Uninitializes AudioInterface
+            </summary>
+            <returns>The result of AudioInterface uninitialization: Success, Fail</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.GetResultData(System.Single@,System.Single[],System.Single[])">
+            <summary>
+            Called to return most recent audio results
+            </summary>
+            <param name="dbSPL"></param>
+            <param name="upstream"></param>
+            <param name="downstream"></param>
+            <returns>False on data collection error.</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.start_audio_inference">
+            <summary>
+            Starts Audio sampling and (if enabled) the inference engine
+            </summary>
+            <returns>True on success</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.stop_audio_inference">
+            <summary>
+            Stops audio data collection and associated processes
+            </summary>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_ml_duty_cycle(System.Int32,System.Int32)">
+            <summary>
+            Process only M out of N 1-second clips
+            Example: M=1 N=3 will run the model for 1 second every 3 seconds and produce 1 callback
+            Call will be ignored (return False) if any parameter is 0 or >= 3600
+            Default M=1 N=1 (100% Duty Cycle)
+            </summary>
+            <param name="M"></param>
+            <param name="N"></param>
+            <returns>True on success. False if operation not supported.</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_raw_data_output(System.Boolean)">
+            <summary>
+            Turns on or off output of raw data stream over serial
+            Does not propagate to C# program level
+            </summary>
+            <param name="on">Enables or Disables raw data output</param>
+            <returns>True on success. False if operation not supported.</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_dB_thresh(System.Single)">
+            <summary>
+            Set a threshold measurement required to run the model
+            </summary>
+            <param name="thresh">dB SPL threshold. Negative to disable.</param>
+            <returns>True on Success. False if not supported.</returns>
+        </member>
+        <member name="M:Samraksh_Mel.AudioInterface.set_time_interval(System.Int32)">
+            <summary>
+            Sets time period window for dB SPL measurment.
+            </summary>
+            <param name="time_ms">Window size in milliseconds. Default 1000ms.</param>
+            <returns>True on success. False if not supported.</returns>
+        </member>
+        <member name="E:Samraksh_Mel.AudioInterface.audio_inference_callback">
+            <summary>
+            ML Data Handler
+            </summary>
+        </member>
+        <member name="T:Samraksh_Mel.AudioInterface.AudioInterfaceCallback">
+            <summary>
+            Called on data collection event, typically after 1-second of collection.
+            Must null check both arrays.
+            </summary>
+            <param name="dbSPL"></param>
+            <param name="upstream">256-float array. Null if collection disabled.</param>
+            <param name="downstream">8-float array. Null if collection disabled.</param>
+        </member>
+    </members>
+</doc>

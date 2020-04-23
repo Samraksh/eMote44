@@ -10,12 +10,9 @@
 #include "Samraksh_Mel.h"
 
 CLR_RT_HeapBlock_NativeEventDispatcher *AI_ne_Context;
-UINT64 AI_ne_userData;
-
 
 static HRESULT Initialize_AI_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext, UINT64 userData ){
 	AI_ne_Context = pContext;
-	AI_ne_userData = userData;
 	return S_OK;
 }
 
@@ -25,7 +22,6 @@ static HRESULT  EnableDisable_AI_Driver( CLR_RT_HeapBlock_NativeEventDispatcher 
 
 static HRESULT Cleanup_AI_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext ){
 	AI_ne_Context = NULL;
-	AI_ne_userData = 0;
 	CleanupNativeEventsFromHALQueue( pContext );
 	return S_OK;
 }
@@ -37,11 +33,19 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Initialize___BOOLEAN__I4,
+    NULL,
+    NULL,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_fir_taps_internal___BOOLEAN__I4__SZARRAY_R4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_model_recording_internal___VOID__BOOLEAN__BOOLEAN,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Initialize___BOOLEAN,
     Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::Uninitialize___BOOLEAN,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::GetResultData___BOOLEAN__SZARRAY_R4,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_inference___BOOLEAN__I4,
-    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_inference___BOOLEAN,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::GetResultData___BOOLEAN__BYREF_R4__SZARRAY_R4__SZARRAY_R4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::start_audio_inference___BOOLEAN,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::stop_audio_inference___VOID,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_ml_duty_cycle___BOOLEAN__I4__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_raw_data_output___BOOLEAN__BOOLEAN,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_dB_thresh___BOOLEAN__R4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::set_time_interval___BOOLEAN__I4,
     NULL,
     NULL,
     NULL,
@@ -51,7 +55,7 @@ static const CLR_RT_MethodHandler method_lookup[] =
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0x4314F32E,
+    0xAC4E2D3F,
     method_lookup
 };
 
@@ -61,8 +65,6 @@ static const CLR_RT_DriverInterruptMethods g_CLR_AI_DriverMethods =
   EnableDisable_AI_Driver,
   Cleanup_AI_Driver
 };
-
-
 
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_AICallback  =
 {
