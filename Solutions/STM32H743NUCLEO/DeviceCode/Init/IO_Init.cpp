@@ -16,8 +16,8 @@
 
 // Define the generic port table, only one generic extensionn port type supported
 // and that is the ITM hardware trace port on Channel 0.
-extern GenericPortTableEntry const Itm0GenericPort;
-extern GenericPortTableEntry const* const g_GenericPorts[TOTAL_GENERIC_PORTS] = { &Itm0GenericPort };
+//extern GenericPortTableEntry const Itm0GenericPort;
+//extern GenericPortTableEntry const* const g_GenericPorts[TOTAL_GENERIC_PORTS] = { &Itm0GenericPort };
 
 
 void BootstrapCode_GPIO()

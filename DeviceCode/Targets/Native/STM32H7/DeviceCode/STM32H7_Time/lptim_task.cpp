@@ -6,10 +6,19 @@
 
 static lptim_task_t * volatile task_HEAD = NULL;
 static lptim_task_t * volatile task_RUNNING = NULL;
+
+
+// Debug helpers
+#ifdef _DEBUG
 static volatile unsigned task_list_size = 0;
+static inline void inc_task_list_size(void) { task_list_size++; }
+static inline void dec_task_list_size(void) { task_list_size--; }
+#else
+#define inc_task_list_size() ((void)0)
+#define dec_task_list_size() ((void)0)
+#endif
 
 // TODO: CONSIDER LOCKING ETC
-
 
 bool task_is_linked(lptim_task_t *x) {
 	lptim_task_t *HEAD;
@@ -20,12 +29,13 @@ bool task_is_linked(lptim_task_t *x) {
 }
 
 // Fast append to front
-static void add_lptim_task_front(lptim_task_t *x) {
+static bool add_lptim_task_front(lptim_task_t *x) {
 	lptim_task_t *prev = task_HEAD;
-	if (task_is_linked(x)) return; // Do nothing if node is already present
+	if (task_is_linked(x)) return true; // Do nothing if node is already present
 	task_HEAD = x;
 	x->next = prev;
-	task_list_size++;
+	inc_task_list_size();
+	return false;
 }
 
 
@@ -50,7 +60,7 @@ static void unlink_lptim_task(lptim_task_t *x) {
 	x->next = NULL; // Explicit clear to be safe
 
 	if (x == task_RUNNING) task_RUNNING = NULL;
-	task_list_size--;
+	dec_task_list_size();
 out_fail:
 	return;
 }
@@ -75,18 +85,20 @@ void lptim_task_init(lptim_task_t *x) {
 	memset(x, 0, sizeof(lptim_task_t));
 }
 
-// Public facing function
 int lptim_add_oneshot(lptim_task_t *x) {
+	bool is_already_linked;
 	lptim_task_t *next;
 	int ret;
 
 	if (x == NULL) return -1;
-	add_lptim_task_front(x);
+	is_already_linked = add_lptim_task_front(x);
+	if (is_already_linked) return 0; // No change
 
 	next = get_next_task();
 	ret = lptim_set_delay_ms(next->delay_ms, LPTIM_DEBUG);
 	if (ret) __BKPT();
 	task_RUNNING = next;
+	return 0;
 }
 
 // ISR

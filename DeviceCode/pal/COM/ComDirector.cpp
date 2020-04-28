@@ -4,6 +4,10 @@
 
 #include <tinyhal.h>
 
+#ifdef MEL_USE_SERIAL_FRAMES
+#include <Samraksh\serial_frame_pal.h>
+#endif
+
 BOOL DebuggerPort_Initialize( COM_HANDLE ComPortNum )
 {
     NATIVE_PROFILE_PAL_COM();
@@ -80,7 +84,11 @@ int DebuggerPort_Write( COM_HANDLE ComPortNum, const char* Data, size_t size, in
         {
         case USART_TRANSPORT:
 			if (ComPortNum == USB_SERIAL_PORT){
+				#ifdef MEL_USE_SERIAL_FRAMES
+				ret = send_framed_serial((const uint8_t *)dataTmp, size, TRUE); // Debug output
+				#else
 				ret = CPU_USB_write( dataTmp, size );
+				#endif
 			} else {
 	            ret = USART_Write( ConvertCOM_ComPort( ComPortNum ), dataTmp, size );
 			}
