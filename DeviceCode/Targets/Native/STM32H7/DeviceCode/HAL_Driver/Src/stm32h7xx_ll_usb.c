@@ -623,6 +623,12 @@ HAL_StatusTypeDef USB_DeactivateEndpoint(USB_OTG_GlobalTypeDef *USBx, USB_OTG_EP
   {
     USBx_DEVICE->DEACHMSK &= ~(USB_OTG_DAINTMSK_IEPM & (uint32_t)(1UL << (ep->num & EP_ADDR_MSK)));
     USBx_DEVICE->DAINTMSK &= ~(USB_OTG_DAINTMSK_IEPM & (uint32_t)(1UL << (ep->num & EP_ADDR_MSK)));
+	// https://github.com/STMicroelectronics/STM32CubeH7/issues/17
+	if (USBx_INEP(epnum)->DIEPCTL & USB_OTG_DIEPCTL_EPENA)
+	{
+		USBx_INEP(epnum)->DIEPCTL |= USB_OTG_DIEPCTL_SNAK;
+		USBx_INEP(epnum)->DIEPCTL |= USB_OTG_DIEPCTL_EPDIS;
+	}
     USBx_INEP(epnum)->DIEPCTL &= ~(USB_OTG_DIEPCTL_USBAEP |
                                    USB_OTG_DIEPCTL_MPSIZ |
                                    USB_OTG_DIEPCTL_TXFNUM |
@@ -633,6 +639,12 @@ HAL_StatusTypeDef USB_DeactivateEndpoint(USB_OTG_GlobalTypeDef *USBx, USB_OTG_EP
   {
     USBx_DEVICE->DEACHMSK &= ~(USB_OTG_DAINTMSK_OEPM & ((uint32_t)(1UL << (ep->num & EP_ADDR_MSK)) << 16));
     USBx_DEVICE->DAINTMSK &= ~(USB_OTG_DAINTMSK_OEPM & ((uint32_t)(1UL << (ep->num & EP_ADDR_MSK)) << 16));
+	// https://github.com/STMicroelectronics/STM32CubeH7/issues/17
+	if (USBx_OUTEP(epnum)->DOEPCTL & USB_OTG_DOEPCTL_EPENA)
+	{
+		USBx_OUTEP(epnum)->DOEPCTL |= USB_OTG_DOEPCTL_SNAK;
+		USBx_OUTEP(epnum)->DOEPCTL |= USB_OTG_DOEPCTL_EPDIS;
+	}
     USBx_OUTEP(epnum)->DOEPCTL &= ~(USB_OTG_DOEPCTL_USBAEP |
                                     USB_OTG_DOEPCTL_MPSIZ |
                                     USB_OTG_DOEPCTL_SD0PID_SEVNFRM |
