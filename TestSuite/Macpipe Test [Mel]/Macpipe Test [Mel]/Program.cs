@@ -113,7 +113,7 @@ namespace Macpipe_Test__Mel_
 
             foreach (var theNeighbor in neighborList)
             {
-                byte[] toSendByte = new byte[80];
+                byte[] toSendByte = new byte[100];
                 Debug.Print("Sending message to " + theNeighbor);
                 pipe.Send(theNeighbor, toSendByte, 0, (ushort)toSendByte.Length);
             }

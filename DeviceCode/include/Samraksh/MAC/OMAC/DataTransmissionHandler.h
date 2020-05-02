@@ -44,6 +44,7 @@ enum DataTransmissionHandlerStates{
 	DTS_DEST_NOT_AVAILABLE,
 	DTS_SEND_INITIATION_SUCCESS,
 	DTS_SEND_INITIATION_FAIL,
+	DTS_WAITING_FOR_CAD,
 	DTS_CCA_CLEAR,
 	DTS_CCA_BUSY,
 	DTS_SEND_FINISHED,
@@ -101,6 +102,10 @@ private:
 	BOOL m_RANDOM_BACKOFF;
 	UINT16 m_backoff_seed;
 	UINT16 m_backoff_mask;
+	UINT8 m_cad_running_count;
+	UINT8 m_cad_true_count;
+	UINT8 m_cad_false_count;
+	
 
 	DataTransmissionHandlerStates txhandler_state;
 	UINT64 CalculateNextTxMicro(UINT16 dest);
@@ -120,8 +125,12 @@ public:
 	//UINT8 ExecuteEventDone();
 	void PostExecuteEvent();
 
+    void VerifyCAD(bool status);
+	void ExecuteCAD();
+	void ExecuteSendingPacket(bool status);
 	//BOOL ScheduleDataPacket(UINT8 _skipperiods);
-
+	void CADDoneHandler(bool status);
+	
 	void DropPacket();
 	bool Send();
 	void SendRetry();

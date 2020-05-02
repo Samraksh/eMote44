@@ -382,7 +382,7 @@ BOOL csmaMAC::Resend(void* msg, int Size){
 
 void csmaMAC::SendToRadio(){
 	// if we have more than one packet in the send buffer we will switch on the timer that will be used to flush the packets out
-	////DEBUG_PRINTF_CSMA("SndRad<%d> %d\r\n",g_send_buffer.GetNumberMessagesInBuffer(), RadioAckPending);
+	DEBUG_PRINTF_CSMA("SndRad<%d> %d\r\n",g_send_buffer.GetNumberMessagesInBuffer(), RadioAckPending);
 	if ( (g_send_buffer.GetNumberMessagesInBuffer() > 1) && (flushTimerRunning == false) ){
 		DEBUG_PRINTF_CSMA("start FLUSHBUFFER3\r\n");
 		VirtTimer_Start(VIRT_TIMER_MAC_FLUSHBUFFER);

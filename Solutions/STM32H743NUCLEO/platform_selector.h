@@ -44,8 +44,8 @@
 //
 /////////////////////////////////////////////////////////
 
-#define __MAC_CSMA__
-//#define __MAC_OMAC__
+//#define __MAC_CSMA__
+#define __MAC_OMAC__
 
 #define __RADIO_SX1276__
 //#define __RADIO_SI4468__
@@ -274,11 +274,11 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE 20
 // The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
 // Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
-#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 20
+#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 27
 
 #define VIRT_TIMER_OMAC_SCHEDULER_RADIO_STOP_RETRY 21
 #define VIRT_TIMER_OMAC_RECEIVER 22
-//#define VIRT_TIMER_OMAC_RECEIVER_ACK 23
+#define VIRT_TIMER_OMAC_TRANSMITTER_CAD 23
 #define VIRT_TIMER_OMAC_DISCOVERY 24
 #define VIRT_TIMER_OMAC_TRANSMITTER 25
 #define VIRT_TIMER_OMAC_TIMESYNC 26

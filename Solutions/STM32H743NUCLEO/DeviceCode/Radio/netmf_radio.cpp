@@ -60,6 +60,11 @@ extern "C"
 	{
 		return FALSE;
 	}
+
+	void DefaultCADDoneInterruptHandler(bool CADStatus)
+	{
+
+	}		
 }
 
 // Calls the corresponding radio object initialize function based on the radio chosen
@@ -937,47 +942,6 @@ DeviceStatus CPU_Radio_ClearChannelAssesment (UINT8 radioName)
 
 	//DS_Fail is a valid state returned from ClearChannelAssesment
 	//ASSERT_NOFAIL(status);
-	return status;
-}
-
-
-UINT8 CPU_Radio_CADCurrentStatus(UINT8 radioName)
-{
-	UINT8 status = 3;
-
-	switch(radioName)
-	{
-		case SX1276RADIO:
-#if defined(__RADIO_SX1276__)		
-			if(SX1276_HAL_GetCADStatus()) status = 1;
-			else status = 2;
-#endif
-			break;
-		default:
-			PRINTF_UNIDENTIFIED_RADIO();
-			break;
-	}
-
-	return status;
-}
-
-
-UINT8 CPU_Radio_CADCurrentRunningStatus(UINT8 radioName)
-{
-	UINT8 status = 3;
-	switch(radioName)
-	{
-		case SX1276RADIO:
-#if defined(__RADIO_SX1276__)		
-			if(SX1276_HAL_GetCADRunningStatus()) status = 1;
-			else status = 2;
-#endif
-			break;
-		default:
-			PRINTF_UNIDENTIFIED_RADIO();
-			break;
-	}
-
 	return status;
 }
 

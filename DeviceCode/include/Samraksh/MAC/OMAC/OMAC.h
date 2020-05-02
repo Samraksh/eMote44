@@ -103,10 +103,6 @@
 extern Buffer_15_4_t g_receive_buffer;
 extern NeighborTable g_NeighborTable;
 
-static void x64toa(unsigned long long val, char *buf, unsigned radix, int is_neg);
-char* _i64toa(long long val, char *buf, int radix);
-char* _ui64toa(unsigned long long val, char *buf, int radix);
-char* l2s(long long v,int sign);
 
 /*
  *
@@ -214,7 +210,7 @@ private:
 
 	//Protocol variables
 	//-------------------------------
-	static const UINT8 RANDOM_BACKOFF_COUNT_MAX = 3;
+	static const UINT8 RANDOM_BACKOFF_COUNT_MAX = 4;
 	static const UINT8 RANDOM_BACKOFF_COUNT_MIN = 1;
 	UINT32 TX_TIME_PER_BIT_IN_MICROSEC;
 	UINT32 ACK_RX_MAX_DURATION_MICRO;

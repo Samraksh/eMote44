@@ -1402,7 +1402,7 @@ int16_t SX1276ReadRssi( RadioModems_t modem )
 {
     int16_t rssi = 0;
 	
-	//CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
+	//CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 
     switch( modem )
     {
@@ -2084,8 +2084,8 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		//}
 		else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDETECTED ) == RFLR_IRQFLAGS_CADDETECTED )
 		{
-			//hal_printf(" CAD Detected ");
-			
+			//hal_printf(" CAD Detected\r\n");
+			//CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 			// Clear Irq
 			SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDETECTED | RFLR_IRQFLAGS_CADDONE);
 			if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )
@@ -2095,8 +2095,8 @@ void SX1276OnDio3Irq(GPIO_PIN Pin, BOOL PinState, void* context )
 		}			
         else if( ( SX1276Read( REG_LR_IRQFLAGS ) & RFLR_IRQFLAGS_CADDONE ) == RFLR_IRQFLAGS_CADDONE )
         {
-			//hal_printf(" CAD Done ");
-	    
+			//hal_printf(" CAD Done\r\n");
+	        //CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 			// Clear Irq
             SX1276Write( REG_LR_IRQFLAGS, RFLR_IRQFLAGS_CADDONE );
             if( ( RadioEvents != NULL ) && ( RadioEvents->CadDone != NULL ) )

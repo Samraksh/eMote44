@@ -27,6 +27,8 @@ extern "C"
 	void DefaultSendAckHandler(void *msg, UINT16 Size, NetOpStatus status, UINT8 radioAckStatus);
 
 	BOOL DefaultRadioInterruptHandler(RadioInterrupt Interrupt, void *param);
+	
+	void DefaultCADDoneInterruptHandler(bool CADStatus);
 }
 
 
@@ -92,6 +94,7 @@ public:
 		defaultHandler.SetReceiveHandler(DefaultReceiveHandler);
 		defaultHandler.SetSendAckHandler(DefaultSendAckHandler);
 		defaultHandler.SetRadioInterruptHandler(DefaultRadioInterruptHandler);
+		defaultHandler.SetCADDoneInterruptHandler(DefaultCADDoneInterruptHandler);
 		MacHandlers[MacIDIndex] = &defaultHandler;
 		return TRUE;
 	}

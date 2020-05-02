@@ -74,7 +74,14 @@ BOOL OMACRadioInterruptHandler(RadioInterrupt Interrupt, void* Param){
 #endif
 	return TRUE;
 }
-
+void OMACCADDoneHandler(bool status){
+	if( g_OMAC.m_omac_scheduler.m_execution_started && g_OMAC.m_omac_scheduler.m_state == I_DATA_SEND_PENDING){
+			g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.CADDoneHandler(status);
+	}
+	else if( g_OMAC.m_omac_scheduler.m_execution_started && g_OMAC.m_omac_scheduler.m_state == I_DISCO_PENDING){
+			g_OMAC.m_omac_scheduler.m_DiscoveryHandler.CADDoneHandler(status);
+	}
+}
 /*
  *
  */
@@ -450,6 +457,8 @@ DeviceStatus OMACType::Initialize(MACEventHandler* eventHandler, UINT8 macName, 
 		Radio_Event_Handler.SetRadioInterruptHandler(OMACRadioInterruptHandler);
 		Radio_Event_Handler.SetReceiveHandler(OMACReceiveHandler);
 		Radio_Event_Handler.SetSendAckHandler(OMACSendAckHandler);
+		Radio_Event_Handler.SetCADDoneInterruptHandler(OMACCADDoneHandler);
+		
 
 		OMAC_callback_continuation.InitializeCallback(PushToUpperLayerHelper, NULL);
 

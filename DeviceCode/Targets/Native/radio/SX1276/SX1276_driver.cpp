@@ -120,12 +120,15 @@ void SX1276_HAL_RxError(){
 void SX1276_HAL_FhssChangeChannel(uint8_t currentChannel ){
 
 }
+
 void SX1276_HAL_CadDone(bool channelActivityDetected){	
 	m_rm = SLEEP;
-	SX1276_HAL_SetCADStatus(channelActivityDetected);
-	SX1276_HAL_SetCADRunningStatus(false);
+	//SX1276_HAL_SetCADStatus(channelActivityDetected);
+	//SX1276_HAL_SetCADRunningStatus(false);
 	//CAD_Status = channelActivityDetected;
 	//Is_CAD_Running = false;
+	//hal_printf("SX1276_HAL_CadDone\r\n");
+	(Radio_event_handler.GetCADDoneInterruptHandler())(channelActivityDetected);
 }
 
 
@@ -152,6 +155,7 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 	Radio_event_handler.SetReceiveHandler(event_handler->GetReceiveHandler());
 	Radio_event_handler.SetSendAckHandler(event_handler->GetSendAckHandler());
 	Radio_event_handler.SetRadioInterruptHandler(event_handler->GetRadioInterruptHandler());
+	Radio_event_handler.SetCADDoneInterruptHandler(event_handler->GetCADDoneInterruptHandler());
 	
 	events.TxDone 				= SX1276_HAL_TxDone;
 	events.TxTimeout 			= SX1276_HAL_TxTimeout;
@@ -302,33 +306,24 @@ DeviceStatus SX1276_HAL_AddToTxBuffer(void* msg, UINT16 size){
 }
 
 
+
 DeviceStatus SX1276_HAL_ChannelActivityDetection(){
-	SX1276_HAL_SetCADRunningStatus(true);
-	SX1276_HAL_SetCADStatus(false);
+	Is_CAD_Running = true;
+	CAD_Status = false;
 	VirtualTimerReturnMessage rm;
 	//rm = VirtTimer_Start(VIRT_TIMER_SX1276_CADTimer);
 
 	m_rm = RX;
-	SX1276StartCad();
-
-	UINT32 i = 1;
-	while(SX1276_HAL_GetCADRunningStatus()) { // && i < 20000){
-		i++;		
-	};
-
-	//HAL_Delay(1);
-	//hal_printf("CAD Detected");
+	//if( ( SX1276Read( REG_OPMODE ) & ~RF_OPMODE_MASK ) == RF_OPMODE_SLEEP )
+	//{
+	SX1276SetStby();
+	//}
 	
-	//return DS_Success;
-	if(SX1276_HAL_GetCADStatus()) {
-		//hal_printf("CAD Detected\r\n");
-		return DS_Success;
-	}
-	else {
-		//hal_printf("CAD Done\r\n");
-		return DS_Fail;
-	}
+	SX1276StartCad();
+	
+	return DS_Success;
 }
+	
 
 void SX1276_HAL_PacketLoadTimerHandler(void* param) {
 	UINT64 delay;
@@ -485,20 +480,6 @@ INT8 SX1276_HAL_GetRadioName(){
 }
 void SX1276_HAL_SetRadioName(INT8 rn){
 	radioName = rn;
-}
-
-BOOL SX1276_HAL_GetCADStatus(){
-	return CAD_Status;
-}
-void SX1276_HAL_SetCADStatus(BOOL status){
-	CAD_Status = status;
-}
-
-BOOL SX1276_HAL_GetCADRunningStatus(){
-	return Is_CAD_Running;
-}
-void SX1276_HAL_SetCADRunningStatus(BOOL status){
-	Is_CAD_Running = status;
 }
 
 bool SX1276_Packet_PreparePayload(void* msg, UINT16 size, const UINT64& t, ClockIdentifier_t c) {
