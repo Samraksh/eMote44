@@ -437,21 +437,31 @@ void DataTransmissionHandler::VerifyCAD(bool status) {
 	rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-		
-	if (status) m_cad_true_count++;
-	else m_cad_false_count++;
 	
-	if (m_cad_running_count > m_cad_true_count+m_cad_false_count) {
+	if (status) {
+		m_cad_true_count++;
+	}
+	else {
+		m_cad_false_count++;
+	}
+	
+	if (m_cad_true_count+m_cad_false_count < 5) {
 		ExecuteCAD();
 	}
 	else {
 		if(m_cad_true_count > 1){
-			OMAC_HAL_PRINTF("TransmissionHandler::CAD!%d %d %d \r\n", m_cad_true_count, m_cad_false_count, m_cad_running_count);
+			OMAC_HAL_PRINTF("TransmissionHandler::CAD!%d %d %d\r\n", m_cad_true_count, m_cad_false_count, m_cad_running_count);
+			m_cad_running_count = 0;
+			m_cad_true_count = 0;
+			m_cad_false_count = 0;
 			ExecuteSendingPacket(false);
 
 		}
-		else {
-			OMAC_HAL_PRINTF("TransmissionHandler::NO CAD!%d %d %d \r\n", m_cad_true_count, m_cad_false_count, m_cad_running_count);
+		else {			
+			OMAC_HAL_PRINTF("TransmissionHandler::NO CAD!%d %d %d\r\n", m_cad_true_count, m_cad_false_count, m_cad_running_count);
+			m_cad_running_count = 0;
+			m_cad_true_count = 0;
+			m_cad_false_count = 0;
 			ExecuteSendingPacket(true); 
 		}
 	}
@@ -460,6 +470,8 @@ void DataTransmissionHandler::VerifyCAD(bool status) {
 void DataTransmissionHandler::ExecuteCAD() {
 	DeviceStatus DS;
 	VirtualTimerReturnMessage rm;
+	rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+	
 	int tempCADDetectionTime = 1500;
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
@@ -472,8 +484,7 @@ void DataTransmissionHandler::ExecuteCAD() {
 	txhandler_state = DTS_WAITING_FOR_CAD;
 	DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
 
-	if(DS == DS_Success) {	
-		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+	if(DS == DS_Success) {		
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, tempCADDetectionTime, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
 		if(rm != TimerSupported){
@@ -481,7 +492,6 @@ void DataTransmissionHandler::ExecuteCAD() {
 		}		
 	}
 	else {	
-		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, 1, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
 		if(rm != TimerSupported){
@@ -641,18 +651,26 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 	CPU_GPIO_SetPinState( DATATX_PIN, FALSE );
 	CPU_GPIO_SetPinState( DATATX_PIN, TRUE );
 #endif
-
+	VirtualTimerReturnMessage rm;
 	//The number 500 was chosen arbitrarily. In reality it should be the sum of backoff period + CCA period + guard band.
 	//For GUARDTIME_MICRO period check the channel before transmitting
 	//140 usec is the time taken for CCA to return a result
 	if(EXECUTE_WITH_CCA || m_RANDOM_BACKOFF) {
 		UINT16 randVal = g_OMAC.m_omac_scheduler.m_seedGenerator.RandWithMask(&m_backoff_seed, m_backoff_mask);
 		m_backoff_seed = randVal;
-		m_cad_running_count = ((randVal % g_OMAC.RANDOM_BACKOFF_COUNT_MAX)+1)*5;
+		m_cad_running_count = ((randVal % g_OMAC.RANDOM_BACKOFF_COUNT_MAX));
+		
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, m_cad_running_count*500, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+		if(rm != TimerSupported){
+			PostExecuteEvent();
+		}
+		
 		m_cad_true_count = 0;
 		m_cad_false_count = 0;
-	
-		ExecuteCAD();	
+		m_total_cad_count = 0;	
+		//ExecuteCAD();	
 	}
 	else {
 		ExecuteSendingPacket(true);

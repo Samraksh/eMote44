@@ -308,10 +308,11 @@ DeviceStatus DiscoveryHandler::CADDoneHandler(bool status){
 				break;
 			case CAD_FOR_BEACON2:
 				m_state = BEACON2_SKIPPED;
-				break;
+				break;				
 		}
 #ifdef OMAC_DEBUG_PRINTF
 		OMAC_HAL_PRINTF("DiscoveryHandler::CAD!\r\n");
+		g_OMAC.m_omac_RadioControl.StartRx();
 #endif
 	}
 	else {

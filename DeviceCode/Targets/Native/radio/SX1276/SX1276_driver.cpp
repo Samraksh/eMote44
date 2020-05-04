@@ -320,7 +320,7 @@ DeviceStatus SX1276_HAL_ChannelActivityDetection(){
 	//}
 	
 	SX1276StartCad();
-	
+	//HAL_Delay(1);
 	return DS_Success;
 }
 	

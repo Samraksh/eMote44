@@ -102,10 +102,11 @@ private:
 	BOOL m_RANDOM_BACKOFF;
 	UINT16 m_backoff_seed;
 	UINT16 m_backoff_mask;
-	UINT8 m_cad_running_count;
-	UINT8 m_cad_true_count;
-	UINT8 m_cad_false_count;
-	
+	UINT16 m_cad_running_count;
+	UINT16 m_cad_true_count;
+	UINT16 m_cad_false_count;
+	UINT16 m_total_cad_count;
+	BOOL m_previous_cad_status;
 
 	DataTransmissionHandlerStates txhandler_state;
 	UINT64 CalculateNextTxMicro(UINT16 dest);

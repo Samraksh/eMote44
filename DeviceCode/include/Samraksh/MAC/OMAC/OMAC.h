@@ -210,7 +210,7 @@ private:
 
 	//Protocol variables
 	//-------------------------------
-	static const UINT8 RANDOM_BACKOFF_COUNT_MAX = 4;
+	static const UINT8 RANDOM_BACKOFF_COUNT_MAX = 50;
 	static const UINT8 RANDOM_BACKOFF_COUNT_MIN = 1;
 	UINT32 TX_TIME_PER_BIT_IN_MICROSEC;
 	UINT32 ACK_RX_MAX_DURATION_MICRO;

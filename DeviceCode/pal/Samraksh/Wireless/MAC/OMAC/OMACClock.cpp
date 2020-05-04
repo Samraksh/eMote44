@@ -48,7 +48,7 @@ UINT64 OMACClock::ConvertSlotstoTicks(const UINT64& slots){ //This function gets
 	///	return ( slots * 16 * MILLISECINMICSEC * (1<<15))/ 1000000; //JH: SLOT PERIOD is 16 in SLOT_PERIOD_MILLI 	
 	///}
 	///else {
-		return slots*1800000; //SLOT_PERIOD_TICKS
+		return slots*2100000; //SLOT_PERIOD_TICKS
 	///}
 }
 

@@ -76,7 +76,7 @@
 
 #define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_RF231	284
 #define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SI 1718
-#define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SX1276 46208 //86208
+#define DELAY_FROM_RADIO_DRIVER_TX_TO_RADIO_DRIVER_RX_SX1276 56208 //86208
 
 //#define PROCESSING_DELAY_BEFORE_TX_MICRO (581) //DELAY_FROM_OMAC_TX_TO_RF231_TX //581
 #define DELAY_FROM_DTH_TX_TO_RADIO_DRIVER_TX_RF231 581
@@ -97,7 +97,7 @@
 //#define CCA_PERIOD_MICRO GUARDTIME_MICRO //BK: We need to double check this. Since 2 nodes will be off by this much. A node should CCA at least this much to make sure there was no other transmitter trying to reach the same destination.
 #define CCA_PERIOD_ERROR_SI 1565 //BK: It is observed that CCA is being done more than set by the protocol. This is the observed error on it. It is used in scheduling the tx side this much early
 #define CCA_PERIOD_ERROR_RF231 165 //BK: It is observed that CCA is being done more than set by the protocol. This is the observed error on it. It is used in scheduling the tx side this much early
-#define CCA_PERIOD_ERROR_SX1276 10000 //BK: It is observed that CCA is being done more than set by the protocol. This is the observed error on it. It is used in scheduling the tx side this much early
+#define CCA_PERIOD_ERROR_SX1276 5000 //BK: It is observed that CCA is being done more than set by the protocol. This is the observed error on it. It is used in scheduling the tx side this much early
 #define CCA_PERIOD_MICRO 200
 
 
@@ -134,7 +134,7 @@
 #define RECEIVER_RADIO_STOP_RECHECK_INTERVAL_MICRO 1000
 #define TIMER_EVENT_DELAY_OFFSET 0
 #define MINEVENTTIME 50000				//minimum time (in micro seconds) required by scheduler to switch between modules
-#define SEED_UPDATE_INTERVAL_IN_SLOTS 100 //The FRAME SIZE in slots
+#define SEED_UPDATE_INTERVAL_IN_SLOTS 85//The FRAME SIZE in slots
 
 
 //Below 2 values are based on empirical observations made on a debug build

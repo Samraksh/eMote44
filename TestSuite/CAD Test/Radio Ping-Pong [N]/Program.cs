@@ -116,6 +116,7 @@ namespace Samraksh.AppNote.DotNow.PingPong
         {
             //if (ACKStatus == SendPacketStatus.SendNACKed) {
             DeviceStatus abc = _macBase.DeleteMsgWithMsgID(index);
+            _macBase.RemovePacket();
             //}
         }
 
@@ -215,11 +216,10 @@ namespace Samraksh.AppNote.DotNow.PingPong
                 {
                     break;
                 }
-                if (theNeighbor == 27719) { 
-                    Debug.Print("Sending message \"" + toSend + "\" to " + theNeighbor);
-                    _macBase.Send(theNeighbor, toSendByte, 0, (ushort)toSendByte.Length);
-                    _macBase.RemovePacket();
-                }
+               // if (theNeighbor == 27722) { 
+               //     Debug.Print("Sending message \"" + toSend + "\" to " + theNeighbor);
+               //    _macBase.Send(theNeighbor, toSendByte, 0, (ushort)toSendByte.Length);
+              // }
             }
         }
 
