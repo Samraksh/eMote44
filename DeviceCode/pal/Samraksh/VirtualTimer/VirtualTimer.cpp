@@ -442,6 +442,7 @@ void VirtualTimerCallback(void *arg)
 		// It is possible that while we are queueing up a timer to fire another timer fires and then m_current_timer_running_ gets changed, that exits, the timer interrupt gets processed and we process the wrong timer
 		// So we double check here.
 		if (runningTimer->get_m_is_running() && (runningTimer->get_m_ticks_when_match_() < CPU_Timer_CurrentTicks(currentHardwareTimerId))){
+			if (runningTimer->get_m_is_one_shot()) runningTimer->set_m_is_running(FALSE); // Do this early so a one-shot timer can restart itself. --NPS
 			if ( runningTimer->get_m_timer_id() <= VIRT_TIMER_INTERRUPT_CONTEXT_MARKER){
 				(runningTimer->get_m_callback())(NULL);
 			} else {
@@ -449,11 +450,9 @@ void VirtualTimerCallback(void *arg)
 				queueVTCallback(runningTimer);
 			}
 			// if the timer is a one shot we don't place it back on the timer Queue
-			if (runningTimer->get_m_is_one_shot()){
-				runningTimer->set_m_is_running(FALSE);
-			} else {
+			if (!runningTimer->get_m_is_one_shot()){
 				// calculating the next time this timer will fire
-			runningTimer->set_m_ticks_when_match_(VirtTimer_GetTicks(runningTimer->get_m_timer_id()) + runningTimer->get_m_period());
+				runningTimer->set_m_ticks_when_match_(VirtTimer_GetTicks(runningTimer->get_m_timer_id()) + runningTimer->get_m_period());
 			}
 		}
 	} 
