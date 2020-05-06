@@ -154,7 +154,7 @@ private:
 		//hal_printf("GlobalTime: Avg Drift: %lu, Avg Skew: %f \n",samples[nbrIndex].offsetAvg, samples[nbrIndex].avgSkew);
 	}*/
 
-	void Compute(UINT16 nbr){
+	/*void Compute(UINT16 nbr){
 		NeighborIndex_t nbrIndex = FindNeighbor(nbr);
 		NeighborIndex_t i;
 		if(nbrIndex==c_bad_nbrIndex){
@@ -248,6 +248,65 @@ private:
 
 		samples[nbrIndex].additional_y_intercept_offset = 0;
 
+	}*/
+
+	void Compute(UINT16 nbr){
+		NeighborIndex_t nbrIndex = FindNeighbor(nbr);
+		if(nbrIndex==c_bad_nbrIndex){
+			return;
+		}
+		double *nbrLocalTimes = samples[nbrIndex].recordedTime;
+		double *nbrOffset = samples[nbrIndex].offsetBtwNodes;
+		UINT8 numSamples = samples[nbrIndex].numSamples;
+
+		if (numSamples < 2) {
+			return;
+		}
+
+	    NeighborIndex_t firstIdx, lastIdx, i;
+	    firstIdx = lastIdx = i = 1;
+	    double latestLocalTime, earliestLocalTime;
+		//Find latestLocalTime and earliestLocalTime in the buffer
+		latestLocalTime = nbrLocalTimes[lastIdx];
+		earliestLocalTime = nbrLocalTimes[firstIdx];
+		for (i = 0; i < MAX_SAMPLES; i++) {
+			//if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
+			if( samples[nbrIndex].isused[i]){
+				if (nbrLocalTimes[i] > latestLocalTime) {
+					latestLocalTime = nbrLocalTimes[i];
+					lastIdx = i;
+				}
+				if (nbrLocalTimes[i] < earliestLocalTime) {
+					earliestLocalTime = nbrLocalTimes[i];
+					firstIdx = i;
+				}
+			}
+		}
+
+		double SSxy = 0;
+		double SSxx = 0;
+		double sum_y = 0;
+		double sum_x = 0;
+		//samples[nbrIndex].relativeFreq = 0;
+		for (i = 0; i < MAX_SAMPLES; i++) {
+			//if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
+			if( samples[nbrIndex].isused[i]){
+				sum_y += nbrLocalTimes[i];
+				sum_x += nbrLocalTimes[i] - nbrOffset[i] ;
+			}
+		}
+		for (i = 0; i < MAX_SAMPLES; i++) {
+			//if( nbrLocalTimes[i] != INVALID_TIMESTAMP ) {
+			if( samples[nbrIndex].isused[i]){
+				SSxx += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples)) * ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples));
+				SSxy += ((nbrLocalTimes[i] - nbrOffset[i])  - sum_x/((double)numSamples)) * ((nbrLocalTimes[i])  - sum_y/((double)numSamples));
+			}
+		}
+		samples[nbrIndex].relativeFreq = SSxy/SSxx;
+		samples[nbrIndex].y_intercept = sum_y/((double)numSamples) - sum_x/((double)numSamples) * samples[nbrIndex].relativeFreq;
+
+		samples[nbrIndex].additional_y_intercept_offset = 0;
+
 		/*if(samples[nbrIndex].relativeFreq < 0.9 || samples[nbrIndex].relativeFreq > 1.1){ //Reject last received samples
 			UINT8 previoustolastindex;
 			if(samples[nbrIndex].lastTimeIndex == 0) 	previoustolastindex = MAX_SAMPLES - 1;
@@ -255,9 +314,8 @@ private:
 			samples[nbrIndex].recordedTime[samples[nbrIndex].lastTimeIndex] = samples[nbrIndex].recordedTime[previoustolastindex];
 			samples[nbrIndex].offsetBtwNodes[samples[nbrIndex].lastTimeIndex] = samples[nbrIndex].offsetBtwNodes[previoustolastindex];
 		}*/
-
 	}
-
+	
 
 
 public:

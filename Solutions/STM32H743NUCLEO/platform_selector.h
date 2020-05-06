@@ -274,7 +274,7 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VIRT_TIMER_OMAC_SCHEDULER_FAILSAFE 20
 // The following definition will be used within the code as the decision point in deciding if the timer is to be run within interrupt context or continuation
 // Adjust this marker appropriately ( <= marker is interrupt context, > marker is continuation)
-#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 20
+#define VIRT_TIMER_INTERRUPT_CONTEXT_MARKER 26
 
 #define VIRT_TIMER_OMAC_SCHEDULER_RADIO_STOP_RETRY 21
 #define VIRT_TIMER_OMAC_RECEIVER 22
