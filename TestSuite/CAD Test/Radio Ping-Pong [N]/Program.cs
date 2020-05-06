@@ -217,9 +217,9 @@ namespace Samraksh.AppNote.DotNow.PingPong
                     break;
                 }
                // if (theNeighbor == 27722) { 
-               //     Debug.Print("Sending message \"" + toSend + "\" to " + theNeighbor);
-               //    _macBase.Send(theNeighbor, toSendByte, 0, (ushort)toSendByte.Length);
-              // }
+                //    Debug.Print("Sending message \"" + toSend + "\" to " + theNeighbor);
+                //   _macBase.Send(theNeighbor, toSendByte, 0, (ushort)toSendByte.Length);
+               // }
             }
         }
 

@@ -445,7 +445,7 @@ void DataTransmissionHandler::VerifyCAD(bool status) {
 		m_cad_false_count++;
 	}
 	
-	if (m_cad_true_count+m_cad_false_count < 5) {
+	if (m_cad_true_count+m_cad_false_count < 4) {
 		ExecuteCAD();
 	}
 	else {
@@ -659,7 +659,7 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 		UINT16 randVal = g_OMAC.m_omac_scheduler.m_seedGenerator.RandWithMask(&m_backoff_seed, m_backoff_mask);
 		m_backoff_seed = randVal;
 		m_cad_running_count = ((randVal % g_OMAC.RANDOM_BACKOFF_COUNT_MAX));
-		
+		//m_cad_running_count = 20;
 		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
 		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, m_cad_running_count*500, TRUE, OMACClockSpecifier );
 		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
