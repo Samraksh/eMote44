@@ -288,7 +288,7 @@ public:
 	UINT64 GetLastTimeSyncRecv(UINT16 address);
 	Neighbor_t* GetMostObsoleteTimeSyncNeighborPtr(NeighborStatus ns = Alive);
 	//Neighbor_t* GetNeighborWOldestSyncPtr(const UINT64& curticks, const UINT64& request_limit);
-	Neighbor_t* GetCritalSyncNeighborWOldestSyncPtr(const UINT64& curticks, const UINT64& request_limit,const UINT64& forcererequest_limit, const UINT64& fast_disco_request_interval);
+	Neighbor_t* GetCritalSyncNeighborWOldestSyncPtr(const UINT64& curticks, const UINT64& periodic_request, const UINT64& request_limit, const UINT64& forcererequest_limit, const UINT64& fast_disco_request_interval);
 	void DegradeLinks();
 	UINT16 GetMaxNeighbors();
 

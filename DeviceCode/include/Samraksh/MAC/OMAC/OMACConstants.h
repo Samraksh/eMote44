@@ -118,7 +118,7 @@
 //GUARDTIME_MICRO+OMAC_TIME_ERROR - Pessimistic time error
 //GUARDTIME_MICRO - optimistic time error (if there is a re-transmission, tx takes GUARDTIME_MICRO to do CCA
 
-#define EXECUTE_WITH_CCA  1
+#define EXECUTE_WITH_CCA  0
 #define  FAST_RECOVERY 0
 #define  FAST_RECOVERY2 0
 
@@ -176,6 +176,7 @@
 #define FORCE_REQUESTTIMESYNC_INMICS 6100000000					//Translates to 120 secs @8Mhz. Receiver centric time threshold to request for a TImeSync msg.
 //#define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST        10000000		//Translates to 10 secs @8Mhz. Sender centric time threshold to send a TImeSync msg.
 #define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST_INMICS  300000000		//z. Sender centric time threshold to send a TImeSync msg.
+#define PERIODIC_REQUESTTIMESYNC_INMICS 600000000
 ////GUARDTIME_MICRO should be calculated in conjuction with SLOT_PERIOD_MILLI
 //// GUARDTIME_MICRO = (SLOT_PERIOD_MILLI - PacketTime)/2 - SWITCHING_DELAY_MICRO
 ////PacketTime = 125byte * 8 bits/byte / (250*10^3 bits/sec) = 4sec
@@ -188,6 +189,7 @@
 #define FORCE_REQUESTTIMESYNC_INMICS 100000000					//Translates to 120 secs @8Mhz. Receiver centric time threshold to request for a TImeSync msg.
 //#define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST  48000000		//Translates to 10 secs @8Mhz. Sender centric time threshold to send a TImeSync msg.
 #define SENDER_CENTRIC_PROACTIVE_TIMESYNC_REQUEST_INMICS  6000000		//Translates to 10 secs @8Mhz. Sender centric time threshold to send a TImeSync msg.
+#define PERIODIC_REQUESTTIMESYNC_INMICS 600000000
 ////GUARDTIME_MICRO should be calculated in conjuction with SLOT_PERIOD_MILLI
 //// GUARDTIME_MICRO = (SLOT_PERIOD_MILLI - PacketTime)/2 - SWITCHING_DELAY_MICRO
 ////PacketTime = 125byte * 8 bits/byte / (250*10^3 bits/sec) = 4sec

@@ -69,6 +69,7 @@ UINT64 OMACTimeSync::NextEvent(){
 	while(true){
 		sn = g_NeighborTable.GetCritalSyncNeighborWOldestSyncPtr(
 				g_OMAC.m_Clock.GetCurrentTimeinTicks()
+				, g_OMAC.m_Clock.ConvertMicroSecstoTicks(PERIODIC_REQUESTTIMESYNC_INMICS)
 				, m_messagePeriod
 				, g_OMAC.m_Clock.ConvertMicroSecstoTicks(FORCE_REQUESTTIMESYNC_INMICS)
 				, g_OMAC.m_Clock.ConvertMicroSecstoTicks(INITIALIZATION_TIMESYNC_INTERVAL_INMICS)

@@ -75,6 +75,7 @@ DeviceStatus SX1276_HAL_Standby();
 DeviceStatus SX1276_HAL_Reset();
 
 void SX1276_HAL_ChooseRadioConfig();
+UINT32 SX1276_HAL_ReadPacketRssi();
 UINT32 SX1276_HAL_ReadRssi();
 RadioMode_t SX1276_HAL_GetRadioState();
 

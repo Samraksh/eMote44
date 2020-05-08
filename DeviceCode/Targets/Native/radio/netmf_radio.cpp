@@ -938,7 +938,7 @@ UINT32 CPU_Radio_GetRSSI(UINT8 radioName)
 			break;
 		case SX1276RADIO:
 #if defined(__RADIO_SX1276__)		
-			val = SX1276_HAL_ReadRssi();
+			val = SX1276_HAL_ReadPacketRssi();
 #endif
 			break;
 		default:
