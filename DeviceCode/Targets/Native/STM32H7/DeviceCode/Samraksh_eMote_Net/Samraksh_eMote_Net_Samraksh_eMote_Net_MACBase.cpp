@@ -25,6 +25,10 @@ MACEventHandler_t MACBase::Event_Handler;
 UINT8 MacID = 0;
 UINT8 MACBase::MyAppID;
 
+static UINT32 saved_args[2];
+static HAL_CONTINUATION macbase_cont;
+static void do_macbase_callback(void *p);
+
 enum CallBackTypes
 {
 	ReceivedCallback,
@@ -117,7 +121,9 @@ INT32 MACBase::InternalInitialize( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_
 	    hr = -1;
 	    result = DS_Fail;
 	}
-	
+
+	macbase_cont.InitializeCallback(do_macbase_callback, saved_args);
+
 	return result;
 }
 
@@ -284,6 +290,17 @@ void ManagedSendAckCallbackFn(void *msg, UINT16 size, NetOpStatus status, UINT8 
 	//}
 }
 
+// Test if in interrupt context
+static inline bool isInterrupt() {
+    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
+}
+
+static void do_macbase_callback(void *p) {
+	UINT32 *data = (UINT32 *)p;
+	GLOBAL_LOCK(irq);
+	SaveNativeEventToHALQueue( Net_ne_Context, data[0], data[1] );
+}
+
 void ManagedCallback(UINT32 arg1, UINT32 arg2)
 {
 	UINT32 data1, data2;
@@ -292,5 +309,16 @@ void ManagedCallback(UINT32 arg1, UINT32 arg2)
 	//data2 = arg2;
 
 	GLOBAL_LOCK(irq);
-	SaveNativeEventToHALQueue( Net_ne_Context, data1, data2 );
+
+	// If not an interrupt, put it on the HAL Queue immediately
+	if (!isInterrupt()) {
+		SaveNativeEventToHALQueue( Net_ne_Context, data1, data2 );
+		return;
+	}
+
+	// If we are in ISR, SaveNativeEventToHALQueue() is not safe, put it on the Continuation queue
+	if (macbase_cont.IsLinked()) { __BKPT(); return; } // Drop the event if we already have one
+	saved_args[0] = arg1;
+	saved_args[1] = arg2;
+	macbase_cont.Enqueue();
 }
