@@ -147,6 +147,7 @@ static void mic_data_callback(void *buf, unsigned len) {
 	float *my_classes;
 	float dBSPL;
 	int32_t dBSPL_print;
+	int32_t score;
 	int32_t *my_raw_data = (int32_t *) buf;
 	uint64_t end_time, proc_end;
 	uint32_t diff_time_ms, proc_end_ms;
@@ -168,10 +169,11 @@ static void mic_data_callback(void *buf, unsigned len) {
 	my_classes = my_ai_process((float *)output_swapped);
 	ret = maxarg_float((const float *)my_classes, 8);
 	diff_time_ms = stop_stopwatch_ms(start_time);
+	score = my_classes[ret]*100;
 	switch(ret) {
-		case 0:  hal_printf("Classified: %s (%d)\t\t\tdBSPL: %ld  took: %lums  non-ML: %lums\r\n", 	class_to_string(ret), ret, dBSPL_print, diff_time_ms, proc_end_ms); break;
-		case 1:  hal_printf("Classified: %s (%d)\tdBSPL: %ld  took: %lums  non-ML: %lums\r\n", 		class_to_string(ret), ret, dBSPL_print, diff_time_ms, proc_end_ms); break;
-		default: hal_printf("Classified: %s (%d)\t\tdBSPL: %ld  took: %lums  non-ML: %lums\r\n", 	class_to_string(ret), ret, dBSPL_print, diff_time_ms, proc_end_ms);
+		case 0:  hal_printf("Classified: %s (%d)\t\t\tscore: %ld dBSPL: %ld  took: %lums  non-ML: %lums\r\n", 	class_to_string(ret), ret, score, dBSPL_print, diff_time_ms, proc_end_ms); break;
+		case 1:  hal_printf("Classified: %s (%d)\tscore: %ld dBSPL: %ld  took: %lums  non-ML: %lums\r\n", 		class_to_string(ret), ret, score, dBSPL_print, diff_time_ms, proc_end_ms); break;
+		default: hal_printf("Classified: %s (%d)\t\tscore: %ld dBSPL: %ld  took: %lums  non-ML: %lums\r\n", 	class_to_string(ret), ret, score, dBSPL_print, diff_time_ms, proc_end_ms);
 	}
 #endif
 }
