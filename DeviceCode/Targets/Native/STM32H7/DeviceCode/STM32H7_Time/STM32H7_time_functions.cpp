@@ -219,9 +219,7 @@ UINT64 CPU_MillisecondsToTicks( UINT32 mSec, UINT16 Timer )
 
 //--//
 
-#pragma arm section code = "SectionForFlashOperations"
-
-UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uSec, UINT16 Timer )
+UINT64 CPU_MicrosecondsToTicks( UINT64 uSec, UINT16 Timer )
 {
 	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
@@ -235,7 +233,7 @@ UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uS
 		return ( uSec * (timerFrequency / CLOCK_COMMON_FACTOR) );
 }
 
-UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uSec, UINT16 Timer )
+UINT32 CPU_MicrosecondsToTicks( UINT32 uSec, UINT16 Timer )
 {
 	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
@@ -248,8 +246,6 @@ UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uS
 
 		return ( uSec * (timerFrequency / CLOCK_COMMON_FACTOR) );
 }
-
-#pragma arm section code
 
 //--//
 
@@ -435,8 +431,6 @@ UINT64 HAL_Time_CurrentTicks()
 	return CPU_Timer_CurrentTicks(SYSTEM_TIME);    
 }
 
-#pragma arm section code
-
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
   /*##-1- Enable peripheral clock #################################*/
@@ -599,14 +593,12 @@ BOOL CPU_Timer_UnInitialize(UINT16 Timer)
 }
 
 
-#pragma arm section code = "SectionForFlashOperations"
-
 //
 // To calibrate this constant, uncomment #define CALIBRATE_SLEEP_USEC in TinyHAL.c
 //
 #define STM32H7_SLEEP_USEC_FIXED_OVERHEAD_CLOCKS 3
 
-void __section("SectionForFlashOperations") HAL_Time_Sleep_MicroSeconds( UINT32 uSec )
+void HAL_Time_Sleep_MicroSeconds( UINT32 uSec )
 {
     GLOBAL_LOCK(irq);
 
@@ -632,8 +624,6 @@ void HAL_Time_Sleep_MicroSeconds_InterruptEnabled( UINT32 uSec )
 
     CYCLE_DELAY_LOOP(iterations);
 }
-
-#pragma arm section code
 
 INT64 HAL_Time_TicksToTime( UINT64 Ticks )
 {
