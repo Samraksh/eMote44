@@ -35,6 +35,8 @@
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
 #define MEL_REDIRECT_COM0_TO_USB // I am a hack please fix me
 
+#define MACBASE_CALLBACK_QUEUE_DEPTH 4
+
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
 #define STARTUP_DELAY_MS 200
