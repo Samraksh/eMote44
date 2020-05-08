@@ -37,6 +37,8 @@
 #define MEL_REDIRECT_COM0_TO_USB // I am a hack please fix me, DEPRECATED
 //#define MEL_USE_SERIAL_FRAMES
 
+#define MACBASE_CALLBACK_QUEUE_DEPTH 8
+
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
 #define STARTUP_DELAY_MS 200
