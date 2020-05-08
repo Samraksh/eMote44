@@ -317,7 +317,7 @@ void ManagedCallback(UINT32 arg1, UINT32 arg2)
 	}
 
 	// If we are in ISR, SaveNativeEventToHALQueue() is not safe, put it on the Continuation queue
-	if (macbase_cont.IsLinked()) { __BKPT(); return; } // Drop the event if we already have one
+	if (macbase_cont.IsLinked()) { return; } // Drop the event if we already have one
 	saved_args[0] = arg1;
 	saved_args[1] = arg2;
 	macbase_cont.Enqueue();
