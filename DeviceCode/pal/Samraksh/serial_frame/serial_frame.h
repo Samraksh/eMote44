@@ -5,7 +5,7 @@
 #define FRAME_MAX_SIZE 2048 // Only used for decoding. Host end should set larger for audio etc.
 #endif
 
-#define FRAME_MIN_SIZE 10 // Size of a 0 payload frame
+#define FRAME_MIN_SIZE 20 // Size of a 0 payload frame
 
 typedef enum {
 	NO_ERR			= 0,
@@ -45,12 +45,17 @@ enum {
 	FRAME_TYPE_BASE_PROTOBUF	=4,
 	FRAME_TYPE_F1_PROTOBUF		=5,
 	FRAME_TYPE_BIN_AUDIO		=6,
+	FRAME_TYPE_ACK				=7,
+	FRAME_TYPE_NACK				=8,
+	FRAME_TYPE_HELLO			=9,
 };
 
 // Dest types
 enum { DEST_BASE=0, DEST_H7=1, DEST_BMS=2 };
 
+int serial_frame_encode_count(const uint8_t *in, uint32_t len_in, uint8_t dest, uint32_t pkt_type);
 int serial_frame_encode(const uint8_t *in, uint32_t len_in, uint32_t buf_max, uint8_t *buf, uint8_t dest, uint32_t pkt_type);
+int sf_encode_from_struct_count(serial_frame_t *f);
 int sf_encode_from_struct(serial_frame_t *f, uint8_t *buf, uint32_t buf_max);
 int serial_frame_decode(const uint8_t *in, uint32_t len_in, serial_frame_t *frame);
 void serial_frame_reset(void);

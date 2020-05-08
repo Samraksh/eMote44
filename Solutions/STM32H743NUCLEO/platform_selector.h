@@ -35,7 +35,9 @@
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
 #define MEL_KILL_UART5  // Interdict UART5 init.
 #define MEL_REDIRECT_COM0_TO_USB // I am a hack please fix me, DEPRECATED
-//#define MEL_USE_SERIAL_FRAMES
+#define MEL_USE_SERIAL_FRAMES
+#define BOOTLOADER_MAGIC_WORD 0xEE33BB22
+#define BOOTLOADER_MAGIC_ADDR 0x38000000 // first word of D3
 
 #define MACBASE_CALLBACK_QUEUE_DEPTH 8
 
@@ -59,7 +61,6 @@
 // Constants
 //
 #define PLATFORM_DEPENDENT_TX_USART_BUFFER_SIZE 1
-#define PLATFORM_DEPENDENT_RX_USART_BUFFER_SIZE 2048
 
 // System Clock
 //#define SYSTEM_CLOCK_HZ                  400000000  // 400 MHz

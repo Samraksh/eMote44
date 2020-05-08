@@ -4,6 +4,7 @@
 #include <tinyclr_application.h>
 #include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
+#include <Samraksh/serial_frame_pal.h>
 
 #define GPIO_0 _P(B,12)
 #define GPIO_1 _P(B,13)
@@ -87,6 +88,9 @@ void nathan_rtc_handler(void *arg) {
 void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
+#ifdef MEL_USE_SERIAL_FRAMES
+	framed_serial_init();
+#endif
 
 	// Initial delay to allow UART terminals to start and catch startup messages
     HAL_Delay(6000);

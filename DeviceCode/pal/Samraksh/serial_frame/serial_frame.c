@@ -49,7 +49,7 @@ static uint32_t out_idx;			// index into OUT buffer
 static frame_state_t state;			// State of decoding, preserved over calls
 
 // TODO
-static uint32_t compute_crc32(const uint8_t *buf, unsigned len) {
+static uint32_t compute_crc32(const uint8_t *buf __attribute__ ((unused)), unsigned len __attribute__ ((unused))) {
 	return 0;
 }
 
@@ -223,7 +223,6 @@ out:
 	return ret;
 }
 
-// Helper
 // Typically would be used for re-encoding
 int sf_encode_from_struct(serial_frame_t *f, uint8_t *buf, uint32_t buf_max) {
 	uint8_t *in = f->buf;
@@ -231,6 +230,15 @@ int sf_encode_from_struct(serial_frame_t *f, uint8_t *buf, uint32_t buf_max) {
 	uint8_t dest = f->dest;
 	uint32_t pkt_type = f->type;
 	return serial_frame_encode(in, len_in, buf_max, buf, dest, pkt_type);
+}
+
+// Returns what the size of a frame with the encoded struct would be
+int sf_encode_from_struct_count(serial_frame_t *f) {
+	uint8_t *in = f->buf;
+	uint32_t len_in = f->sz;
+	uint8_t dest = f->dest;
+	uint32_t pkt_type = f->type;
+	return serial_frame_encode_count(in, len_in, dest, pkt_type);
 }
 
 
@@ -245,6 +253,8 @@ int serial_frame_encode(const uint8_t *in, uint32_t len_in, uint32_t buf_max, ui
 	uint8_t *now = (uint8_t *)(&time_us);
 	uint8_t *t = (uint8_t *)(&pkt_type);
 	uint8_t *c = (uint8_t *)(&crc);
+
+	if (in == NULL && len_in > 0) return -1;
 
 	// Starting delimiter
 	buf[bytes++] = FLAG_FLAG;
@@ -308,5 +318,78 @@ int serial_frame_encode(const uint8_t *in, uint32_t len_in, uint32_t buf_max, ui
 
 	// End delimiter
 	buf[bytes++] = FLAG_FLAG;
+	return bytes;
+}
+
+// Returns: Length if given data was encoded
+// A little janky, wasn't feeling well when I made this
+int serial_frame_encode_count(const uint8_t *in, uint32_t len_in, uint8_t dest, uint32_t pkt_type) {
+	unsigned bytes = 0;
+	uint64_t time_us;
+	uint32_t crc;
+	// union... I know...
+	uint8_t *now = (uint8_t *)(&time_us);
+	uint8_t *t = (uint8_t *)(&pkt_type);
+	uint8_t *c = (uint8_t *)(&crc);
+
+	if (in == NULL && len_in > 0) return -1;
+
+	// Starting delimiter
+	bytes++;
+
+	// Dest
+	for (unsigned i=0; i<sizeof(dest); i++) {
+		uint8_t x = 123; // dummy dest
+		switch(x) {
+			case FLAG_FLAG:
+			case FLAG_ESC:  bytes+=2; break;
+			default: bytes++;
+		}
+	}
+
+	// Type
+	for (unsigned i=0; i<sizeof(pkt_type); i++) {
+		uint8_t x = t[i];
+		switch(x) {
+			case FLAG_FLAG:
+			case FLAG_ESC:  bytes+=2; break;
+			default: bytes++;
+		}
+	}
+
+	// Payload
+	for (unsigned i=0; i<len_in; i++) {
+		uint8_t x = in[i];
+		switch(x) {
+			case FLAG_FLAG:
+			case FLAG_ESC:  bytes+=2; break;
+			default: bytes++;
+		}
+	}
+
+	// CRC
+	crc = compute_crc32(in, len_in);
+	for (unsigned i=0; i<sizeof(crc); i++) {
+		uint8_t x = c[i];
+		switch(x) {
+			case FLAG_FLAG:
+			case FLAG_ESC:  bytes+=2; break;
+			default: bytes++;
+		}
+	}
+
+	// Time
+	time_us = 8; // TODO
+	for (unsigned i=0; i<sizeof(time_us); i++) {
+		uint8_t x = now[i];
+		switch(x) {
+			case FLAG_FLAG:
+			case FLAG_ESC:  bytes+=2; break;
+			default: bytes++;
+		}
+	}
+
+	// End delimiter
+	bytes++;
 	return bytes;
 }

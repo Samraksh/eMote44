@@ -17,3 +17,5 @@ enum {
 
 int send_framed_serial(const uint8_t *data, unsigned sz, BOOL isDebug);
 int send_framed_serial_data(const uint8_t *data, unsigned sz, uint32_t frame_type);
+void rx_framed_serial(uint8_t* buf, uint32_t len);
+void framed_serial_init(void);

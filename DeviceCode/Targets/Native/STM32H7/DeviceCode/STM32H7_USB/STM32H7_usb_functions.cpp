@@ -11,6 +11,7 @@ NPS 2019-11-22
 
 #include <tinyhal.h>
 #include <STM32H7_Time/lptim.h>
+#include <Samraksh/serial_frame_pal.h>
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
 #include "usb_serial_ext.h"
@@ -43,7 +44,7 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 static bool USB_initialized = FALSE;
 static unsigned last_malloc_size;
-static uint8_t rx_pkt_buf[64]; 				// TODO: Assumes packets are handled fast
+static uint8_t rx_pkt_buf[128]; 			// TODO: Assumes packets are handled fast
 
 // TX buffer is huge to accomodate simple 32 kHz Mic streaming
 static uint8_t tx_pkt_buf[128*1024+1024] __attribute__ (( section (".ram_d1"), aligned(32) ));
@@ -123,9 +124,13 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length) {
 }
 
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len) {
+#ifndef MEL_USE_SERIAL_FRAMES
 	for (int i = 0; i < *Len; i++) {
 	  CPU_USB_Queue_Rx_Data( (char)Buf[i]); // TODO: Can input more than 1 byte at a time
 	}
+#else
+	rx_framed_serial(Buf, *Len);
+#endif
 	usb_cdc_status.RxBytes += *Len;
 	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rx_pkt_buf);
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
@@ -235,7 +240,7 @@ int usb_serial_ext_free(unsigned size) {
 	usb_cdc_status.TxBytesQueued += size;
 	last_malloc_size = 0;
 	free_lock(&usb_lock);
-	do_usb_retry(NULL);
+	if (size) do_usb_retry(NULL);
 	return 0;
 }
 
@@ -344,8 +349,12 @@ out:
 }
 
 static int CPU_USB_Queue_Rx_Data( char c ){
+#ifndef MEL_USE_SERIAL_FRAMES
 	// sending back only port number (USB_SERIAL_PORT also contains info that it is a serial interface)
 	return USART_AddCharToRxBuffer(ConvertCOM_ComPort(USB_SERIAL_PORT), c);
+#else
+
+#endif
 }
 
 extern "C" void OTG_FS_IRQHandler(void) {
