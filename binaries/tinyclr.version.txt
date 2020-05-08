@@ -1,6 +1,6 @@
-Sat, Apr 18, 2020  1:56:22 AM
+Fri, May  8, 2020  7:48:12 PM
    text	   data	    bss	    dec	    hex	filename
-1726976	  17420	 193757	1938153	 1d92e9	binaries/tinyclr.axf
-05fae76c39a6a68b43fc3e90ed247890422ee666
-f017abe649e2a86eb7af613976b373e8 *binaries/tinyclr.axf
-d8110f1379853a94f1e4ab90a1705867 *binaries/tinyclr_and_bootloader.axf
+1727536	  17420	 193885	1938841	 1d9599	binaries/tinyclr.axf
+30aef508a56692e138e0e8be77f612657abdfd38
+3b24202d20a5e026ecd032ce9efe8ecc *binaries/tinyclr.axf
+bf91fe740327b12b4c7d2b6086c7a9ed *binaries/tinyclr_and_bootloader.axf
