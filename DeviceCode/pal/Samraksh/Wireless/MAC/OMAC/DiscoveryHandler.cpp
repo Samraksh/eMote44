@@ -335,7 +335,7 @@ void DiscoveryHandler::ExecuteCAD() {
 	DeviceStatus DS;
 	int tempCADDetectionTime = 1500;
 	//OMAC_HAL_PRINTF("DiscoveryHandler::3 m_state = %d  \r\n", m_state);
-	DS = DS_Success;//CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
+	DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
 	switch(m_state) { 
 		case DISCO_LISTEN_SUCCESS:
 			m_state = CAD_FOR_BEACON1;
