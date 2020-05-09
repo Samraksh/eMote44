@@ -320,137 +320,170 @@ DeviceStatus sx1276_interop_change_channel(int interopChannel){
 
 DeviceStatus sx1276_interop_change_power(int interopPower){
 	DeviceStatus ret = DS_Success;
-
-	hal_printf("power to be changed (%d)...not implemented yet in SX1276.cpp\r\n", interopPower);
-
-	switch (interopPower){
-		case (Power_14dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;
-		case (Power_13dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;
-		case (Power_12dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_11dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_10dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_9dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_8dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_7dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_6dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_5dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_4dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_3dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_2dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_1dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_0dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_Minus_1dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_Minus_2dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_Minus_3dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		case (Power_Minus_4dBm):
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;			
-		default:
-			//SX1276BoardSetRfTxPower(xxxx);
-			break;
-	}
+	int power = interopPower-17;
+	hal_printf("power to be changed (%d)\r\n", interopPower);
+	SX1276BoardSetRfTxPower(power);
+	switch( SX1276.Settings.Modem )
+    {
+    case MODEM_FSK:
+        {
+			SX1276.Settings.Fsk.Power = power;
+		}
+        break;
+    case MODEM_LORA:
+        {
+			 SX1276.Settings.LoRa.Power = power;
+        }
+        break;
+    }
 
 	return ret;
 }
 
 DeviceStatus sx1276_interop_change_bandwidth(int interopBandwidth){
 	DeviceStatus ret = DS_Success;
-	hal_printf("interop change interopBandwidth %d not implemented yet\r\n", interopBandwidth);
+	int bandwidth = interopBandwidth;
+	hal_printf("interop change interopBandwidth %d\r\n", interopBandwidth);
 
-	switch (interopBandwidth){
-		case (Bandwidth_125kHz):
-			break;
-		case (Bandwidth_250kHz):
-			break;
-		case (Bandwidth_500kHz):
-			break;
-		default:
-			break;
-	}
+	switch( SX1276.Settings.Modem )
+    {
+    case MODEM_FSK:
+        {
+			 SX1276.Settings.Fsk.Bandwidth = bandwidth;
+			 SX1276Write( REG_RXBW, GetFskBandwidthRegValue( bandwidth ) );
+		}
+        break;
+    case MODEM_LORA:
+        {
+			if( bandwidth > 2 )
+            {
+                // Fatal error: When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
+                while( 1 );
+            }
+            bandwidth += 7;
+            SX1276.Settings.LoRa.Bandwidth = bandwidth;
+			if( ( ( bandwidth == 7 ) && ( ( SX1276.Settings.LoRa.Datarate == 11 ) || ( SX1276.Settings.LoRa.Datarate == 12 ) ) ) ||
+                ( ( bandwidth == 8 ) && ( SX1276.Settings.LoRa.Datarate == 12 ) ) )
+            {
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x01;
+            }
+            else
+            {
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x00;
+            }
+			SX1276Write( REG_LR_MODEMCONFIG1, ( SX1276Read( REG_LR_MODEMCONFIG1 ) & RFLR_MODEMCONFIG1_BW_MASK ) |( bandwidth << 4 ));
+			if( ( bandwidth == 9 ) && ( SX1276.Settings.Channel > RF_MID_BAND_THRESH ) )
+            {
+                // ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth
+                SX1276Write( REG_LR_HIGHBWOPTIMIZE1, 0x02 );
+                SX1276Write( REG_LR_HIGHBWOPTIMIZE2, 0x64 );
+            }
+            else if( bandwidth == 9 )
+            {
+                // ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth
+                SX1276Write( REG_LR_HIGHBWOPTIMIZE1, 0x02 );
+                SX1276Write( REG_LR_HIGHBWOPTIMIZE2, 0x7F );
+            }
+            else
+            {
+                // ERRATA 2.1 - Sensitivity Optimization with a 500 kHz Bandwidth
+                SX1276Write( REG_LR_HIGHBWOPTIMIZE1, 0x03 );
+            }
+        }
+        break;
+    }
 
 	return ret;
 }
 
 DeviceStatus sx1276_interop_change_spreadingFactor(int interopSF){
 	DeviceStatus ret = DS_Success;
+	int datarate = interopSF+7;
 	hal_printf("interop change interopSF %d not implemented yet\r\n", interopSF);
 
-	switch (interopSF){
-		case (SpreadingFactor_7):
-			break;
-		case (SpreadingFactor_8):
-			break;
-		case (SpreadingFactor_9):
-			break;
-		case (SpreadingFactor_10):
-			break;
-		case (SpreadingFactor_11):
-			break;
-		case (SpreadingFactor_12):
-			break;
-		default:
-			break;
-	}
+	switch( SX1276.Settings.Modem )
+    {
+    case MODEM_FSK:
+        {
+			SX1276.Settings.Fsk.Datarate = datarate;
+			datarate = ( uint16_t )( ( double )XTAL_FREQ / ( double )datarate );
+            SX1276Write( REG_BITRATEMSB, ( uint8_t )( datarate >> 8 ) );
+            SX1276Write( REG_BITRATELSB, ( uint8_t )( datarate & 0xFF ) );
+	
+		}
+        break;
+    case MODEM_LORA:
+        {
+			SX1276.Settings.LoRa.Datarate = datarate;
+			if( datarate > 12 )
+            {
+                datarate = 12;
+            }
+            else if( datarate < 6 )
+            {
+                datarate = 6;
+            }
+			if( ( ( SX1276.Settings.LoRa.Bandwidth == 7 ) && ( ( datarate == 11 ) || ( datarate == 12 ) ) ) ||
+                ( ( SX1276.Settings.LoRa.Bandwidth == 8 ) && ( datarate == 12 ) ) )
+            {
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x01;
+            }
+            else
+            {
+                SX1276.Settings.LoRa.LowDatarateOptimize = 0x00;
+            }
 
+            SX1276Write( REG_LR_MODEMCONFIG2,
+                         ( SX1276Read( REG_LR_MODEMCONFIG2 ) &
+                           RFLR_MODEMCONFIG2_SF_MASK ) |
+                           ( datarate << 4 ) );
+						   
+			if( datarate == 6 )
+            {
+                SX1276Write( REG_LR_DETECTOPTIMIZE,
+                             ( SX1276Read( REG_LR_DETECTOPTIMIZE ) &
+                               RFLR_DETECTIONOPTIMIZE_MASK ) |
+                               RFLR_DETECTIONOPTIMIZE_SF6 );
+                SX1276Write( REG_LR_DETECTIONTHRESHOLD,
+                             RFLR_DETECTIONTHRESH_SF6 );
+            }
+            else
+            {
+                SX1276Write( REG_LR_DETECTOPTIMIZE,
+                             ( SX1276Read( REG_LR_DETECTOPTIMIZE ) &
+                             RFLR_DETECTIONOPTIMIZE_MASK ) |
+                             RFLR_DETECTIONOPTIMIZE_SF7_TO_SF12 );
+                SX1276Write( REG_LR_DETECTIONTHRESHOLD,
+                             RFLR_DETECTIONTHRESH_SF7_TO_SF12 );
+            }			
+        }
+        break;
+    }
 	return ret;
 }
 
 DeviceStatus sx1276_interop_change_codingRate(int interopCodingRate){
 	DeviceStatus ret = DS_Success;
-	hal_printf("interop change interopCodingRate %d not implemented yet\r\n", interopCodingRate);
-
-	switch (interopCodingRate){
-		case (CodingRate_4_5):
-			break;
-		case (CodingRate_4_6):
-			break;
-		case (CodingRate_4_7):
-			break;
-		case (CodingRate_4_8):
-			break;
-		default:
-			break;
-	}
-
+	hal_printf("interop change interopCodingRate %d\r\n", interopCodingRate);
+	switch( SX1276.Settings.Modem )
+    {
+    case MODEM_FSK:
+        {
+		
+		}
+        break;
+    case MODEM_LORA:
+        {
+			SX1276.Settings.LoRa.Coderate = interopCodingRate+1;
+			SX1276Write( REG_LR_MODEMCONFIG1,
+			( SX1276Read( REG_LR_MODEMCONFIG1 ) &
+			RFLR_MODEMCONFIG1_CODINGRATE_MASK ) |
+			( (interopCodingRate+1) << 1 ) );	
+        }
+        break;
+    }	   
 	return ret;
 }
-
 
 void SX1276SetRadioRegistersInit() 
 {
