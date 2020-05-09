@@ -33,7 +33,11 @@
 #define PRINTF_MAX_RETRIES 0
 //#define KILL_SONYC_MODEL // Debugging option. Keeps model out of the binary.
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
-#define MEL_REDIRECT_COM0_TO_USB // I am a hack please fix me
+#define MEL_KILL_UART5  // Interdict UART5 init.
+#define MEL_REDIRECT_COM0_TO_USB // I am a hack please fix me, DEPRECATED
+//#define MEL_USE_SERIAL_FRAMES
+
+#define MACBASE_CALLBACK_QUEUE_DEPTH 8
 
 // Add pause after reset, otherwise JTAG reset will have some fly-through
 // Can remove for production
@@ -54,7 +58,7 @@
 //
 // Constants
 //
-#define PLATFORM_DEPENDENT_TX_USART_BUFFER_SIZE 2048
+#define PLATFORM_DEPENDENT_TX_USART_BUFFER_SIZE 1
 #define PLATFORM_DEPENDENT_RX_USART_BUFFER_SIZE 2048
 
 // System Clock
@@ -151,7 +155,7 @@
 
 #define SUPPLY_VOLTAGE_MV               3300  // 3.3V supply
 
-#define TOTAL_GENERIC_PORTS             1 // ITM channel 0
+#define TOTAL_GENERIC_PORTS             0 // ITM channel 0
 
 #define TOTAL_USB_CONTROLLER            1
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)

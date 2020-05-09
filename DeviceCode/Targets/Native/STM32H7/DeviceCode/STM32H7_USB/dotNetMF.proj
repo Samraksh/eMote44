@@ -64,6 +64,8 @@
     <HFiles  Include="usbd_desc.h" />
 	<Compile Include="usbd_ioreq.c"/>
     <HFiles  Include="usbd_ioreq.h" />
+	<IncludePaths Include="DeviceCode\include\Samraksh" />
+	<HFile Include="usb_serial_ext.h" />
   </ItemGroup>
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 </Project>

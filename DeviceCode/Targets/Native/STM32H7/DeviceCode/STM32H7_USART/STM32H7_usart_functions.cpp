@@ -176,6 +176,9 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
   
 BOOL CPU_USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBits, int StopBits, int FlowValue )
 {
+#ifdef MEL_KILL_UART5
+	if (ComPortNum == 5) return TRUE;
+#endif
 	GLOBAL_LOCK(irq);
 	
 	switch (ComPortNum) {

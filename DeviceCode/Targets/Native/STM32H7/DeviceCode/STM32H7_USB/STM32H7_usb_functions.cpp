@@ -13,8 +13,10 @@ NPS 2019-11-22
 #include <STM32H7_Time/lptim.h>
 #include "usb_device.h"
 #include "usbd_cdc_if.h"
+#include "usb_serial_ext.h"
 
-#define USB_BUSY_RETRY_INTERVAL_MS 10
+#define USB_BUSY_RETRY_INTERVAL_MS 1
+#define TX_BUF_SIZE (sizeof(tx_pkt_buf))
 
 //#define INBUF_IDX usb_cdc_status.RxQueueBytes // Alias, to confuse people later
 
@@ -33,14 +35,18 @@ typedef struct {
 typedef enum {
 	usb_lock_none =0,
 	usb_lock_tx	  =1,
+	usb_lock_mem  =2,
 } usb_lock_id_t;
 
 extern USBD_HandleTypeDef hUsbDeviceFS; // in usb_device.c
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 static bool USB_initialized = FALSE;
+static unsigned last_malloc_size;
 static uint8_t rx_pkt_buf[64]; 				// TODO: Assumes packets are handled fast
-static uint8_t tx_pkt_buf[1024];
+
+// TX buffer is huge to accomodate simple 32 kHz Mic streaming
+static uint8_t tx_pkt_buf[128*1024+1024] __attribute__ (( section (".ram_d1"), aligned(32) ));
 static usb_cdc_status_t usb_cdc_status;
 
 static HAL_CONTINUATION usb_retry_contin;
@@ -160,6 +166,10 @@ static bool is_usb_tx_queued(void) {
 	return (usb_cdc_status.TxBytesQueued > 0);
 }
 
+static unsigned get_tx_buf_used(void) {
+	return usb_cdc_status.TxCurrent + usb_cdc_status.TxBytesQueued;
+}
+
 HRESULT CPU_USB_Initialize( int Controller ) {
 	if (USB_initialized == false){
 		MX_USB_DEVICE_Init();
@@ -178,8 +188,58 @@ HRESULT CPU_USB_Uninitialize( int Controller ) {
 	return S_OK;
 }
 
-// Continuation Callback
-// Meaning this is fully synchronous and guaranteed not an ISR
+// Locks USB and returns a pointer directly to buffer for writing
+// Must be followed (quickly) by a closing usb_serial_ext_free()
+void * usb_serial_ext_malloc(size_t sz) {
+	int lock_ret;
+	unsigned used_buf;
+
+	if (!USB_initialized) { return NULL; }
+
+	lock_ret = get_lock(&usb_lock, usb_lock_mem);
+	if (lock_ret) { usb_cdc_status.lock_fails++; return NULL; } // Failed to get lock, abort
+
+	// Reset buffer high-water mark if empty
+	if (!is_usb_tx_not_empty() && usb_cdc_status.TxBytesQueued == 0) {
+		usb_cdc_status.TxCurrent = 0;
+	}
+
+	used_buf = get_tx_buf_used();
+	if (sz > TX_BUF_SIZE - used_buf) {
+		__BKPT();
+		return NULL; // Not enough buffer space
+	}
+
+	last_malloc_size = sz;
+
+	// USB LOCK IS STILL HELD
+	return &tx_pkt_buf[used_buf];
+}
+
+// Frees the borrowed memory
+// if 'size' is non-zero, will transmit 'size' bytes
+int usb_serial_ext_free(unsigned size) {
+	// Invalid state
+	if (usb_lock != usb_lock_mem || !USB_initialized) {
+		__BKPT();
+		return -1;
+	}
+
+	// Trying to TX more bytes than borrowed...
+	if (last_malloc_size < size) {
+		__BKPT();
+		return -1;
+	}
+
+	// Put the extra bytes in the tx queue
+	usb_cdc_status.TxBytesQueued += size;
+	last_malloc_size = 0;
+	free_lock(&usb_lock);
+	do_usb_retry(NULL);
+	return 0;
+}
+
+// Continuation Callback, EXCEPT from usb_serial_ext_free()
 static void do_usb_retry(void *p) {
 	int lock_ret, usb_ret;
 
@@ -193,8 +253,13 @@ static void do_usb_retry(void *p) {
 	if (usb_cdc_status.TxBytesQueued == 0) goto out; // No work to do
 
 	if (is_usb_tx_not_empty()) {
-		lptim_add_oneshot(&usb_retry_task); // Wait another 10ms
+		lptim_add_oneshot(&usb_retry_task); // Retry later
 		goto out;
+	}
+
+	// Throw buffer away if the link went down
+	if (!is_usb_link_up()) {
+		goto out_reset;
 	}
 
 	// We are free to send
@@ -214,21 +279,22 @@ out:
 static int usb_queue_retry(const char *buf, int size) {
 	int lock_ret;
 	int ret;
-	const int max_sz = sizeof(tx_pkt_buf);
+	unsigned used_buf;
 
 	lock_ret = get_lock(&usb_lock, usb_lock_tx);
 	if (lock_ret) { usb_cdc_status.lock_fails++; return 0; } // Failed to get lock, busy
 
 	// Check buffer space
-	if (size > max_sz - usb_cdc_status.TxCurrent - usb_cdc_status.TxBytesQueued) {
+	used_buf = get_tx_buf_used();
+	if (size > TX_BUF_SIZE - used_buf) {
 		ret = 0; goto out;
 	}
 
 	// Add data to buffer and mark bytes as queued
-	memcpy(&tx_pkt_buf[usb_cdc_status.TxCurrent + usb_cdc_status.TxBytesQueued], buf, size);
+	memcpy(&tx_pkt_buf[used_buf], buf, size);
 	usb_cdc_status.TxBytesQueued += size;
 
-	// Setup the 10ms timeout
+	// Attempt to send after interval (typ 1ms)
 	lptim_add_oneshot(&usb_retry_task);
 	ret = size;
 
@@ -239,7 +305,7 @@ out:
 
 int CPU_USB_write(const char *buf, int size) {
 	int ret, lock_ret, usb_ret;
-	const int max_sz = sizeof(tx_pkt_buf);
+	bool busy_retry = false;
 
 	if (!USB_initialized || buf == NULL)	return -1;		// Hard fails
 	if (size == 0)							return 0;		// trivial case
@@ -250,10 +316,12 @@ int CPU_USB_write(const char *buf, int size) {
 	lock_ret = get_lock(&usb_lock, usb_lock_tx);
 	if (lock_ret) { usb_cdc_status.lock_fails++; return 0; }// Failed to get lock, busy
 
-	// Check if busy again after lock acquired
-	if (is_usb_tx_not_empty()) { ret = 0; goto out; }
+	// USB lock acquired
 
-	if (size > max_sz) size = max_sz;
+	// Check if busy again after lock acquired
+	if (is_usb_tx_not_empty()) { busy_retry = true; goto out; }
+
+	if (size > TX_BUF_SIZE) size = TX_BUF_SIZE;
 	memcpy(tx_pkt_buf, buf, size);
 
 	usb_ret = CDC_Transmit_FS(tx_pkt_buf, size);
@@ -268,7 +336,10 @@ int CPU_USB_write(const char *buf, int size) {
 
 out:
 	free_lock(&usb_lock);
-	return ret;
+	if (busy_retry)
+		return usb_queue_retry(buf, size);
+	else
+		return ret;
 }
 
 static int CPU_USB_Queue_Rx_Data( char c ){

@@ -9,6 +9,29 @@
 #define GPIO_1 _P(B,13)
 #define GPIO_2 _P(C,12)
 
+// Debug functions for timing
+static void reset_cnt()
+{
+    CoreDebug->DEMCR |= 0x01000000;
+    DWT->CYCCNT = 0; // reset the counter
+    DWT->CTRL = 0;
+}
+
+static void start_cnt()
+{
+    DWT->CTRL |= 0x00000001 ; // enable the counter
+}
+
+static void stop_cnt()
+{
+    DWT->CTRL &= 0xFFFFFFFE ; // disable the counter
+}
+
+static unsigned getCycles()
+{
+    return DWT->CYCCNT ;
+}
+// End Debug functions for timing
 
 extern void HAL_CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents);
 
@@ -60,22 +83,13 @@ void nathan_rtc_handler(void *arg) {
 		CPU_GPIO_SetPinState(GPIO_2, FALSE);
 }
 
-// extern "C" {
-// void MX_X_CUBE_AI_Init(void);
-// int aiRun(const void *in_data, void *out_data);
-// }
-
-//static float in_data[64][51];
-//static float out_data[8];
-
 ////////////////////////////////////////////////////////////////////////////////
 void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
 
-	//hal_printf(" CLR 20 ");
 	// Initial delay to allow UART terminals to start and catch startup messages
-    HAL_Delay(5000);
+    HAL_Delay(6000);
 
 	memset(&clrSettings, 0, sizeof(CLR_SETTINGS));
 
@@ -94,9 +108,6 @@ void ApplicationEntryPoint()
 
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 100000, FALSE, FALSE, nathan_rtc_handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_RED);
-
-	//MX_X_CUBE_AI_Init();
-	//aiRun(in_data, out_data);
 
 	//CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
 	//CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);

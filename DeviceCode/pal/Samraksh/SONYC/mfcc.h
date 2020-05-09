@@ -16,31 +16,27 @@
  * limitations under the License.
  */
 
-#ifndef __KWS_MFCC_H__
-#define __KWS_MFCC_H__
+#pragma once
 
-#include "DSP/arm_math.h"
+#define ARM_MATH_CM7 // Inform arm_math.h we are a Cortex M7.
+#define __FPU_PRESENT 1 // Ditto
+#include "Samraksh/SONYC_ML/arm_math.h"
+
 #include <string.h>
 #include <errno.h>
 
+#define MY_FFT_SIZE 1024 // must be power of 2 and supported by CMSIS
 #define SAMP_FREQ 8000
-//#define NUM_FBANK_BINS 128
 #define NUM_FBANK_BINS 64
-//#define MEL_LOW_FREQ 20
-#define MEL_LOW_FREQ 0
+#define MEL_LOW_FREQ 20
 #define MEL_HIGH_FREQ 4000
 
 #define M_2PI 6.283185307179586476925286766559005
 
-void mfcc_init();
-void mfcc_test(const int16_t *data);
-
 class MFCC{
   private:
-    int num_mfcc_features;
     int frame_len;
-    int frame_len_padded;
-    int mfcc_dec_bits;
+    const int frame_len_padded = MY_FFT_SIZE;
     float * frame;
     float * buffer;
     float * mel_energies;
@@ -48,11 +44,9 @@ class MFCC{
     int32_t * fbank_filter_first;
     int32_t * fbank_filter_last;
     float ** mel_fbank;
-    //float * dct_matrix;
     arm_rfft_fast_instance_f32 * rfft;
-    float * create_dct_matrix(int32_t input_length, int32_t coefficient_count); 
     float ** create_mel_fbank();
- 
+
     static inline float InverseMelScale(float mel_freq) {
       return 700.0f * (expf (mel_freq / 1127.0f) - 1.0f);
     }
@@ -62,10 +56,12 @@ class MFCC{
     }
 
   public:
-    MFCC(int num_mfcc_features, int frame_len, int mfcc_dec_bits);
+    MFCC(int frame_len);
     ~MFCC();
-    //void mfcc_compute(const int16_t* data, q7_t* mfcc_out);
-	void mfcc_compute(const int16_t* data);
+    void mfcc_compute(const int32_t* data);
+	//void mfcc_compute_float(const float* data);
+	
+	float * get_mel_energies() {
+		return mel_energies;
+	}
 };
-
-#endif

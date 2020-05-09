@@ -4,6 +4,10 @@
 
 #include "usart.h"
 
+#ifdef MEL_USE_SERIAL_FRAMES
+#include <Samraksh\serial_frame_pal.h>
+#endif
+
 //--//
 
 // XOFF bit flags
@@ -25,11 +29,20 @@ BOOL USART_Uninitialize( int ComPortNum )
 
 int USART_Write( int ComPortNum, const char* Data, size_t size )
 {
-#ifdef MEL_REDIRECT_COM0_TO_USB
+#ifdef MEL_USE_SERIAL_FRAMES
+	if (ComPortNum == 0) {
+		return send_framed_serial((const uint8_t *)Data, size, FALSE);
+	}
+	else {
+		return USART_Driver::Write( ComPortNum, Data, size );
+	}
+#else
+	#ifdef MEL_REDIRECT_COM0_TO_USB
 	if (ComPortNum == 0)
 		return CPU_USB_write(Data, size);
-#else
+	#else
     return USART_Driver::Write( ComPortNum, Data, size );
+	#endif
 #endif
 }
 
@@ -40,6 +53,9 @@ int USART_Read( int ComPortNum, char* Data, size_t size )
 
 BOOL USART_Flush( int ComPortNum )
 {
+#ifdef MEL_KILL_UART5
+	if (ComPortNum == 5) return TRUE;
+#endif
     return USART_Driver::Flush( ComPortNum );
 }
 

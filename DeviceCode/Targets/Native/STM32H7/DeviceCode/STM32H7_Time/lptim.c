@@ -100,6 +100,13 @@ static void free_lock(volatile uint32_t *Lock_Variable) {
 	return;
 }
 
+uint64_t lptim_get_counter_us_fast(void) {
+	// uint64_t read = HAL_LPTIM_ReadCounter(my_lptim);
+	// return (lse_counter32 << 16);
+	uint64_t read = lse_counter32;
+	read = (read << 16) + HAL_LPTIM_ReadCounter(my_lptim);
+	return read * 1000000 / LSE_HZ;
+}
 
 // Returns LSE native tick count (32-bit)
 static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {
