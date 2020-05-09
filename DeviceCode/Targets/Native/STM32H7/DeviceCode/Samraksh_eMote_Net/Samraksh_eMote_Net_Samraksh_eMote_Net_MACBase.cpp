@@ -333,7 +333,7 @@ void ManagedCallback(UINT32 arg1, UINT32 arg2)
 		x->Enqueue();
 #ifdef _DEBUG
 		static int macbase_queue_highwater;
-		if (i>0 && i>macbase_queue_highwater) {
+		if (i>macbase_queue_highwater) {
 			macbase_queue_highwater = i;
 			hal_printf("%s(): new callback_queue depth %d\r\n", __func__, macbase_queue_highwater);
 		}
