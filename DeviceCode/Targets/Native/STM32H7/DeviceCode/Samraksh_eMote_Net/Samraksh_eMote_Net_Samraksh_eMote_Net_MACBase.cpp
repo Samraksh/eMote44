@@ -36,6 +36,7 @@ typedef struct {
 } macbase_callback_t;
 static macbase_callback_t callback_queue[MACBASE_CALLBACK_QUEUE_DEPTH];
 static void do_macbase_callback(void *p);
+extern BOOL running_safe_continuation;
 
 enum CallBackTypes
 {
@@ -317,7 +318,8 @@ static void do_macbase_callback(void *p) {
 void ManagedCallback(UINT32 arg1, UINT32 arg2)
 {
 	// If not an interrupt, put it on the HAL Queue immediately
-	if (!isInterrupt()) {
+	// Interrupt context is OK if main context is a Continuation (and not the CLR) as long as it does necessary locking
+	if (running_safe_continuation || !isInterrupt()) {
 		GLOBAL_LOCK(irq);
 		SaveNativeEventToHALQueue( Net_ne_Context, arg1, arg2 );
 		return;
