@@ -300,7 +300,8 @@ static int usb_queue_retry(const char *buf, int size) {
 
 out:
 	free_lock(&usb_lock);
-	return ret; // TEMP
+	//return ret; // TEMP
+	return size; // Never fail
 }
 
 int CPU_USB_write(const char *buf, int size) {
