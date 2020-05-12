@@ -97,6 +97,7 @@ void SX1276_HAL_RxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr
 	if(received_ts_ticks == UNSET_TS)
 		received_ts_ticks = HAL_Time_CurrentTicks();
 	pckt_ptr->GetMetaData()->SetReceiveTimeStamp(received_ts_ticks);
+	pckt_ptr->GetMetaData()->SetRssi((UINT8)(packetRSSI+164));
 	(Radio_event_handler.GetReceiveHandler())(payload, size);
 }
 
