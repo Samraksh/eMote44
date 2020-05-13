@@ -10,6 +10,8 @@
 
 //#define SEND_AUDIO_DATA_ONLY
 
+static HAL_CONTINUATION mic_cont;
+
 static I2S_HandleTypeDef hi2s3;
 static DMA_HandleTypeDef hdma_spi3_rx;
 
@@ -30,6 +32,11 @@ static void stereo_to_mono(uint32_t *s, int32_t *m, uint32_t s_len_bytes) __attr
 #define MIC_OFF_Pin GPIO_PIN_0
 #define MIC_OFF_GPIO_Port GPIOC
 #define MIC_POWER_CTRL _P(C,0)
+
+#define NO_HW_BREAKPOINTS
+#ifdef NO_HW_BREAKPOINTS
+#define __BKPT() ((void)0)
+#endif
 
 typedef enum { MIC_OFF, MIC_ON } mic_power_state_t;
 static void mic_power_ctrl(mic_power_state_t x) __attribute__ ((unused));
@@ -135,6 +142,8 @@ static const char * class_to_string(int x) {
 	}
 }
 #endif
+
+/*
 // Padded version is for MFCC + ML processing
 static void mic_data_callback(void *buf, unsigned len) {
 	static bool doneOne = false;
@@ -177,6 +186,52 @@ static void mic_data_callback(void *buf, unsigned len) {
 	}
 #endif
 }
+*/
+
+static float dBSPL;
+float get_db_spl(void) {
+	return dBSPL;
+}
+
+float * get_ml_upstream(void) {
+	return upstream_out;
+}
+
+float * get_ml_downstream(void) {
+	return class_out_data;
+}
+
+void start_microphone(void) {
+	HAL_StatusTypeDef ret;
+	//mic_power_ctrl(MIC_ON); // on by default
+	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN);
+	if (ret != HAL_OK) __BKPT();
+}
+
+void stop_microphone(void) {
+	HAL_I2S_DMAStop(&hi2s3);
+}
+
+void ManagedAICallback(UINT32 arg1, UINT32 arg2);
+
+static void mic_data_callback(void *buf, unsigned len) {
+	int32_t *my_raw_data = (int32_t *) buf;
+	// Compute db SPL
+	dBSPL = compute_spl_db(my_raw_data, len/sizeof(int32_t));
+	
+	// Get Mels from all 51 hops
+	// Note transpose step to match ML input
+	for(int i=0; i<NUM_HOPS; i++) {
+		float *energies = mfcc_test(&my_raw_data[i*HOP_SIZE]);
+		for(int j=0; j<NUM_BINS; j++) {
+			output_swapped[j][i] = energies[j];
+		}
+	}
+	amp_to_db((float *)output_swapped, NUM_BINS*NUM_HOPS);
+	my_ai_process((float *)output_swapped);
+	ManagedAICallback(0,0);
+	do_send = 0; // signal we are done with buffer
+}
 
 // s = stereo source, m = mono dest, s_len stereo data length bytes
 static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
@@ -198,6 +253,25 @@ static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
 		struct {int32_t x:24;} temp;
 		int32_t x = s[i*2];
 		m[i] = temp.x = x;
+	}
+}
+
+static void mic_cont_do(void *p) {
+	if (do_send == 0) return; // should never happen
+	else if (do_send == 1) {
+		stereo_to_mono(&raw_data[0], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
+		do_send = 3; // flag send needed
+	}
+	else if (do_send == 2) {
+		stereo_to_mono(&raw_data[RAW_AUD_LEN/2], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
+		do_send = 3; // flag send needed
+	}
+
+	// Send on prepared data
+	// This should always be true, funny structure inherited
+	if (do_send == 3) {
+		mic_data_callback(mono_data, MONO_DATA_BYTES);
+		// mic_data_callback() changes do_send
 	}
 }
 
@@ -308,13 +382,13 @@ void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (do_send != 0) __BKPT();
 	do_send = 1;
-	__DMB();
+	mic_cont.Enqueue();
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 	if (do_send != 0) __BKPT();
 	do_send = 2;
-	__DMB();
+	mic_cont.Enqueue();
 }
 
 void DMA1_Stream0_IRQHandler(void) {
@@ -412,6 +486,12 @@ BOOL I2S_Internal_Initialize() {
 	if (HAL_I2S_Init(&hi2s3) != HAL_OK)
 		__BKPT();
 	isInit = true;
+	do_send = 0;
+	mic_power_ctrl(MIC_ON);
+	MX_X_CUBE_AI_Init();
+	mfcc_init();
+	memset(mono_data, 0, sizeof(mono_data));
+	mic_cont.InitializeCallback(mic_cont_do, NULL);
 }
 
 void I2S_Test() {

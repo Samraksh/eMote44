@@ -416,8 +416,8 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 #define VTIMER_CALLBACK_LATENCY_PIN			DISABLED_PIN //(<--31)
 
 
-#define RX_RADIO_TURN_ON 					_P(A,4)//
-#define RX_RADIO_TURN_OFF					_P(C,10)//
+#define RX_RADIO_TURN_ON 					DISABLED_PIN
+#define RX_RADIO_TURN_OFF					DISABLED_PIN
 //#endif //__MAC_OMAC__
 
 

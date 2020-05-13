@@ -30,6 +30,11 @@
 
 #define debug_printf hal_printf
 
+#define NO_HW_BREAKPOINTS
+#ifdef NO_HW_BREAKPOINTS
+#define __BKPT() ((void)0)
+#endif
+
 static MFCC *my_mfcc;
 
 // static bool isNaN(float x)
@@ -195,7 +200,7 @@ float ** MFCC::create_mel_fbank() {
       mel_fbank[bin][j++] = this_bin[i];
     }
   }
-  delete []this_bin;
+  //delete []this_bin;
   return mel_fbank;
 }
 
