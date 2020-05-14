@@ -211,7 +211,6 @@ void * usb_serial_ext_malloc(size_t sz) {
 
 	used_buf = get_tx_buf_used();
 	if (sz > TX_BUF_SIZE - used_buf) {
-		__BKPT();
 		return NULL; // Not enough buffer space
 	}
 
@@ -226,13 +225,11 @@ void * usb_serial_ext_malloc(size_t sz) {
 int usb_serial_ext_free(unsigned size) {
 	// Invalid state
 	if (usb_lock != usb_lock_mem || !USB_initialized) {
-		__BKPT();
 		return -1;
 	}
 
 	// Trying to TX more bytes than borrowed...
 	if (last_malloc_size < size) {
-		__BKPT();
 		return -1;
 	}
 
@@ -269,7 +266,7 @@ static void do_usb_retry(void *p) {
 
 	// We are free to send
 	usb_ret = CDC_Transmit_FS(&tx_pkt_buf[usb_cdc_status.TxCurrent], usb_cdc_status.TxBytesQueued);
-	if (usb_ret != USBD_OK) { __BKPT(); goto out_reset; }
+	if (usb_ret != USBD_OK) { goto out_reset; }
 
 out_reset:
 	usb_cdc_status.TxCurrent += usb_cdc_status.TxBytesQueued;
@@ -364,6 +361,6 @@ extern "C" void OTG_FS_IRQHandler(void) {
 extern "C" void USB_Error_Handler(void);
 void USB_Error_Handler(void) {
 #ifdef DEBUG
-	__BKPT();
+	//__BKPT();
 #endif
 }

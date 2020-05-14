@@ -307,7 +307,7 @@ UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
 
 	//ret = ((ticks * CLOCK_COMMON_FACTOR) / timerFrequency); // was overflowing trivally
 	calc = ((UINT64)ticks * CLOCK_COMMON_FACTOR) / timerFrequency;
-	if (calc > 0xFFFFFFFF) { ret = 0xFFFFFFFF; __BKPT(); }
+	if (calc > 0xFFFFFFFF) { ret = 0xFFFFFFFF; }
 	else ret = calc;
 
 	return ret;

@@ -43,7 +43,7 @@ static void unlink_lptim_task(lptim_task_t *x) {
 	lptim_task_t *t = task_HEAD;
 	lptim_task_t *p = NULL;
 
-	if (x == NULL || t == NULL)  { __BKPT(); goto out_fail; }
+	if (x == NULL || t == NULL)  { goto out_fail; }
 
 	// Find element
 	while (t != x && t != NULL) {
@@ -51,7 +51,7 @@ static void unlink_lptim_task(lptim_task_t *x) {
 		t = t->next;
 	}
 
-	if (t == NULL) { __BKPT(); goto out_fail; } // not found in list
+	if (t == NULL) { goto out_fail; } // not found in list
 
 	// Snip
 	if (p == NULL) task_HEAD = t->next; // New HEAD node
@@ -96,7 +96,7 @@ int lptim_add_oneshot(lptim_task_t *x) {
 
 	next = get_next_task();
 	ret = lptim_set_delay_ms(next->delay_ms, LPTIM_DEBUG);
-	if (ret) __BKPT();
+	//if (ret) __BKPT();
 	task_RUNNING = next;
 	return 0;
 }

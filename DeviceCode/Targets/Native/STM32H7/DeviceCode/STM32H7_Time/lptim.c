@@ -3,11 +3,16 @@
 #include "..\stm32h7xx.h"
 #include "lptim.h"
 
-#define LPTIM_DEBUG_VERBOSE
+//#define LPTIM_DEBUG_VERBOSE
 #define DELTA_TICKS_GUARD 2 // <= this amt is "now"
 #define DELTA_TICKS_EXTRA 0  // Manually compensate this many ticks on set compare
 
 #define LSE_HZ 32768
+
+#define NO_HW_BREAKPOINTS
+#ifdef NO_HW_BREAKPOINTS
+#define __BKPT() ((void)0)
+#endif
 
 static LPTIM_HandleTypeDef hlptim1;
 static LPTIM_HandleTypeDef hlptim2;
@@ -39,9 +44,7 @@ typedef enum {
 } lptim_lock_id_t;
 
 static void LPTIM_Error_Handler(void) {
-#ifdef LPTIM_DEBUG_VERBOSE
-		__BKPT();
-#endif
+
 }
 
 static inline void wait_64_nop(void) {

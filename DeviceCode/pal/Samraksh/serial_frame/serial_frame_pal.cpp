@@ -5,10 +5,6 @@ extern "C" {
 #include "serial_frame.h"
 }
 
-#ifdef _DEBUG
-static unsigned dropped_strings;
-#endif
-
 #ifndef JUMBO_FRAME_MAX
 #define JUMBO_FRAME_MAX (128*1024) // 128 kiB
 #endif
@@ -44,7 +40,7 @@ static void copy_buf_to_clr(uint8_t *buf, unsigned len) {
 }
 
 static void frame_error_handler(void) {
-	__BKPT();
+	//__BKPT();
 }
 
 static void debug_frame_handler(serial_frame_t *f, mel_status_t *status) {
@@ -143,7 +139,7 @@ out:
 // Really this should integrate more nicely with the CLR but I don't have it in me right now.
 void rx_framed_serial(uint8_t* buf, uint32_t len) {
 	if (rx_cnt + len > FRAME_MAX_SIZE) {
-		//frame_error_handler();
+		frame_error_handler();
 		return; // no room, drop the data
 	}
 	memcpy(&rx_buf[rx_cnt], buf, len);
@@ -173,11 +169,7 @@ int send_framed_serial(const uint8_t *data, unsigned sz, BOOL isDebug) {
 		frame_type = FRAME_TYPE_DATA_STRING;
 
 	buf = (uint8_t *)usb_serial_ext_malloc(buf_max);
-#ifdef _DEBUG
-	if (buf == NULL) { frame_error_handler(); dropped_strings++; return sz; }
-#else
 	if (buf == NULL) { frame_error_handler(); return sz; }
-#endif
 	memset(buf, 0, buf_max);
 	ret = serial_frame_encode(data, sz, buf_max, buf, DEST_BASE, frame_type);
 
