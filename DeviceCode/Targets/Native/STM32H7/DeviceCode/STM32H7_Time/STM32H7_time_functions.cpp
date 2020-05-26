@@ -275,11 +275,18 @@ int CPU_MicrosecondsToSystemClocks( int uSec )
     return Ticks;
 }*/
 
+// This isn't cleanest but whole time system needs help
 UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 {
-
-	UINT64 timerFrequency = TIM_CLK_HZ; // SYSTEM_TIME defaults to this
+	UINT64 timerFrequency = TIM_CLK_HZ; // DEFAULT_TIMER value
 	UINT8 i;
+
+	// Preferred if timerFrequency is multiple of CLOCK_COMMON_FACTOR
+	if (Timer == DEFAULT_TIMER) {
+		UINT64 ret;
+		ret = ticks/(timerFrequency/CLOCK_COMMON_FACTOR); // e.g. ticks/30
+		return ret;
+	}
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
 		if (Timer == g_HardwareTimerIDs[i]){
@@ -288,7 +295,15 @@ UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 		}
 	}
 
-	return (UINT64)((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
+#ifdef _DEBUG
+	// To avoid overflow we need to assume that CLOCK_COMMON_FACTOR divides timerFrequency
+	if (timerFrequency % CLOCK_COMMON_FACTOR != 0)
+		__BKPT();
+#endif
+
+	// Lets assume that all timers are reported in 1 MHz or at least fake it
+	return ticks/(timerFrequency/CLOCK_COMMON_FACTOR);
+	//return (UINT64)((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
 }
 
 UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
