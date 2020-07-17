@@ -19,6 +19,55 @@ NPS 2019-11-22
 #define USB_BUSY_RETRY_INTERVAL_MS 1
 #define TX_BUF_SIZE (sizeof(tx_pkt_buf))
 
+// Generic Port Stuff
+
+static inline int usb_serial_generic_WRITE(void* pInstance, const char* Data, size_t size) {
+	return CPU_USB_write(Data, size);
+}
+
+static inline BOOL usb_serial_generic_INIT(void* pInstance) {
+	return CPU_USB_Initialize(0);
+}
+
+static IGenericPort const mel_usb_serial_gport =
+{
+    // default returns TRUE
+    usb_serial_generic_INIT, //BOOL (*Initialize)( void* pInstance );
+
+    // default returns TRUE
+    NULL, //BOOL (*Uninitialize)( void* pInstance );
+
+    // default return 0
+    usb_serial_generic_WRITE, //int (*Write)( void* pInstance, const char* Data, size_t size );
+
+    // defualt return 0
+    NULL, //int (*Read)( void* pInstance, char* Data, size_t size );
+
+    // default return TRUE
+    NULL, //BOOL (*Flush)( void* pInstance );
+
+    // default do nothing
+    NULL, //void (*ProtectPins)( void* pInstance, BOOL On );
+
+    // default return FALSE
+    NULL, //BOOL (*IsSslSupported)( void* pInstance );
+
+    // default return FALSE
+    NULL, //BOOL (*UpgradeToSsl)( void* pInstance, const UINT8* pCACert, UINT32 caCertLen, const UINT8* pDeviceCert, UINT32 deviceCertLen, LPCSTR szTargetHost );
+
+    // default return FALSE
+    NULL, //BOOL (*IsUsingSsl)( void* pInstance );
+};
+
+extern const GenericPortTableEntry mel_usb_generic_port =
+{
+    mel_usb_serial_gport,
+    NULL
+};
+
+extern GenericPortTableEntry const* const g_GenericPorts[TOTAL_GENERIC_PORTS] = { &mel_usb_generic_port };
+// End Generic Port Stuff
+
 //#define INBUF_IDX usb_cdc_status.RxQueueBytes // Alias, to confuse people later
 
 // Singleton status structure
@@ -184,6 +233,9 @@ HRESULT CPU_USB_Initialize( int Controller ) {
 
 		USB_initialized = true;
 		reset_status(&usb_cdc_status);
+#if defined(PAUSE_AFTER_USB_INIT_MS) && PAUSE_AFTER_USB_INIT_MS > 0
+		HAL_Delay(PAUSE_AFTER_USB_INIT_MS);
+#endif
 	}
 	return S_OK;
 }

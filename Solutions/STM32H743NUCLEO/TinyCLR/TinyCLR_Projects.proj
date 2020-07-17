@@ -356,9 +356,13 @@
         <PlatformIndependentLibs Include="Diagnostics_stub.$(LIB_EXT)" Condition="'$(FLAVOR)'=='rtm'" />
         <RequiredProjects Include="$(SPOCLIENT)\CLR\Diagnostics\dotNetMF_stub.proj" Condition="'$(FLAVOR)'=='rtm'" />
     </ItemGroup>
+    <!-- <ItemGroup> -->
+        <!-- <DriverLibs Include="usart_pal.$(LIB_EXT)" /> -->
+        <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\dotNetMF.proj" /> -->
+    <!-- </ItemGroup> -->
     <ItemGroup>
-        <DriverLibs Include="usart_pal.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\dotNetMF.proj" />
+        <DriverLibs Include="usart_pal_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\stubs\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
         <DriverLibs Include="usb_pal_stubs.$(LIB_EXT)" />

@@ -58,33 +58,33 @@ ERROR - WE SHOULD NOT INCLUDE THIS HEADER IF NOT BUILDING AN STM32H7 PLATFORM
 //
 
 // Port definitions
-#ifndef ITM_GENERIC_PORTNUM
-#define ITM_GENERIC_PORTNUM 0
-#endif
+// #ifndef ITM_GENERIC_PORTNUM
+// #define ITM_GENERIC_PORTNUM 0
+// #endif
 
-#define ITM0                   ConvertCOM_GenericHandle( ITM_GENERIC_PORTNUM ) 
-#define COM1                   ConvertCOM_ComHandle(0)
-#define COM2                   ConvertCOM_ComHandle(1)
-#define COM3                   ConvertCOM_ComHandle(2)
-#define COM4                   ConvertCOM_ComHandle(3)
-#define COM5                   ConvertCOM_ComHandle(4)
-#define COM6                   ConvertCOM_ComHandle(5)
+// #define ITM0                   ConvertCOM_GenericHandle( ITM_GENERIC_PORTNUM )
+// #define COM1                   ConvertCOM_ComHandle(0)
+// #define COM2                   ConvertCOM_ComHandle(1)
+// #define COM3                   ConvertCOM_ComHandle(2)
+// #define COM4                   ConvertCOM_ComHandle(3)
+// #define COM5                   ConvertCOM_ComHandle(4)
+// #define COM6                   ConvertCOM_ComHandle(5)
 
-#define USB1                   ConvertCOM_UsbHandle(0)
-#define USB2                   ConvertCOM_UsbHandle(1)
+// #define USB1                   ConvertCOM_UsbHandle(0)
+// #define USB2                   ConvertCOM_UsbHandle(1)
 
-#define TOTAL_DEBUG_PORT       1
-#define COM_DEBUG              ConvertCOM_DebugHandle(0)
+// #define TOTAL_DEBUG_PORT       1
+// #define COM_DEBUG              ConvertCOM_DebugHandle(0)
 
-#define COM_MESSAGING          ConvertCOM_MessagingHandle(0)
+// #define COM_MESSAGING          ConvertCOM_MessagingHandle(0)
 
 #define USART_TX_IRQ_INDEX(x)  6   // dummy index (EXTI0, always on)
 #define USB_IRQ_INDEX          6   // dummy index (EXTI0, always on)
 
 
-#define PLATFORM_DEPENDENT_TX_USART_BUFFER_SIZE    256  // there is one TX for each usart port
-#define PLATFORM_DEPENDENT_RX_USART_BUFFER_SIZE    256  // there is one RX for each usart port
-#define PLATFORM_DEPENDENT_USB_QUEUE_PACKET_COUNT  8    // there is one queue for each pipe of each endpoint and the size of a single packet is sizeof(USB_PACKET64) == 68 bytes
+// #define PLATFORM_DEPENDENT_TX_USART_BUFFER_SIZE    256  // there is one TX for each usart port
+// #define PLATFORM_DEPENDENT_RX_USART_BUFFER_SIZE    256  // there is one RX for each usart port
+// #define PLATFORM_DEPENDENT_USB_QUEUE_PACKET_COUNT  8    // there is one queue for each pipe of each endpoint and the size of a single packet is sizeof(USB_PACKET64) == 68 bytes
 
 //
 // communication facilities

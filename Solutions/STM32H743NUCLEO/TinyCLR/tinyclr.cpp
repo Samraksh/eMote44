@@ -93,7 +93,7 @@ void ApplicationEntryPoint()
 #endif
 
 	// Initial delay to allow UART terminals to start and catch startup messages
-    HAL_Delay(6000);
+    //HAL_Delay(5000);
 
 	memset(&clrSettings, 0, sizeof(CLR_SETTINGS));
 

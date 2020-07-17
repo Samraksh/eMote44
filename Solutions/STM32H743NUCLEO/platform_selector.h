@@ -22,6 +22,7 @@
 // Processor and features
 //
 
+#define PLATFORM_ARM_STM32H743NUCLEO // Just to make VS Code happy for now... Delete me...
 #if defined(PLATFORM_ARM_STM32H743NUCLEO)
 
 #define HAL_SYSTEM_NAME "STM32H743NUCLEO"
@@ -30,11 +31,10 @@
 
 #define STM32H743xx
 
+#define PAUSE_AFTER_USB_INIT_MS 5000 // in milli-seconds to allow terminal to be bought up etc. Can be undefined.
 #define PRINTF_MAX_RETRIES 0
 //#define KILL_SONYC_MODEL // Debugging option. Keeps model out of the binary.
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
-#define MEL_KILL_UART5  // Interdict UART5 init.
-#define MEL_REDIRECT_COM0_TO_USB // I am a hack please fix me, DEPRECATED
 #define MEL_USE_SERIAL_FRAMES
 #define BOOTLOADER_MAGIC_WORD 0xEE33BB22
 #define BOOTLOADER_MAGIC_ADDR 0x38000000 // first word of D3
@@ -60,7 +60,10 @@
 //
 // Constants
 //
+#define DOES_NOT_HAVE_COM2
+#define DOES_NOT_USE_USB_CPP
 #define PLATFORM_DEPENDENT_TX_USART_BUFFER_SIZE 1
+#define PLATFORM_DEPENDENT_RX_USART_BUFFER_SIZE 1
 
 // System Clock
 //#define SYSTEM_CLOCK_HZ                  400000000  // 400 MHz
@@ -156,32 +159,37 @@
 
 #define SUPPLY_VOLTAGE_MV               3300  // 3.3V supply
 
-#define TOTAL_GENERIC_PORTS             0 // ITM channel 0
+#define TOTAL_GENERIC_PORTS             1 // ITM channel 0
 
-#define TOTAL_USB_CONTROLLER            1
+#define TOTAL_USB_CONTROLLER            0
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)
 #define USB_ALLOW_CONFIGURATION_OVERRIDE 1
 
 // if we want to use our USB port as a USB device you must specify it as USB as the following declaration does
 //#define USB_SERIAL_PORT			0x221 // USB transport, controller instance 1, port 1
 
-#define COM1                   ConvertCOM_ComHandle(0)
-#define COM2                   ConvertCOM_ComHandle(1)
-#define COM3                   ConvertCOM_ComHandle(2)
-#define COM4                   ConvertCOM_ComHandle(3)
-#define COM5                   ConvertCOM_ComHandle(4)
-#define COM6                   ConvertCOM_ComHandle(5)
+#define COM1			ConvertCOM_GenericHandle(0)
+// #define COM1                   ConvertCOM_ComHandle(0)
+// #define COM2                   ConvertCOM_ComHandle(1)
+// #define COM3                   ConvertCOM_ComHandle(2)
+// #define COM4                   ConvertCOM_ComHandle(3)
+// #define COM5                   ConvertCOM_ComHandle(4)
+// #define COM6                   ConvertCOM_ComHandle(5)
 // we will specify that our USB/serial interface is a serial port and have MF treat it as such (except we will 
 // have all driver interfaces to ONLY this USB/serial port use the USB drivers
-#define USB_SERIAL_PORT	COM6
+// #define USB_SERIAL_PORT	COM6
 
-#define DEBUG_TEXT_PORT                 USB_SERIAL_PORT
-#define STDIO                           USB_SERIAL_PORT
-#define DEBUGGER_PORT                   USB_SERIAL_PORT
-#define MESSAGING_PORT                  USB_SERIAL_PORT
+#define DEBUG_TEXT_PORT                 COM1
+#define STDIO                           COM1
+#define DEBUGGER_PORT                   COM1
+#define MESSAGING_PORT                  COM1
+// #define DEBUG_TEXT_PORT                 USB_SERIAL_PORT
+// #define STDIO                           USB_SERIAL_PORT
+// #define DEBUGGER_PORT                   USB_SERIAL_PORT
+// #define MESSAGING_PORT                  USB_SERIAL_PORT
 
-#define USART_DEFAULT_PORT              USB_SERIAL_PORT // COM3
-#define USART_DEFAULT_BAUDRATE          115200
+//#define USART_DEFAULT_PORT              COM1
+// #define USART_DEFAULT_BAUDRATE          115200
 
 // System Timer Configuration
 #define STM32H7_32B_TIMER 2
@@ -207,7 +215,7 @@
 #define _P_NONE_                        GPIO_PIN_NONE
 
 // Serial
-#define TOTAL_USART_PORT                8
+#define TOTAL_USART_PORT                0
 //                                         "COM1"    "COM2"    "COM3"
 //                                         USART1    USART2    USART3
 //#define STM32H7_UART_TXD_PINS           { _P_NONE_, _P(A, 2), _P(D, 8) }

@@ -33,10 +33,7 @@ static void my_free(uint32_t x);
 int send_framed_serial_data(const uint8_t *data, unsigned sz, uint32_t frame_type);
 
 static void copy_buf_to_clr(uint8_t *buf, unsigned len) {
-	for(unsigned i=0; i<len; i++) {
-		char c = (char )buf[i];
-		USART_AddCharToRxBuffer(ConvertCOM_ComPort(USB_SERIAL_PORT), c);
-	}
+	// TODO
 }
 
 static void frame_error_handler(void) {
@@ -151,7 +148,7 @@ void framed_serial_init(void) {
 #ifdef BOOTLOADER_MAGIC_ADDR
 	*((volatile uint32_t *)BOOTLOADER_MAGIC_ADDR) = 0;
 #endif
-	send_framed_serial_data(NULL, 0, FRAME_TYPE_HELLO); // Kick out empty "hello" frame
+	//send_framed_serial_data(NULL, 0, FRAME_TYPE_HELLO); // Kick out empty "hello" frame
 	rx_buf_do.InitializeCallback(&handle_serial_rx, NULL);
 }
 

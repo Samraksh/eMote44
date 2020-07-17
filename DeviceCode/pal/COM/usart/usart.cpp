@@ -29,21 +29,7 @@ BOOL USART_Uninitialize( int ComPortNum )
 
 int USART_Write( int ComPortNum, const char* Data, size_t size )
 {
-#ifdef MEL_USE_SERIAL_FRAMES
-	if (ComPortNum == 0) {
-		return send_framed_serial((const uint8_t *)Data, size, FALSE);
-	}
-	else {
-		return USART_Driver::Write( ComPortNum, Data, size );
-	}
-#else
-	#ifdef MEL_REDIRECT_COM0_TO_USB
-	if (ComPortNum == 0)
-		return CPU_USB_write(Data, size);
-	#else
     return USART_Driver::Write( ComPortNum, Data, size );
-	#endif
-#endif
 }
 
 int USART_Read( int ComPortNum, char* Data, size_t size )
@@ -53,9 +39,6 @@ int USART_Read( int ComPortNum, char* Data, size_t size )
 
 BOOL USART_Flush( int ComPortNum )
 {
-#ifdef MEL_KILL_UART5
-	if (ComPortNum == 5) return TRUE;
-#endif
     return USART_Driver::Flush( ComPortNum );
 }
 
@@ -262,13 +245,7 @@ BOOL USART_Driver::Initialize( int ComPortNum, int BaudRate, int Parity, int Dat
             State.TxQueue.Initialize( &TxBuffer_Com[ComPortNum * TX_USART_BUFFER_SIZE], TX_USART_BUFFER_SIZE);
             State.RxQueue.Initialize( &RxBuffer_Com[ComPortNum * RX_USART_BUFFER_SIZE], RX_USART_BUFFER_SIZE );
 
-			if (ComPortNum == USB_SERIAL_PORT) {
-				// this USB device is used only as a serial interface
-				CPU_USB_Initialize(0);
-				return TRUE;
-			} else {
-	            return CPU_USART_Initialize( ComPortNum, BaudRate, Parity, DataBits, StopBits, FlowValue );
-			}
+	        return CPU_USART_Initialize( ComPortNum, BaudRate, Parity, DataBits, StopBits, FlowValue );
         }
 
         return TRUE;
@@ -296,13 +273,7 @@ BOOL USART_Driver::Uninitialize( int ComPortNum )
 
             CLEAR_USART_FLAG(State,HAL_USART_STATE::c_INITIALIZED);
 
-			if (ComPortNum == USB_SERIAL_PORT) {
-				// this USB device is used only as a serial interface
-				CPU_USB_Uninitialize(0);
-				return TRUE;
-			} else {
-	            return CPU_USART_Uninitialize( ComPortNum );
-			}
+            return CPU_USART_Uninitialize( ComPortNum );
         }
 
         return TRUE;
@@ -322,11 +293,6 @@ int USART_Driver::Write( int ComPortNum, const char* Data, size_t size )
     if(NULL == Data                                        ) {ASSERT(FALSE); return -1;}
 
     HAL_USART_STATE& State = Hal_Usart_State[ComPortNum];
-
-	if (ComPortNum == USB_SERIAL_PORT){
-		CPU_USB_write( Data, size );
-		return size;
-	}
 
     if (IS_POWERSAVE_ENABLED(State) || (!IS_USART_INITIALIZED(State)))return -1;
 
@@ -908,6 +874,7 @@ int COM1_write( char* buffer, size_t size )
 
 //--//
 
+#ifndef DOES_NOT_HAVE_COM2
 STREAM_DRIVER_DETAILS* COM2_driver_details( UINT32 handle )
 {
     static STREAM_DRIVER_DETAILS details = { 
@@ -933,5 +900,5 @@ int COM2_write( char* buffer, size_t size )
 {
     return USART_Write(  ConvertCOM_ComPort( COM2 ), buffer, size );
 }
-
+#endif // #ifndef DOES_NOT_HAVE_COM2
 
