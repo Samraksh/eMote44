@@ -131,6 +131,21 @@ out:
 	return;
 }
 
+// Does a raw read and writes up to 'size' chars into the buf
+// TODO THIS FUNCTION DOES NOT WORK IF BUFFER NOT COMPLETELY EMPTIED
+int read_serial_frame_buffer(uint8_t *buf, size_t size) {
+	int count;
+	GLOBAL_LOCK(irq);
+	if (size > rx_cnt) count = rx_cnt;
+	else count = size;
+	memcpy(buf, rx_buf, count);
+	rx_cnt -= count;
+	#ifdef ALLOW_BKPT
+	if (rx_cnt > 0) __BKPT();
+	#endif
+	return count;
+}
+
 // Expected to be called in ISR
 // Hack it and set a continuation and fake a UART serial port
 // Really this should integrate more nicely with the CLR but I don't have it in me right now.
@@ -141,7 +156,8 @@ void rx_framed_serial(uint8_t* buf, uint32_t len) {
 	}
 	memcpy(&rx_buf[rx_cnt], buf, len);
 	rx_cnt += len;
-	rx_buf_do.Enqueue();
+	//rx_buf_do.Enqueue(); // TODO REENABLE ME
+	Events_Set( SYSTEM_EVENT_FLAG_COM_IN );
 }
 
 void framed_serial_init(void) {

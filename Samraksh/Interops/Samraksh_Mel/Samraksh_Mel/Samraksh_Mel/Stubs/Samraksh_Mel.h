@@ -35,7 +35,18 @@ struct Library_Samraksh_Mel_Samraksh_Mel_AudioInterface
 
 };
 
+struct Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface
+{
+    static const int FIELD___oneCharArray = 1;
 
+    TINYCLR_NATIVE_DECLARE(mel_serial_tx___I4__SZARRAY_U1__U4__I4);
+    TINYCLR_NATIVE_DECLARE(mel_serial_rx___I4__SZARRAY_U1__U4);
+
+    //--//
+
+};
+
+extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_AICallback;
 
 extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel;
 

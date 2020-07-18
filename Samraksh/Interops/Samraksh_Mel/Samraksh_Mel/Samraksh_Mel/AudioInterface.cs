@@ -3,8 +3,82 @@ using Microsoft.SPOT;
 using System.Runtime.CompilerServices;
 using Microsoft.SPOT.Hardware;
 
+using System.Text;
+
 namespace Samraksh_Mel
 {
+    /// <summary>
+    /// USB Serial Interface 
+    /// </summary>
+    public class UsbSerialInterface
+    {
+        /// <summary>
+        /// USB Serial Interface constructor
+        /// </summary>
+        public UsbSerialInterface()
+        {
+            //OnInterrupt += UsbSerialCallback;
+        }
+
+        private readonly char[] _oneCharArray = new char[1];
+        /// <summary>
+        /// Write a single char
+        /// </summary>
+        /// <param name="theChar"></param>
+        /// <returns></returns>
+        public bool Write(char theChar)
+        {
+            _oneCharArray[0] = theChar;
+            return Write(_oneCharArray);
+        }
+
+        /// <summary>
+        /// Write a char array to the port
+        /// </summary>
+        /// <param name="theChars"></param>
+        /// <returns></returns>
+        public bool Write(char[] theChars)
+        {
+            uint chan = 0;
+            int ret;
+            var bytes = new byte[theChars.Length];
+            for (var i = 0; i < theChars.Length; i++)
+            {
+                bytes[i] = (byte)theChars[i];
+            }
+            ret = mel_serial_tx(bytes, chan, bytes.Length);
+            if (ret != 0) return false;
+            else return true;
+        }
+
+        /// <summary>
+        /// Write a string to the port
+        /// </summary>
+        /// <param name="str">The string to write</param>
+        /// <remarks>Flushes the port after writing the bytes to ensure it all gets sent.</remarks>
+        /// <returns></returns>
+        public bool Write(string str)
+        {
+            uint chan = 0;
+            int ret;
+            var bytes = Encoding.UTF8.GetBytes(str);
+            ret = mel_serial_tx(bytes, chan, bytes.Length);
+            if (ret != 0) return false;
+            else return true;
+        }
+
+        /// <summary>
+        /// Sends a block of data out the USB serial port
+        /// </summary>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern int mel_serial_tx(byte[] data, uint chan, int len);
+
+        /// <summary>
+        /// Read a block of data from the buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern int mel_serial_rx(byte[] data, uint max);
+    }
     /// <summary>
     /// Audio Interface 
     /// </summary>

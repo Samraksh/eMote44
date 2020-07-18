@@ -29,6 +29,10 @@ static inline BOOL usb_serial_generic_INIT(void* pInstance) {
 	return CPU_USB_Initialize(0);
 }
 
+static inline int usb_serial_generic_READ(void* pInstance, char* Data, size_t size) {
+	return read_serial_frame_buffer((uint8_t *)Data, size);
+}
+
 static IGenericPort const mel_usb_serial_gport =
 {
     // default returns TRUE
@@ -41,7 +45,7 @@ static IGenericPort const mel_usb_serial_gport =
     usb_serial_generic_WRITE, //int (*Write)( void* pInstance, const char* Data, size_t size );
 
     // defualt return 0
-    NULL, //int (*Read)( void* pInstance, char* Data, size_t size );
+    usb_serial_generic_READ, //int (*Read)( void* pInstance, char* Data, size_t size );
 
     // default return TRUE
     NULL, //BOOL (*Flush)( void* pInstance );

@@ -13,6 +13,9 @@
 <Compile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface_mshl.cpp" />
 <HFile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface.h" />
 <Compile Include="Samraksh_Mel_Samraksh_Mel_AudioInterface.cpp" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_UsbSerialInterface_mshl.cpp" />
+<HFile Include="Samraksh_Mel_Samraksh_Mel_UsbSerialInterface.h" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_UsbSerialInterface.cpp" />
 </ItemGroup>
 <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 </Project>

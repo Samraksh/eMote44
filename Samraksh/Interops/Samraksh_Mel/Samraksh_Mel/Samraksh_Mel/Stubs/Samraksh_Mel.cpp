@@ -35,12 +35,18 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::mel_serial_tx___I4__SZARRAY_U1__U4__I4,
+    Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::mel_serial_rx___I4__SZARRAY_U1__U4,
 };
 
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0xABF3DDB6,
+    0x4D09EB4B,
     method_lookup
 };
 
