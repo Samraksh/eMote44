@@ -9,8 +9,8 @@
 
 #define LSE_HZ 32768
 
-#define NO_HW_BREAKPOINTS
-#ifdef NO_HW_BREAKPOINTS
+#ifndef ALLOW_BKPT
+#undef __BKPT()
 #define __BKPT() ((void)0)
 #endif
 

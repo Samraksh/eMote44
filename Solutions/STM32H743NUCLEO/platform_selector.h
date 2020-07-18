@@ -31,7 +31,7 @@
 
 #define STM32H743xx
 
-#define ALLOW_BKPT
+//#define ALLOW_BKPT
 #define PAUSE_AFTER_USB_INIT_MS 5000 // in milli-seconds to allow terminal to be bought up etc. Can be undefined.
 #define PRINTF_MAX_RETRIES 0
 //#define KILL_SONYC_MODEL // Debugging option. Keeps model out of the binary.
