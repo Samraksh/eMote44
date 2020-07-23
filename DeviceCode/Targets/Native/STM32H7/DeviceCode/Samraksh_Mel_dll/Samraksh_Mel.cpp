@@ -10,6 +10,7 @@
 #include "Samraksh_Mel.h"
 
 CLR_RT_HeapBlock_NativeEventDispatcher *AI_ne_Context;
+CLR_RT_HeapBlock_NativeEventDispatcher *USB_ne_Context;
 
 static HRESULT Initialize_AI_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext, UINT64 userData ){
 	AI_ne_Context = pContext;
@@ -22,6 +23,21 @@ static HRESULT  EnableDisable_AI_Driver( CLR_RT_HeapBlock_NativeEventDispatcher 
 
 static HRESULT Cleanup_AI_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext ){
 	AI_ne_Context = NULL;
+	CleanupNativeEventsFromHALQueue( pContext );
+	return S_OK;
+}
+
+static HRESULT Initialize_USB_Serial_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext, UINT64 userData ){
+	USB_ne_Context = pContext;
+	return S_OK;
+}
+
+static HRESULT  EnableDisable_USB_Serial_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext, bool fEnable ){
+	return S_OK;
+}
+
+static HRESULT Cleanup_USB_Serial_Driver( CLR_RT_HeapBlock_NativeEventDispatcher *pContext ){
+	USB_ne_Context = NULL;
 	CleanupNativeEventsFromHALQueue( pContext );
 	return S_OK;
 }
@@ -55,14 +71,31 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
+    NULL,
+    Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::BytesInBuffer___U4,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
     Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::mel_serial_tx___I4__SZARRAY_U1__U4__I4,
     Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::mel_serial_rx___I4__SZARRAY_U1__U4,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    NULL,
 };
 
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0x4D09EB4B,
+    0x8F1BAEEF,
     method_lookup
 };
 
@@ -78,4 +111,18 @@ const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_AICallback  =
     "AICallback",
     DRIVER_INTERRUPT_METHODS_CHECKSUM,
     &g_CLR_AI_DriverMethods
+};
+
+static const CLR_RT_DriverInterruptMethods g_CLR_USB_Serial_DriverMethods =
+{
+	Initialize_USB_Serial_Driver,
+	EnableDisable_USB_Serial_Driver,
+	Cleanup_USB_Serial_Driver
+};
+
+const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_USBPortDataEvent  =
+{
+	"USBPortDataEvent",
+	DRIVER_INTERRUPT_METHODS_CHECKSUM,
+	&g_CLR_USB_Serial_DriverMethods
 };

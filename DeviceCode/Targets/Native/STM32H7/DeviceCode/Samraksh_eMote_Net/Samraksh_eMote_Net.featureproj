@@ -13,7 +13,6 @@
     <InteropFeature Include="Samraksh_Mel" />
 	<InteropFeature Include="MACCallback" />
     <InteropFeature Include="OMACCallback" />
-    <InteropFeature Include="AICallback" />
     <InteropFeature Include="RadioCallback_802_15_4" />
 	<!--<MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_Mel.pe" />-->
     <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_eMote_Net\dotnetmf.proj" />

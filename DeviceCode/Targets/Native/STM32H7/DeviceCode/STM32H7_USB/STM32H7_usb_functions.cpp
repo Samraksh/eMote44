@@ -30,6 +30,9 @@ static inline BOOL usb_serial_generic_INIT(void* pInstance) {
 }
 
 static inline int usb_serial_generic_READ(void* pInstance, char* Data, size_t size) {
+#if defined(ALLOW_BKPT) && defined(DEBUG)
+	if (Data == NULL && size > 0) __BKPT(); // null pointer check
+#endif
 	return read_serial_frame_buffer((uint8_t *)Data, size);
 }
 
@@ -104,6 +107,7 @@ static uint8_t tx_pkt_buf[128*1024+1024] __attribute__ (( section (".ram_d1"), a
 static usb_cdc_status_t usb_cdc_status;
 
 static HAL_CONTINUATION usb_retry_contin;
+static HAL_CONTINUATION rx_event_contin;
 static lptim_task_t usb_retry_task;			// After a request is buffered, try again later (e.g., 25ms)
 static void do_usb_retry(void *p);			// The continuation function
 
@@ -114,8 +118,6 @@ static int8_t CDC_Init_FS(void);
 static int8_t CDC_DeInit_FS(void);
 static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
 static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
-
-static int CPU_USB_Queue_Rx_Data(char c);
 
 USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
 {
@@ -177,16 +179,11 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length) {
 }
 
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len) {
-#ifndef MEL_USE_SERIAL_FRAMES
-	for (int i = 0; i < *Len; i++) {
-	  CPU_USB_Queue_Rx_Data( (char)Buf[i]); // TODO: Can input more than 1 byte at a time
-	}
-#else
 	rx_framed_serial(Buf, *Len);
-#endif
 	usb_cdc_status.RxBytes += *Len;
 	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rx_pkt_buf);
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+	rx_event_contin.Enqueue();
 	return (USBD_OK);
 }
 
@@ -201,12 +198,16 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len) {
   return result;
 }
 
+// Yes this is lazy and ugly but I could clean this up forever...
+extern void usb_serial_signal_rx_to_clr(void *p); // in Samraksh_Mel_Samraksh_Mel_UsbSerialInterface.cpp
+
 static void reset_status(usb_cdc_status_t *x) {
 	memset(&usb_cdc_status, 0, sizeof(usb_cdc_status_t)); // A simple zero'ing
 	lptim_task_init(&usb_retry_task);
 	usb_retry_task.contin = (void *)&usb_retry_contin;
 	usb_retry_task.delay_ms = USB_BUSY_RETRY_INTERVAL_MS;
 	usb_retry_contin.InitializeCallback(do_usb_retry, NULL);
+	rx_event_contin.InitializeCallback(usb_serial_signal_rx_to_clr, NULL);
 }
 
 static int is_usb_link_up(void) {
@@ -399,15 +400,6 @@ out:
 		return usb_queue_retry(buf, size);
 	else
 		return ret;
-}
-
-static int CPU_USB_Queue_Rx_Data( char c ){
-#ifndef MEL_USE_SERIAL_FRAMES
-	// sending back only port number (USB_SERIAL_PORT also contains info that it is a serial interface)
-	return USART_AddCharToRxBuffer(ConvertCOM_ComPort(USB_SERIAL_PORT), c);
-#else
-
-#endif
 }
 
 extern "C" void OTG_FS_IRQHandler(void) {

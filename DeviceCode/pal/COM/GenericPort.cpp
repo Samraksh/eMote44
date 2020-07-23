@@ -64,7 +64,7 @@ int GenericPort_Read( int portNum, char* Data, size_t size )
         return 0;
 
     GenericPortTableEntry const& entry = *g_GenericPorts[ portNum ];
-    if( entry.Port.Read )
+    if( entry.Port.Read == NULL )
         return 0;
 
     return entry.Port.Read( entry.pInstance, Data, size );

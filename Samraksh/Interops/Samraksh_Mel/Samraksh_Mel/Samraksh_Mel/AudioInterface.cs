@@ -1,24 +1,152 @@
 using System;
-using Microsoft.SPOT;
+//using Microsoft.SPOT;
+//using System.Collections;
+//using System.Threading;
 using System.Runtime.CompilerServices;
 using Microsoft.SPOT.Hardware;
 
 using System.Text;
 
+#pragma warning disable 1591
+
 namespace Samraksh_Mel
 {
     /// <summary>
-    /// USB Serial Interface 
+    /// USB Serial Interface hacked by NPS at Samraksh 2020-07-22
     /// </summary>
     public class UsbSerialInterface
     {
+        // RX Event stuff attempting to use Native_UART/SerialPort.cs as template
+        // This all feels very Loony Tunes to me as an embedded C guy but whatever
+        private bool m_fDisposed;
+        public delegate void SerialDataReceivedEventHandler();
+        private NativeEventDispatcher m_evtDataEvent = null;
+        private SerialDataReceivedEventHandler m_callbacksDataEvent = null;
+
+        public event SerialDataReceivedEventHandler DataReceived
+        {
+            [MethodImplAttribute(MethodImplOptions.Synchronized)]
+            add
+            {
+                if (m_fDisposed)
+                {
+                    throw new ObjectDisposedException();
+                }
+                SerialDataReceivedEventHandler callbacksOld = m_callbacksDataEvent;
+                SerialDataReceivedEventHandler callbacksNew = (SerialDataReceivedEventHandler)Delegate.Combine(callbacksOld, value);
+
+                try
+                {
+                    m_callbacksDataEvent = callbacksNew;
+                    if (callbacksOld == null && m_callbacksDataEvent != null)
+                    {
+                        m_evtDataEvent.OnInterrupt += new NativeEventHandler(DataEventHandler);
+                    }
+                }
+                catch
+                {
+                    m_callbacksDataEvent = callbacksOld;
+                    throw;
+                }
+            }
+            [MethodImplAttribute(MethodImplOptions.Synchronized)]
+            remove
+            {
+                if (m_fDisposed)
+                {
+                    throw new ObjectDisposedException();
+                }
+                SerialDataReceivedEventHandler callbacksOld = m_callbacksDataEvent;
+                SerialDataReceivedEventHandler callbacksNew = (SerialDataReceivedEventHandler)Delegate.Remove(callbacksOld, value);
+                try
+                {
+                    m_callbacksDataEvent = callbacksNew;
+                    if (m_callbacksDataEvent == null)
+                    {
+                        m_evtDataEvent.OnInterrupt -= new NativeEventHandler(DataEventHandler);
+                    }
+                }
+                catch
+                {
+                    m_callbacksDataEvent = callbacksOld;
+                    throw;
+                }
+            }
+        }
+
+        private void DataEventHandler(uint evt, uint data2, DateTime timestamp)
+        {
+            if (m_callbacksDataEvent != null)
+            {
+                //m_callbacksDataEvent(this, new SerialDataReceivedEventArgs((SerialData)evt));
+                m_callbacksDataEvent();
+            }
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (!m_fDisposed)
+            {
+                try
+                {
+                    if (disposing)
+                    {
+
+                        if (m_callbacksDataEvent != null)
+                        {
+                            m_evtDataEvent.OnInterrupt -= new NativeEventHandler(DataEventHandler);
+                            m_callbacksDataEvent = null;
+                            m_evtDataEvent.Dispose();
+                        }
+                    }
+                }
+                finally
+                {
+                    m_fDisposed = true;
+                }
+            }
+        }
+
+        public uint BytesToRead { get { return BytesInBuffer(); } }
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern private uint BytesInBuffer();
+
+        /// <summary>Delegate for read callback</summary>
+        /// <param name="readBytes">Bytes read</param>
+        public delegate void ReceiveCallback(byte[] readBytes);
+
+        /// <summary>Client callback (can be null)</summary>
+        public event ReceiveCallback ClientDataReceived;
+
         /// <summary>
         /// USB Serial Interface constructor
         /// </summary>
-        public UsbSerialInterface()
+        public UsbSerialInterface(ReceiveCallback receiveCallback = null)
         {
-            //OnInterrupt += UsbSerialCallback;
+            m_fDisposed = false;
+            m_evtDataEvent = new NativeEventDispatcher("USBPortDataEvent", 0);
+            if (receiveCallback != null)
+            {
+                ClientDataReceived += receiveCallback;
+            }
+            DataReceived += PortHandler;
         }
+
+        private void PortHandler()
+        {
+            var numBytes = BytesToRead;
+            var recvBuffer = new byte[numBytes];
+            mel_serial_rx(recvBuffer, numBytes);
+            if (ClientDataReceived == null)
+            {
+                return;
+            } else
+            {
+                ClientDataReceived(recvBuffer);
+            }
+        }
+
+        // END RX HANDLER STUFF
 
         private readonly char[] _oneCharArray = new char[1];
         /// <summary>
@@ -277,3 +405,4 @@ namespace Samraksh_Mel
         public extern bool set_time_interval(uint time_ms);
     }
 }
+#pragma warning restore 1591

@@ -14,9 +14,25 @@
 #include "Samraksh_Mel.h"
 #include "Samraksh_Mel_Samraksh_Mel_UsbSerialInterface.h"
 
+extern CLR_RT_HeapBlock_NativeEventDispatcher *USB_ne_Context;
+
 using namespace Samraksh_Mel;
 
 #define COM1_PORT_NUM 0
+
+// Signals up to CLR that data is ready
+// Unused pointer arg is to make compatible with HAL_CONTINUATION
+void usb_serial_signal_rx_to_clr(void *p)
+{
+	GLOBAL_LOCK(irq);
+	if (USB_ne_Context != NULL) // Will be NULL until init by C#
+		SaveNativeEventToHALQueue( USB_ne_Context, 0, 0 );
+}
+
+UINT32 UsbSerialInterface::BytesInBuffer( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
+{
+	return GenericPort_Read(COM1_PORT_NUM, NULL, 0);
+}
 
 INT32 UsbSerialInterface::mel_serial_tx( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 param0, UINT32 param1, INT32 param2, HRESULT &hr )
 {
@@ -29,7 +45,8 @@ INT32 UsbSerialInterface::mel_serial_tx( CLR_RT_HeapBlock* pMngObj, CLR_RT_Typed
 
 INT32 UsbSerialInterface::mel_serial_rx( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 param0, UINT32 param1, HRESULT &hr )
 {
-    INT32 retVal = 0; 
-    return retVal;
+	char *data = (char *)param0.GetBuffer();
+	size_t size = (size_t)param1;
+	return GenericPort_Read(COM1_PORT_NUM, data, size);
 }
 

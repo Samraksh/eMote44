@@ -135,6 +135,7 @@ out:
 // TODO THIS FUNCTION DOES NOT WORK IF BUFFER NOT COMPLETELY EMPTIED
 int read_serial_frame_buffer(uint8_t *buf, size_t size) {
 	int count;
+	if (size == 0) return rx_cnt; // Returns available bytes
 	GLOBAL_LOCK(irq);
 	if (size > rx_cnt) count = rx_cnt;
 	else count = size;
@@ -157,7 +158,7 @@ void rx_framed_serial(uint8_t* buf, uint32_t len) {
 	memcpy(&rx_buf[rx_cnt], buf, len);
 	rx_cnt += len;
 	//rx_buf_do.Enqueue(); // TODO REENABLE ME
-	Events_Set( SYSTEM_EVENT_FLAG_COM_IN );
+	//Events_Set( SYSTEM_EVENT_FLAG_COM_IN );
 }
 
 void framed_serial_init(void) {

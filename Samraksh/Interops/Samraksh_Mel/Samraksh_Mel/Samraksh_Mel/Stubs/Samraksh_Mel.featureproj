@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FeatureName>Samraksh_Mel</FeatureName>
-    <Guid>{5f1b1375-1b8f-4b1e-a440-15c7e45604a0}</Guid>
+    <Guid>{5449494b-9048-4b78-ba73-67b0159b1464}</Guid>
     <Description>&lt;Add Feature Description Here&gt;</Description>
     <Groups />
     <SAMRAKSH_MEL_FEATUREPROJ>True</SAMRAKSH_MEL_FEATUREPROJ>

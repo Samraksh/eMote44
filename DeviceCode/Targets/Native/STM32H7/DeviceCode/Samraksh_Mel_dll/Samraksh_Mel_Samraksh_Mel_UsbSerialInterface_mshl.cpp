@@ -13,6 +13,22 @@
 using namespace Samraksh_Mel;
 
 
+HRESULT Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::BytesInBuffer___U4( CLR_RT_StackFrame& stack )
+{
+    TINYCLR_HEADER(); hr = S_OK;
+    {
+        CLR_RT_HeapBlock* pMngObj = Interop_Marshal_RetrieveManagedObject( stack );
+
+        FAULT_ON_NULL(pMngObj);
+
+        UINT32 retVal = UsbSerialInterface::BytesInBuffer( pMngObj,  hr );
+        TINYCLR_CHECK_HRESULT( hr );
+        SetResult_UINT32( stack, retVal );
+
+    }
+    TINYCLR_NOCLEANUP();
+}
+
 HRESULT Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::mel_serial_tx___I4__SZARRAY_U1__U4__I4( CLR_RT_StackFrame& stack )
 {
     TINYCLR_HEADER(); hr = S_OK;

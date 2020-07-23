@@ -16,6 +16,12 @@
 
 using namespace Samraksh_Mel;
 
+UINT32 UsbSerialInterface::BytesInBuffer( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
+{
+    UINT32 retVal = 0; 
+    return retVal;
+}
+
 INT32 UsbSerialInterface::mel_serial_tx( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 param0, UINT32 param1, INT32 param2, HRESULT &hr )
 {
     INT32 retVal = 0; 

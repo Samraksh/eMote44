@@ -37,14 +37,21 @@ struct Library_Samraksh_Mel_Samraksh_Mel_AudioInterface
 
 struct Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface
 {
-    static const int FIELD___oneCharArray = 1;
+    static const int FIELD__m_fDisposed = 1;
+    static const int FIELD__m_evtDataEvent = 2;
+    static const int FIELD__m_callbacksDataEvent = 3;
+    static const int FIELD__ClientDataReceived = 4;
+    static const int FIELD___oneCharArray = 5;
 
+    TINYCLR_NATIVE_DECLARE(BytesInBuffer___U4);
     TINYCLR_NATIVE_DECLARE(mel_serial_tx___I4__SZARRAY_U1__U4__I4);
     TINYCLR_NATIVE_DECLARE(mel_serial_rx___I4__SZARRAY_U1__U4);
 
     //--//
 
 };
+
+extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_USBPortDataEvent;
 
 extern const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_AICallback;
 
