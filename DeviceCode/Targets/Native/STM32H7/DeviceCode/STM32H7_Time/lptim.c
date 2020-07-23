@@ -10,7 +10,7 @@
 #define LSE_HZ 32768
 
 #ifndef ALLOW_BKPT
-#undef __BKPT()
+#undef __BKPT
 #define __BKPT() ((void)0)
 #endif
 
