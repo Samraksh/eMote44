@@ -16,6 +16,9 @@
 <Compile Include="Samraksh_Mel_Samraksh_Mel_UsbSerialInterface_mshl.cpp" />
 <HFile Include="Samraksh_Mel_Samraksh_Mel_UsbSerialInterface.h" />
 <Compile Include="Samraksh_Mel_Samraksh_Mel_UsbSerialInterface.cpp" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_MelUtility_mshl.cpp" />
+<HFile Include="Samraksh_Mel_Samraksh_Mel_MelUtility.h" />
+<Compile Include="Samraksh_Mel_Samraksh_Mel_MelUtility.cpp" />
 </ItemGroup>
 <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />
 </Project>

@@ -26,6 +26,8 @@ namespace Samraksh_Mel
         static UNSUPPORTED_TYPE& Get_audio_inference_callback( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::FIELD__audio_inference_callback ); }
 
         // Declaration of stubs. These functions are implemented by Interop code developers
+        static void mel_get_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr );
+        static INT32 mel_set_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr );
         static INT8 set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, UINT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr );
         static void set_model_recording_internal( CLR_RT_HeapBlock* pMngObj, INT8 param0, INT8 param1, HRESULT &hr );
         static INT8 Initialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );

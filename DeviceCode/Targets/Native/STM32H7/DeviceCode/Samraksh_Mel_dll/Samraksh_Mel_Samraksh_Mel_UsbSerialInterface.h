@@ -25,7 +25,7 @@ namespace Samraksh_Mel
 
         static UNSUPPORTED_TYPE& Get_m_callbacksDataEvent( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::FIELD__m_callbacksDataEvent ); }
 
-        static UNSUPPORTED_TYPE& Get_ClientDataReceived( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::FIELD__ClientDataReceived ); }
+        static UNSUPPORTED_TYPE& Get_DataReceived( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::FIELD__DataReceived ); }
 
         static UNSUPPORTED_TYPE& Get__oneCharArray( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_UsbSerialInterface::FIELD___oneCharArray ); }
 

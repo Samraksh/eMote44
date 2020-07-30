@@ -16,6 +16,10 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::mel_get_thresh___VOID__SZARRAY_R4,
+    Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::mel_set_thresh___I4__SZARRAY_R4,
+    NULL,
+    NULL,
     NULL,
     NULL,
     NULL,
@@ -57,13 +61,17 @@ static const CLR_RT_MethodHandler method_lookup[] =
     NULL,
     NULL,
     NULL,
+    Library_Samraksh_Mel_Samraksh_Mel_MelUtility::GetMelStatus___STATIC__I4__SZARRAY_I4,
+    NULL,
+    NULL,
+    NULL,
     NULL,
 };
 
 const CLR_RT_NativeAssemblyData g_CLR_AssemblyNative_Samraksh_Mel =
 {
     "Samraksh_Mel", 
-    0x8F1BAEEF,
+    0x6D6667AB,
     method_lookup
 };
 

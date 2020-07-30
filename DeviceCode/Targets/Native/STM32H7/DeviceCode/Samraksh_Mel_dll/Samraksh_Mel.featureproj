@@ -2,7 +2,7 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FeatureName>Samraksh_Mel</FeatureName>
-    <Guid>{f408cd38-6df4-42eb-917f-b88267aaa90e}</Guid>
+    <Guid>{e149a854-946d-49c5-88c4-5617d5e36cc5}</Guid>
     <Description>Interfaces for SONYC MkII (aka Mel)</Description>
     <Groups />
     <SAMRAKSH_MEL_FEATUREPROJ>True</SAMRAKSH_MEL_FEATUREPROJ>
