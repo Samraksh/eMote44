@@ -13,7 +13,7 @@ namespace Samraksh_Mel
 {
     public class MelUtility
     {
-        public const int STATUS_SIZE = 6; // whole bank [0] + each cell [1-4] + temperature [5]
+        public const int STATUS_SIZE = 10; // whole bank [0] + each cell [1-4] + temperature [5] + solar [6-7] + power [8-9]
         public const int BATTERY_SIZE = 5;
 
         // Returns battery status in mV
@@ -26,6 +26,31 @@ namespace Samraksh_Mel
             Array.Copy(ret, batt, BATTERY_SIZE);
 
             return batt;
+        }
+
+        // Returns Solar status
+        public static int[] GetSolarStatus()
+        {
+            int[] ret = new int[STATUS_SIZE];
+            GetMelStatus(ret);
+            int[] solar = new int[2];
+
+            solar[0] = ret[6];
+            solar[1] = ret[7];
+
+            return solar;
+        }
+
+        public static int[] GetPowerStatus()
+        {
+            int[] ret = new int[STATUS_SIZE];
+            GetMelStatus(ret);
+            int[] power = new int[2];
+
+            power[0] = ret[8];
+            power[1] = ret[9];
+
+            return power;
         }
 
         // Returns Temperature in degrees C
