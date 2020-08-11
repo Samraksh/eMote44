@@ -19,6 +19,8 @@ NPS 2019-11-22
 #define USB_BUSY_RETRY_INTERVAL_MS 1
 #define TX_BUF_SIZE (sizeof(tx_pkt_buf))
 
+#define ALWAYS_QUEUE_FROM_IRQ
+
 // Generic Port Stuff
 
 static inline int usb_serial_generic_WRITE(void* pInstance, const char* Data, size_t size) {
@@ -93,6 +95,7 @@ typedef enum {
 	usb_lock_none =0,
 	usb_lock_tx	  =1,
 	usb_lock_mem  =2,
+	usb_lock_irq  =3,
 } usb_lock_id_t;
 
 extern USBD_HandleTypeDef hUsbDeviceFS; // in usb_device.c
@@ -253,7 +256,7 @@ HRESULT CPU_USB_Uninitialize( int Controller ) {
 // Locks USB and returns a pointer directly to buffer for writing
 // Must be followed (quickly) by a closing usb_serial_ext_free()
 void * usb_serial_ext_malloc(size_t sz) {
-	int lock_ret;
+	uint32_t lock_ret;
 	unsigned used_buf;
 
 	if (!USB_initialized) { return NULL; }
@@ -300,7 +303,8 @@ int usb_serial_ext_free(unsigned size) {
 
 // Continuation Callback, EXCEPT from usb_serial_ext_free()
 static void do_usb_retry(void *p) {
-	int lock_ret, usb_ret;
+	int usb_ret;
+	uint32_t lock_ret;
 
 	lock_ret = get_lock(&usb_lock, usb_lock_tx);
 	if (lock_ret) { // Locked out. Wait one schedule cycle and try again.
@@ -336,7 +340,7 @@ out:
 }
 
 static int usb_queue_retry(const char *buf, int size) {
-	int lock_ret;
+	uint32_t lock_ret;
 	int ret;
 	unsigned used_buf;
 
@@ -364,12 +368,16 @@ out:
 }
 
 int CPU_USB_write(const char *buf, int size) {
-	int ret, lock_ret, usb_ret;
+	int ret, usb_ret;
+	uint32_t lock_ret;
 	bool busy_retry = false;
 
 	if (!USB_initialized || buf == NULL)	return -1;		// Hard fails
 	if (size == 0)							return 0;		// trivial case
 	if (!is_usb_link_up())     				return size;	// Init but no connection we define as "success"
+#ifdef ALWAYS_QUEUE_FROM_IRQ
+	if (isInterrupt())						return usb_queue_retry(buf, size); // Always queue request if in interrupt context
+#endif
 	if (is_usb_tx_not_empty()) 				return usb_queue_retry(buf, size);
 	if (is_usb_tx_queued())					return usb_queue_retry(buf, size); // Could service immediately, but throw it on the buffer
 

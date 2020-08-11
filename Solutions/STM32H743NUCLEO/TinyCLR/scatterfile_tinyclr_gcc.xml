@@ -53,8 +53,8 @@
 
     <!-- Internal DTCM -->
     <!-- Put Stack in DTCM for high speed access, reducing overhead of stack usage -->
-    <Set Name="Stack_Bottom"            Value="0x2001F000"/>
-	<Set Name="Stack_Size"              Value="0x1000" />
+    <Set Name="Stack_Bottom"            Value="0x2001E800"/>
+	<Set Name="Stack_Size"              Value="0x1800" />
 
 
     <If Name="TARGETLOCATION" Value="FLASH">
