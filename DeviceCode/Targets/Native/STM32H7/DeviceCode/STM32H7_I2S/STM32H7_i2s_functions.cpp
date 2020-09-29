@@ -214,7 +214,13 @@ void stop_microphone(void) {
 
 void ManagedAICallback(UINT32 arg1, UINT32 arg2);
 
+extern void MaxSystemClock_Config(void);
+extern void MinSystemClock_Config(void);
+
 static void mic_data_callback(void *buf, unsigned len) {
+	GLOBAL_LOCK(irq);
+	MaxSystemClock_Config();
+	irq.Release();
 	int32_t *my_raw_data = (int32_t *) buf;
 	// Compute db SPL
 	dBSPL = compute_spl_db(my_raw_data, len/sizeof(int32_t));
@@ -231,6 +237,8 @@ static void mic_data_callback(void *buf, unsigned len) {
 	my_ai_process((float *)output_swapped);
 	ManagedAICallback(0,0);
 	do_send = 0; // signal we are done with buffer
+	irq.Acquire();
+	MinSystemClock_Config();
 }
 
 // s = stereo source, m = mono dest, s_len stereo data length bytes
