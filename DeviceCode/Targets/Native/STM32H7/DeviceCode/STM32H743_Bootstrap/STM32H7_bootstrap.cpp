@@ -37,11 +37,17 @@ static void Error_Handler(void)
   * @retval None
   */
 // 480 MHz (Maximum clock, REV 'V' SILICON ONLY
+static int is_fast_clock = -1;
 void MaxSystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  if (is_fast_clock > 0 ) return;
+  is_fast_clock = 1;
+
+  HAL_RCC_DeInit();
 
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
@@ -111,9 +117,14 @@ void MinSystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
 
+  if (is_fast_clock == 0) return;
+  is_fast_clock = 0;
+
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE0);
+  HAL_RCC_DeInit();
+
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
 
@@ -134,9 +145,6 @@ void MinSystemClock_Config(void)
   {
     Error_Handler();
   }
-
-  // Scale down after slower clock is set
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
 
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
@@ -229,7 +237,7 @@ void HardFault_HandlerC(unsigned long *hardfault_args) {
   	volatile unsigned long _AFSR ;
   	volatile unsigned long _BFAR ;
   	volatile unsigned long _MMAR ;
- 
+
   	stacked_r0 = ((unsigned long)hardfault_args[0]) ;
   	stacked_r1 = ((unsigned long)hardfault_args[1]) ;
   	stacked_r2 = ((unsigned long)hardfault_args[2]) ;
@@ -238,23 +246,23 @@ void HardFault_HandlerC(unsigned long *hardfault_args) {
   	stacked_lr = ((unsigned long)hardfault_args[5]) ;
   	stacked_pc = ((unsigned long)hardfault_args[6]) ;
   	stacked_psr = ((unsigned long)hardfault_args[7]) ;
- 
+
   	// Configurable Fault Status Register
   	// Consists of MMSR, BFSR and UFSR
   	_CFSR = (*((volatile unsigned long *)(0xE000ED28))) ;
 
 	// Usage Fault Status Register
 	_UFSR = _CFSR >> 0x10;
- 
+
   	// Hard Fault Status Register
   	_HFSR = (*((volatile unsigned long *)(0xE000ED2C))) ;
- 
+
   	// Debug Fault Status Register
   	_DFSR = (*((volatile unsigned long *)(0xE000ED30))) ;
- 
+
   	// Auxiliary Fault Status Register
   	_AFSR = (*((volatile unsigned long *)(0xE000ED3C))) ;
- 
+
   	// Read the Fault Address Registers. These may not contain valid values.
   	// Check BFARVALID/MMARVALID to see if they are valid values
   	// MemManage Fault Address Register
@@ -322,11 +330,11 @@ void HardFault_HandlerC(unsigned long *hardfault_args) {
     pCoreDebug = CoreDebug;
 #endif // defined(DEBUG)
 
- 	// at this point you can read data from the variables with 
+ 	// at this point you can read data from the variables with
 	// "p/x stacked_pc"
 	// "info symbol <address>" should list the code line
 	// "info address <FunctionName>"
-	// "info registers" might help 
+	// "info registers" might help
 	// "*((char *)0x00) = 5;" should create a hard-fault to test
 	BREAKPOINT();
 	while(1);
