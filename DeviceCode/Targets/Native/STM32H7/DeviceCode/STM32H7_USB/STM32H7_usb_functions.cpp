@@ -101,7 +101,7 @@ typedef enum {
 extern USBD_HandleTypeDef hUsbDeviceFS; // in usb_device.c
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
-static bool USB_initialized = FALSE;
+static bool USB_initialized = false;
 static unsigned last_malloc_size;
 static uint8_t rx_pkt_buf[128]; 			// TODO: Assumes packets are handled fast
 
@@ -250,6 +250,18 @@ HRESULT CPU_USB_Initialize( int Controller ) {
 
 // No-op
 HRESULT CPU_USB_Uninitialize( int Controller ) {
+	uint32_t lock_ret;
+
+	if (USB_initialized == false) return S_OK;
+
+	USB_initialized = false;
+	__HAL_RCC_USB2_OTG_FS_CLK_SLEEP_DISABLE();
+	__HAL_RCC_USB2_OTG_FS_CLK_DISABLE();
+
+	// We should be IRQ locked so this is kosher
+	if (usb_lock != usb_lock_mem)
+		usb_lock = 0;
+
 	return S_OK;
 }
 
@@ -258,8 +270,6 @@ HRESULT CPU_USB_Uninitialize( int Controller ) {
 void * usb_serial_ext_malloc(size_t sz) {
 	uint32_t lock_ret;
 	unsigned used_buf;
-
-	if (!USB_initialized) { return NULL; }
 
 	lock_ret = get_lock(&usb_lock, usb_lock_mem);
 	if (lock_ret) { usb_cdc_status.lock_fails++; return NULL; } // Failed to get lock, abort
@@ -284,7 +294,7 @@ void * usb_serial_ext_malloc(size_t sz) {
 // if 'size' is non-zero, will transmit 'size' bytes
 int usb_serial_ext_free(unsigned size) {
 	// Invalid state
-	if (usb_lock != usb_lock_mem || !USB_initialized) {
+	if (usb_lock != usb_lock_mem) {
 		return -1;
 	}
 
@@ -305,6 +315,8 @@ int usb_serial_ext_free(unsigned size) {
 static void do_usb_retry(void *p) {
 	int usb_ret;
 	uint32_t lock_ret;
+
+	if (!USB_initialized) return;
 
 	lock_ret = get_lock(&usb_lock, usb_lock_tx);
 	if (lock_ret) { // Locked out. Wait one schedule cycle and try again.
@@ -372,9 +384,9 @@ int CPU_USB_write(const char *buf, int size) {
 	uint32_t lock_ret;
 	bool busy_retry = false;
 
-	if (!USB_initialized || buf == NULL)	return -1;		// Hard fails
+	if (buf == NULL)						return -1;
 	if (size == 0)							return 0;		// trivial case
-	if (!is_usb_link_up())     				return size;	// Init but no connection we define as "success"
+	if (!USB_initialized || !is_usb_link_up())	return size;	// Init but no connection we define as "success"
 #ifdef ALWAYS_QUEUE_FROM_IRQ
 	if (isInterrupt())						return usb_queue_retry(buf, size); // Always queue request if in interrupt context
 #endif

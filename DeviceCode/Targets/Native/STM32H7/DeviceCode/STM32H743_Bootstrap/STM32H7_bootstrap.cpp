@@ -47,6 +47,8 @@ void MaxSystemClock_Config(void)
   if (is_fast_clock > 0 ) return;
   is_fast_clock = 1;
 
+  CPU_USB_Uninitialize(0);
+
   HAL_RCC_DeInit();
 
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
