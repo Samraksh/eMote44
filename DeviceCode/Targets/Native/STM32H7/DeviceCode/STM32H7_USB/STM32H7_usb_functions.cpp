@@ -233,6 +233,7 @@ static unsigned get_tx_buf_used(void) {
 }
 
 HRESULT CPU_USB_Initialize( int Controller ) {
+	return S_OK;
 	if (USB_initialized == false){
 		MX_USB_DEVICE_Init();
 		// Allows USB to work in WFI
@@ -255,6 +256,7 @@ HRESULT CPU_USB_Uninitialize( int Controller ) {
 	if (USB_initialized == false) return S_OK;
 
 	USB_initialized = false;
+	HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
 	__HAL_RCC_USB2_OTG_FS_CLK_SLEEP_DISABLE();
 	__HAL_RCC_USB2_OTG_FS_CLK_DISABLE();
 
