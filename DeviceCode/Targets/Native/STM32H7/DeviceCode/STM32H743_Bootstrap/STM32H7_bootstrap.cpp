@@ -199,6 +199,9 @@ void HAL_MspInit(void)
   __HAL_RCC_SYSCFG_CLK_ENABLE();
 }
 
+//extern UART_HandleTypeDef huart2;
+extern void MX_USART2_UART_Init(void);
+
 extern "C" {
 void HARD_Breakpoint() {
 	__asm__("BKPT");
@@ -456,6 +459,7 @@ void BootstrapCode() {
 #else
 	MinSystemClock_Config();
 #endif
+	MX_USART2_UART_Init();
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
 	__HAL_DBGMCU_FREEZE_TIM5();

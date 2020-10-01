@@ -25,6 +25,7 @@ static uint8_t rx_buf[FRAME_MAX_SIZE];
 #endif
 
 static HAL_CONTINUATION rx_buf_do;
+static HAL_CONTINUATION bms_rx_do;
 static volatile unsigned rx_cnt=0;
 static mel_status_t serial_frame_status;
 
@@ -161,12 +162,64 @@ void rx_framed_serial(uint8_t* buf, uint32_t len) {
 	//Events_Set( SYSTEM_EVENT_FLAG_COM_IN );
 }
 
+extern UART_HandleTypeDef huart2;
+UART_HandleTypeDef *BMS_UART = &huart2;
+static volatile uint8_t bms_rx_buf[512];
+static volatile uint32_t bms_rx_bytes;
+static const bool bms_active_transmit = false; // not used for now
+
+static int get_cts(void) { return CPU_GPIO_GetPinState( _P(A,0) ); }
+static void bms_clear_rts(void)  { CPU_GPIO_SetPinState( _P(A,1), FALSE); }
+static void bms_assert_rts(void) { CPU_GPIO_SetPinState( _P(A,1), TRUE); }
+
+static void set_uart_rx_it(bool set) {
+	if (set) {
+		SET_BIT  (BMS_UART->Instance->CR1, USART_CR1_RXNEIE_RXFNEIE);
+	}
+	else {
+		CLEAR_BIT(BMS_UART->Instance->CR1, USART_CR1_RXNEIE_RXFNEIE);
+	}
+}
+
+static void handle_bms_rx(void *p) {
+	set_uart_rx_it(false);
+	//hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
+}
+
+static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
+	if (Pin != 0) return; // Sanity check the pin
+	if (PinState == FALSE) { // Transmission complete
+		bms_rx_do.Enqueue();
+		return;
+	}
+	// Setup for incoming BMS transmission
+	bms_rx_bytes = 0;
+	set_uart_rx_it(true);
+	bms_assert_rts();
+}
+
+static void bms_uart_irq_handler(void) {
+	uint8_t data = (uint8_t)(BMS_UART->Instance->RDR & (uint8_t)0xFF);
+	if (bms_rx_bytes == 0 && !bms_active_transmit) bms_clear_rts();
+	if (bms_rx_bytes >= sizeof(bms_rx_buf)) return; // ignore out of bounds
+	bms_rx_buf[bms_rx_bytes++] = data;
+}
+
+extern "C" {
+void USART2_IRQHandler(void) {
+	bms_uart_irq_handler();
+}
+}
+
 void framed_serial_init(void) {
 #ifdef BOOTLOADER_MAGIC_ADDR
 	*((volatile uint32_t *)BOOTLOADER_MAGIC_ADDR) = 0;
 #endif
 	//send_framed_serial_data(NULL, 0, FRAME_TYPE_HELLO); // Kick out empty "hello" frame
 	rx_buf_do.InitializeCallback(&handle_serial_rx, NULL);
+	bms_rx_do.InitializeCallback(&handle_bms_rx, NULL);
+	CPU_GPIO_EnableInputPin ( _P(A,0), FALSE, got_bms_rts, GPIO_INT_EDGE_BOTH, RESISTOR_DISABLED);
+	CPU_GPIO_EnableOutputPin( _P(A,1), FALSE);
 }
 
 // Simple version for TinyCLR, DEBUG and STRING types
