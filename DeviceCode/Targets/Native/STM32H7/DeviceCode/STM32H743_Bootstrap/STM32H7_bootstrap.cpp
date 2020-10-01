@@ -8,6 +8,8 @@
 #define START_UP_DELAY() if (STARTUP_DELAY_MS > 0) HAL_Delay(STARTUP_DELAY_MS)
 #endif
 
+//#define MAX_CLOCK_ONLY
+
 #define BREAKPOINT(x) __asm__("BKPT")
 //#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
 #define VECT_TAB_OFFSET 0x00000070
@@ -38,6 +40,7 @@ static void Error_Handler(void)
   */
 // 480 MHz (Maximum clock, REV 'V' SILICON ONLY
 static int is_fast_clock = -1;
+
 void MaxSystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -47,9 +50,11 @@ void MaxSystemClock_Config(void)
   if (is_fast_clock > 0 ) return;
   is_fast_clock = 1;
 
+#ifndef MAX_CLOCK_ONLY
   CPU_USB_Uninitialize(0);
 
   HAL_RCC_DeInit();
+#endif
 
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
@@ -113,6 +118,9 @@ void MaxSystemClock_Config(void)
 }
 
 // 60 MHz
+#ifdef MAX_CLOCK_ONLY
+void MinSystemClock_Config(void) { return; }
+#else
 void MinSystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
@@ -184,6 +192,7 @@ void MinSystemClock_Config(void)
 
   HAL_PWREx_EnableUSBVoltageDetector();
 }
+#endif // MAX_CLOCK_ONLY
 
 void HAL_MspInit(void)
 {
@@ -442,8 +451,11 @@ void BootstrapCode() {
 	SCB_EnableDCache();
 
 	HAL_Init(); // Later calls HAL_MspInit()
-	//MaxSystemClock_Config();
+#ifdef MAX_CLOCK_ONLY
+	MaxSystemClock_Config();
+#else
 	MinSystemClock_Config();
+#endif
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
 	__HAL_DBGMCU_FREEZE_TIM5();
