@@ -232,8 +232,9 @@ static unsigned get_tx_buf_used(void) {
 	return usb_cdc_status.TxCurrent + usb_cdc_status.TxBytesQueued;
 }
 
+static bool do_not_reinit=false; // hack fix me. I don't think needed but just to be sure...
 HRESULT CPU_USB_Initialize( int Controller ) {
-	return S_OK;
+	if (do_not_reinit) return S_OK;
 	if (USB_initialized == false){
 		MX_USB_DEVICE_Init();
 		// Allows USB to work in WFI
@@ -256,9 +257,8 @@ HRESULT CPU_USB_Uninitialize( int Controller ) {
 	if (USB_initialized == false) return S_OK;
 
 	USB_initialized = false;
-	HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
-	__HAL_RCC_USB2_OTG_FS_CLK_SLEEP_DISABLE();
-	__HAL_RCC_USB2_OTG_FS_CLK_DISABLE();
+	do_not_reinit = true;
+	MX_USB_DEVICE_DeInit();
 
 	// We should be IRQ locked so this is kosher
 	if (usb_lock != usb_lock_mem)
