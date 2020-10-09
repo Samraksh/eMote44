@@ -18,7 +18,27 @@ static inline void dec_task_list_size(void) { task_list_size--; }
 #define dec_task_list_size() ((void)0)
 #endif
 
-// TODO: CONSIDER LOCKING ETC
+#ifdef _DEBUG
+static void list_sanity_check(void) {
+	// Walk the list
+	GLOBAL_LOCK(irq);
+	lptim_task_t *x = task_HEAD;
+	int ret = 0;
+	while(x != NULL) {
+		if (x->next == x) {
+			x->next = NULL;
+			ret = 1;
+		}
+		x = x->next;
+	}
+	irq.Release();
+	if (ret) {
+		hal_printf("LPTIM list consistency error, breaking loop...\r\n");
+	}
+}
+#else
+#define list_sanity_check() ((void)0)
+#endif
 
 bool task_is_linked(lptim_task_t *x) {
 	lptim_task_t *HEAD;
@@ -30,6 +50,7 @@ bool task_is_linked(lptim_task_t *x) {
 
 // Fast append to front
 static bool add_lptim_task_front(lptim_task_t *x) {
+	GLOBAL_LOCK(irq);
 	lptim_task_t *prev = task_HEAD;
 	if (task_is_linked(x)) return true; // Do nothing if node is already present
 	task_HEAD = x;
@@ -98,6 +119,7 @@ int lptim_add_oneshot(lptim_task_t *x) {
 	ret = lptim_set_delay_ms(next->delay_ms, LPTIM_DEBUG);
 	//if (ret) __BKPT();
 	task_RUNNING = next;
+	list_sanity_check();
 	return 0;
 }
 
@@ -106,6 +128,7 @@ void lptim_task_cb() {
 	lptim_task_t *task = task_RUNNING;
 	if (task_RUNNING == NULL) return; // Shouldn't happen
 	unlink_lptim_task(task_RUNNING);  // Do this early in case cb re-queues
+	list_sanity_check();
 
 	// run the ISR task
 	if (task->isr_cb != NULL) {
@@ -119,4 +142,5 @@ void lptim_task_cb() {
 		HAL_CONTINUATION *contin = (HAL_CONTINUATION *)task->contin;
 		contin->Enqueue();
 	}
+	list_sanity_check();
 }
