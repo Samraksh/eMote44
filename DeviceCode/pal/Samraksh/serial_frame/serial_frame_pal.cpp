@@ -218,7 +218,7 @@ void framed_serial_init(void) {
 	//send_framed_serial_data(NULL, 0, FRAME_TYPE_HELLO); // Kick out empty "hello" frame
 	rx_buf_do.InitializeCallback(&handle_serial_rx, NULL);
 	bms_rx_do.InitializeCallback(&handle_bms_rx, NULL);
-	CPU_GPIO_EnableInputPin ( _P(A,0), FALSE, got_bms_rts, GPIO_INT_EDGE_BOTH, RESISTOR_DISABLED);
+	//CPU_GPIO_EnableInputPin ( _P(A,0), FALSE, got_bms_rts, GPIO_INT_EDGE_BOTH, RESISTOR_DISABLED);
 	CPU_GPIO_EnableOutputPin( _P(A,1), FALSE);
 }
 

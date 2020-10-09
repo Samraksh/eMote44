@@ -21,6 +21,8 @@ NPS 2019-11-22
 
 #define ALWAYS_QUEUE_FROM_IRQ
 
+#define KILL_USB
+
 // Generic Port Stuff
 
 static inline int usb_serial_generic_WRITE(void* pInstance, const char* Data, size_t size) {
@@ -232,7 +234,11 @@ static unsigned get_tx_buf_used(void) {
 	return usb_cdc_status.TxCurrent + usb_cdc_status.TxBytesQueued;
 }
 
+#ifdef KILL_USB
+static bool do_not_reinit=true; // hack fix me. I don't think needed but just to be sure...
+#else
 static bool do_not_reinit=false; // hack fix me. I don't think needed but just to be sure...
+#endif
 HRESULT CPU_USB_Initialize( int Controller ) {
 	if (do_not_reinit) return S_OK;
 	if (USB_initialized == false){
