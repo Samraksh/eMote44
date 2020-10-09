@@ -217,14 +217,25 @@ void ManagedAICallback(UINT32 arg1, UINT32 arg2);
 extern void MaxSystemClock_Config(void);
 extern void MinSystemClock_Config(void);
 
+#ifndef ML_RUN_MODULO_DEFAULT
+#define ML_RUN_MODULO_DEFAULT 4
+#endif
+
+uint32_t ml_run_modulo = ML_RUN_MODULO_DEFAULT;
+
 static void mic_data_callback(void *buf, unsigned len) {
+	static uint32_t ml_run_idx = 0;
+	
+	if (ml_run_idx++ % ml_run_modulo != 0)
+		return;
+
 	GLOBAL_LOCK(irq);
 	MaxSystemClock_Config();
 	irq.Release();
 	int32_t *my_raw_data = (int32_t *) buf;
 	// Compute db SPL
 	dBSPL = compute_spl_db(my_raw_data, len/sizeof(int32_t));
-	
+
 	// Get Mels from all 51 hops
 	// Note transpose step to match ML input
 	for(int i=0; i<NUM_HOPS; i++) {
