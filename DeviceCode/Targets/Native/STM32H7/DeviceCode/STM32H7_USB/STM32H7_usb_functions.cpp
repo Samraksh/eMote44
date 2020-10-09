@@ -21,7 +21,7 @@ NPS 2019-11-22
 
 #define ALWAYS_QUEUE_FROM_IRQ
 
-#define KILL_USB
+//#define KILL_USB
 
 // Generic Port Stuff
 

@@ -8,7 +8,7 @@
 #define START_UP_DELAY() if (STARTUP_DELAY_MS > 0) HAL_Delay(STARTUP_DELAY_MS)
 #endif
 
-//#define MAX_CLOCK_ONLY
+#define MAX_CLOCK_ONLY
 
 #define BREAKPOINT(x) __asm__("BKPT")
 //#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
