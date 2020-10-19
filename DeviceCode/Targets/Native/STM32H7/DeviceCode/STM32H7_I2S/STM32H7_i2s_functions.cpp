@@ -189,9 +189,9 @@ static void mic_data_callback(void *buf, unsigned len) {
 */
 
 static float dBSPL;
-float get_db_spl(void) {
-	return dBSPL;
-}
+static float dBSPL_thresh = -100;
+float get_db_spl(void) { return dBSPL; }
+void set_dBSPL_thresh(float x) { dBSPL_thresh = x; }
 
 float * get_ml_upstream(void) {
 	return upstream_out;
@@ -203,13 +203,14 @@ float * get_ml_downstream(void) {
 
 void start_microphone(void) {
 	HAL_StatusTypeDef ret;
-	//mic_power_ctrl(MIC_ON); // on by default
+	mic_power_ctrl(MIC_ON); // on by default
 	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN);
 	if (ret != HAL_OK) __BKPT();
 }
 
 void stop_microphone(void) {
 	HAL_I2S_DMAStop(&hi2s3);
+	mic_power_ctrl(MIC_OFF);
 }
 
 void ManagedAICallback(UINT32 arg1, UINT32 arg2);
@@ -222,7 +223,6 @@ extern void MinSystemClock_Config(void);
 #endif
 
 uint32_t ml_run_modulo = ML_RUN_MODULO_DEFAULT;
-
 void set_ml_modulo(uint32_t x) { ml_run_modulo = x; }
 uint32_t get_ml_modulo(void) { return ml_run_modulo; }
 
@@ -238,6 +238,7 @@ static void mic_data_callback(void *buf, unsigned len) {
 	int32_t *my_raw_data = (int32_t *) buf;
 	// Compute db SPL
 	dBSPL = compute_spl_db(my_raw_data, len/sizeof(int32_t));
+	if (dBSPL < dBSPL_thresh) goto out; // Below threshold, do not run ML
 
 	// Get Mels from all 51 hops
 	// Note transpose step to match ML input
@@ -250,6 +251,7 @@ static void mic_data_callback(void *buf, unsigned len) {
 	amp_to_db((float *)output_swapped, NUM_BINS*NUM_HOPS);
 	my_ai_process((float *)output_swapped);
 	ManagedAICallback(0,0);
+out:
 	do_send = 0; // signal we are done with buffer
 	irq.Acquire();
 	MinSystemClock_Config();

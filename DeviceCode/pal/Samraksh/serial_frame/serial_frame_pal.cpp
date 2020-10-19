@@ -205,15 +205,15 @@ bms_rx_v6_t * get_bms_data_v6(void) {
 	return &bms_data;
 }
 
-static void print_bms_data(bms_rx_v6_t *x) {
+static void print_bms_data(bms_rx_v6_t *x, uint32_t i) {
 	hal_printf("ver: %lu\r\n", x->version);
 	hal_printf("hour: %lu\r\n", x->hour_idx);
 	hal_printf("cells: %lu %lu %lu %lu\r\n", x->cells[0], x->cells[1], x->cells[2], x->cells[3]);
 	hal_printf("tot: %lu\r\n", x->tot);
-	hal_printf("0 hr power in: %lu\r\n", x->power_in_24[0]);
-	hal_printf("0 hr power out: %lu\r\n", x->power_out_24[0]);
-	hal_printf("0 hr solar volt: %lu\r\n", x->solar_volt_24[0]);
-	hal_printf("0 hr temperature: %.2f\r\n", x->temperature_24[0]);
+	hal_printf("0 hr power in: %lu\r\n", x->power_in_24[i]);
+	hal_printf("0 hr power out: %lu\r\n", x->power_out_24[i]);
+	hal_printf("0 hr solar volt: %lu\r\n", x->solar_volt_24[i]);
+	hal_printf("0 hr temperature: %lu\r\n", (uint32_t)(x->temperature_24[i])); // Don't print floats
 }
 
 // Called on reception completed
@@ -229,10 +229,10 @@ static void handle_bms_rx(void *p) {
 	// we want the current hour_idx
 	// bms_data.hour_idx normally points to the *next* hour so step back one
 	if (bms_data.hour_idx == 0) bms_data.hour_idx = 23;
-	else bms_data.hour_idx--;
+	else bms_data.hour_idx = bms_data.hour_idx - 1;
 
 	hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
-	print_bms_data(&bms_data);
+	print_bms_data(&bms_data, bms_data.hour_idx);
 }
 
 static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {

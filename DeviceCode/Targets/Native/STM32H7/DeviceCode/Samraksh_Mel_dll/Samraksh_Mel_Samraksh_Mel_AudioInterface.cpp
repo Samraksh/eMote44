@@ -66,8 +66,10 @@ INT8 AudioInterface::Initialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 	return ML_SUCCESS;
 }
 
+extern void stop_microphone(void);
 INT8 AudioInterface::Uninitialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
+	stop_microphone();
 	return ML_SUCCESS;
 }
 
@@ -102,34 +104,39 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, float * param0, C
     return ML_SUCCESS;
 }
 
-void start_microphone(void);
+extern void start_microphone(void);
 INT8 AudioInterface::start_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
 	start_microphone();
 	return ML_SUCCESS;
 }
 
-void stop_microphone(void);
 void AudioInterface::stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
 	stop_microphone();
 }
 
+extern void set_ml_modulo(uint32_t x); // technical debt lol
 INT8 AudioInterface::set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, UINT32 param0, UINT32 param1, HRESULT &hr )
 {
-    return ML_FAIL;
+	if (param0 != 0) return ML_FAIL; // Kind of a fail, doesn't implement M of N as spec'd, but only 1 of N
+	set_ml_modulo(param1);
 }
 
+// NYI
 INT8 AudioInterface::set_raw_data_output( CLR_RT_HeapBlock* pMngObj, INT8 param0, HRESULT &hr )
 {
     return ML_FAIL;
 }
 
+extern void set_dBSPL_thresh(float x); // technical debt lol
 INT8 AudioInterface::set_dB_thresh( CLR_RT_HeapBlock* pMngObj, float param0, HRESULT &hr )
 {
-    return ML_FAIL;
+	set_dBSPL_thresh(param0);
+	return ML_SUCCESS;
 }
 
+// NYI
 INT8 AudioInterface::set_time_interval( CLR_RT_HeapBlock* pMngObj, UINT32 param0, HRESULT &hr )
 {
 	return ML_FAIL;
