@@ -1,6 +1,8 @@
 #include <tinyhal.h>
 #include "usb_serial_ext.h"
 
+#include "Samraksh/serial_frame_pal.h"
+
 extern "C" {
 #include "serial_frame.h"
 }
@@ -197,12 +199,32 @@ static void UART_EndRxTransfer(UART_HandleTypeDef *huart)
   huart->RxISR = NULL;
 }
 
+static bms_rx_v6_t bms_data;
+
+bms_rx_v6_t * get_bms_data_v6(void) {
+	return &bms_data;
+}
+
+static void print_bms_data(bms_rx_v6_t *x) {
+	hal_printf("ver: %lu\r\n", x->version);
+	hal_printf("cells: %lu %lu %lu %lu\r\n", x->cells[0], x->cells[1], x->cells[2], x->cells[3]);
+	hal_printf("tot: %lu\r\n", x->tot);
+	hal_printf("0 hr power in: %lu\r\n", x->power_in_24[0]);
+	hal_printf("0 hr power out: %lu\r\n", x->power_out_24[0]);
+	hal_printf("0 hr solar volt: %lu\r\n", x->solar_volt_24[0]);
+	hal_printf("0 hr temperature: %.2f\r\n", x->temperature_24[0]);
+}
+
 // Called on transmission completed
 static void handle_bms_rx(void *p) {
 	//set_uart_rx_it(false);
 	UART_EndRxTransfer(BMS_UART);
+	__DMB();
 	if (uart2_error) return; // Discard results
-	hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
+	if (bms_rx_bytes != sizeof(bms_rx_v6_t)) return; // Unexpected size
+	//hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
+	memcpy(&bms_data, (const void *)bms_rx_buf, sizeof(bms_rx_v6_t));
+	//print_bms_data(&bms_data);
 }
 
 static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
