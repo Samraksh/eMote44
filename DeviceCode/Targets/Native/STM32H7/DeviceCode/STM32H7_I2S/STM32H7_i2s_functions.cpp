@@ -223,6 +223,9 @@ extern void MinSystemClock_Config(void);
 
 uint32_t ml_run_modulo = ML_RUN_MODULO_DEFAULT;
 
+void set_ml_modulo(uint32_t x) { ml_run_modulo = x; }
+uint32_t get_ml_modulo(void) { return ml_run_modulo; }
+
 static void mic_data_callback(void *buf, unsigned len) {
 	static uint32_t ml_run_idx = 0;
 	

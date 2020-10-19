@@ -18,6 +18,7 @@
 // Shouldn't need to do __packed__ here
 typedef struct {
 	uint32_t version;
+	uint32_t hour_idx;
 	uint32_t cells[4];
 	uint32_t tot;
 	uint32_t power_in_24[24];
@@ -32,3 +33,4 @@ void rx_framed_serial(uint8_t* buf, uint32_t len);
 int read_serial_frame_buffer(uint8_t *buf, size_t size);
 void framed_serial_init(void);
 bms_rx_v6_t * get_bms_data_v6(void);
+uint32_t get_bms_last_idx(void);
