@@ -166,6 +166,8 @@ extern UART_HandleTypeDef huart2;
 UART_HandleTypeDef *BMS_UART = &huart2;
 static volatile uint8_t bms_rx_buf[512];
 static volatile uint32_t bms_rx_bytes;
+static volatile bool uart2_error;
+static volatile uint32_t uart2_timeout; // IRQ loop timeout
 static const bool bms_active_transmit = false; // not used for now
 
 static int get_cts(void) { return CPU_GPIO_GetPinState( _P(A,0) ); }
@@ -181,9 +183,26 @@ static void set_uart_rx_it(bool set) {
 	}
 }
 
+// From stm32h7xx_hal_hart.c
+static void UART_EndRxTransfer(UART_HandleTypeDef *huart)
+{
+  /* Disable RXNE, PE and ERR (Frame error, noise error, overrun error) interrupts */
+  CLEAR_BIT(huart->Instance->CR1, (USART_CR1_RXNEIE_RXFNEIE | USART_CR1_PEIE));
+  CLEAR_BIT(huart->Instance->CR3, (USART_CR3_EIE | USART_CR3_RXFTIE));
+
+  /* At end of Rx process, restore huart->RxState to Ready */
+  huart->RxState = HAL_UART_STATE_READY;
+
+  /* Reset RxIsr function pointer */
+  huart->RxISR = NULL;
+}
+
+// Called on transmission completed
 static void handle_bms_rx(void *p) {
-	set_uart_rx_it(false);
-	//hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
+	//set_uart_rx_it(false);
+	UART_EndRxTransfer(BMS_UART);
+	if (uart2_error) return; // Discard results
+	hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
 }
 
 static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
@@ -194,11 +213,70 @@ static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
 	}
 	// Setup for incoming BMS transmission
 	bms_rx_bytes = 0;
+	uart2_error = false;
+	uart2_timeout = 1000;
 	set_uart_rx_it(true);
 	bms_assert_rts();
 }
 
+
+static void bms_uart_abort(UART_HandleTypeDef *huart) {
+	uint32_t isrflags   = READ_REG(huart->Instance->ISR);
+	uint32_t cr1its     = READ_REG(huart->Instance->CR1);
+	uint32_t cr3its     = READ_REG(huart->Instance->CR3);
+
+	//uint32_t errorflags;
+	uint32_t errorcode;
+
+	uart2_error = true;
+
+	/* UART parity error interrupt occurred -------------------------------------*/
+	if (((isrflags & USART_ISR_PE) != 0U) && ((cr1its & USART_CR1_PEIE) != 0U))
+	{
+	  __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_PEF);
+
+	  huart->ErrorCode |= HAL_UART_ERROR_PE;
+	}
+
+	/* UART frame error interrupt occurred --------------------------------------*/
+	if (((isrflags & USART_ISR_FE) != 0U) && ((cr3its & USART_CR3_EIE) != 0U))
+	{
+	  __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_FEF);
+
+	  huart->ErrorCode |= HAL_UART_ERROR_FE;
+	}
+
+	/* UART noise error interrupt occurred --------------------------------------*/
+	if (((isrflags & USART_ISR_NE) != 0U) && ((cr3its & USART_CR3_EIE) != 0U))
+	{
+	  __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_NEF);
+
+	  huart->ErrorCode |= HAL_UART_ERROR_NE;
+	}
+
+	/* UART Over-Run interrupt occurred -----------------------------------------*/
+	if (((isrflags & USART_ISR_ORE) != 0U)
+		&& (((cr1its & USART_CR1_RXNEIE_RXFNEIE) != 0U) ||
+			((cr3its & (USART_CR3_RXFTIE | USART_CR3_EIE)) != 0U)))
+	{
+	  __HAL_UART_CLEAR_FLAG(huart, UART_CLEAR_OREF);
+
+	  huart->ErrorCode |= HAL_UART_ERROR_ORE;
+	}
+
+	UART_EndRxTransfer(huart);
+}
+
 static void bms_uart_irq_handler(void) {
+
+	uint32_t isrflags   = READ_REG(BMS_UART->Instance->ISR);
+	uint32_t errorflags;
+	errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
+	if (errorflags != 0U || --uart2_timeout == 0) {
+		bms_uart_abort(BMS_UART);
+		return;
+	}
+
 	uint8_t data = (uint8_t)(BMS_UART->Instance->RDR & (uint8_t)0xFF);
 	if (bms_rx_bytes == 0 && !bms_active_transmit) bms_clear_rts();
 	if (bms_rx_bytes >= sizeof(bms_rx_buf)) return; // ignore out of bounds
@@ -218,7 +296,7 @@ void framed_serial_init(void) {
 	//send_framed_serial_data(NULL, 0, FRAME_TYPE_HELLO); // Kick out empty "hello" frame
 	rx_buf_do.InitializeCallback(&handle_serial_rx, NULL);
 	bms_rx_do.InitializeCallback(&handle_bms_rx, NULL);
-	//CPU_GPIO_EnableInputPin ( _P(A,0), FALSE, got_bms_rts, GPIO_INT_EDGE_BOTH, RESISTOR_DISABLED);
+	CPU_GPIO_EnableInputPin ( _P(A,0), FALSE, got_bms_rts, GPIO_INT_EDGE_BOTH, RESISTOR_DISABLED);
 	CPU_GPIO_EnableOutputPin( _P(A,1), FALSE);
 }
 
