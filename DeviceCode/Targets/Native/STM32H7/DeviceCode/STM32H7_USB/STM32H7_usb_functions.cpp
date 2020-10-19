@@ -21,7 +21,10 @@ NPS 2019-11-22
 
 #define ALWAYS_QUEUE_FROM_IRQ
 
+// If we are a BASE, leave USB up. If a FENCE, kill it.
+#ifndef MKII_BASE_CONFIG
 #define KILL_USB
+#endif
 
 // Generic Port Stuff
 
