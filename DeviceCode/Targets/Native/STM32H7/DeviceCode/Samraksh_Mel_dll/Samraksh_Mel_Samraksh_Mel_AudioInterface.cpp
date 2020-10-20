@@ -40,14 +40,20 @@ void ManagedAICallback(UINT32 arg1, UINT32 arg2)
 	SaveNativeEventToHALQueue( AI_ne_Context, arg1, arg2 );
 }
 
+static float my_down_thresh[8];
 void AudioInterface::mel_get_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr )
 {
+	for(int i=0; i<8; i++) {
+		param0[i] = my_down_thresh[i];
+	}
 }
 
 INT32 AudioInterface::mel_set_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr )
 {
-    INT32 retVal = 0; 
-    return retVal;
+	for(int i=0; i<8; i++) {
+		my_down_thresh[i] = param0[i];
+	}
+    return 0;
 }
 
 INT8 AudioInterface::set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, UINT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr )
