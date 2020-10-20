@@ -35,8 +35,10 @@ static void my_free(uint32_t x);
 
 int send_framed_serial_data(const uint8_t *data, unsigned sz, uint32_t frame_type);
 
+extern void add_bytes_to_com2(uint8_t *data, unsigned len);
+
 static void copy_buf_to_clr(uint8_t *buf, unsigned len) {
-	// TODO
+	add_bytes_to_com2(buf, len);
 }
 
 static void frame_error_handler(void) {
@@ -151,8 +153,6 @@ int read_serial_frame_buffer(uint8_t *buf, size_t size) {
 }
 
 // Expected to be called in ISR
-// Hack it and set a continuation and fake a UART serial port
-// Really this should integrate more nicely with the CLR but I don't have it in me right now.
 void rx_framed_serial(uint8_t* buf, uint32_t len) {
 	if (rx_cnt + len > FRAME_MAX_SIZE) {
 		frame_error_handler();
@@ -160,8 +160,7 @@ void rx_framed_serial(uint8_t* buf, uint32_t len) {
 	}
 	memcpy(&rx_buf[rx_cnt], buf, len);
 	rx_cnt += len;
-	//rx_buf_do.Enqueue(); // TODO REENABLE ME
-	//Events_Set( SYSTEM_EVENT_FLAG_COM_IN );
+	rx_buf_do.Enqueue();
 }
 
 extern UART_HandleTypeDef huart2;

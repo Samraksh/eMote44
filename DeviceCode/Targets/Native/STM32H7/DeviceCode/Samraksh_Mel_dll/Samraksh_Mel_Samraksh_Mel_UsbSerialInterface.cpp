@@ -18,7 +18,8 @@ extern CLR_RT_HeapBlock_NativeEventDispatcher *USB_ne_Context;
 
 using namespace Samraksh_Mel;
 
-#define COM1_PORT_NUM 0
+//#define COM1_PORT_NUM 0
+#define COM2_PORT_NUM 1
 
 // Signals up to CLR that data is ready
 // Unused pointer arg is to make compatible with HAL_CONTINUATION
@@ -31,7 +32,7 @@ void usb_serial_signal_rx_to_clr(void *p)
 
 UINT32 UsbSerialInterface::BytesInBuffer( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	return GenericPort_Read(COM1_PORT_NUM, NULL, 0);
+	return GenericPort_Read(COM2_PORT_NUM, NULL, 0);
 }
 
 INT32 UsbSerialInterface::mel_serial_tx( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_UINT8 param0, UINT32 param1, INT32 param2, HRESULT &hr )
@@ -39,7 +40,7 @@ INT32 UsbSerialInterface::mel_serial_tx( CLR_RT_HeapBlock* pMngObj, CLR_RT_Typed
 	const char *data = (const char *)param0.GetBuffer();
 	//uint32_t channel; // NYI
 	size_t size = (size_t)param2;
-	GenericPort_Write(COM1_PORT_NUM, data, size);
+	GenericPort_Write(COM2_PORT_NUM, data, size);
 	return 0;
 }
 
@@ -47,6 +48,6 @@ INT32 UsbSerialInterface::mel_serial_rx( CLR_RT_HeapBlock* pMngObj, CLR_RT_Typed
 {
 	char *data = (char *)param0.GetBuffer();
 	size_t size = (size_t)param1;
-	return GenericPort_Read(COM1_PORT_NUM, data, size);
+	return GenericPort_Read(COM2_PORT_NUM, data, size);
 }
 

@@ -28,12 +28,45 @@ NPS 2019-11-22
 
 // Generic Port Stuff
 
+static HAL_CONTINUATION rx_event_contin; // For signaling to CLR that COM2 data is available
+uint8_t usb_com2_rx_buf[512];
+uint32_t usb_com2_rx_buf_sz;
+
+void add_bytes_to_com2(uint8_t *data, unsigned len) {
+	if(len + usb_com2_rx_buf_sz > sizeof(usb_com2_rx_buf)) return;
+	memcpy(&usb_com2_rx_buf[usb_com2_rx_buf_sz], data, len);
+	rx_event_contin.Enqueue();
+}
+
 static inline int usb_serial_generic_WRITE(void* pInstance, const char* Data, size_t size) {
+#ifdef MEL_USE_SERIAL_FRAMES
+	return send_framed_serial((const uint8_t *)Data, size, TRUE);
+#else
 	return CPU_USB_write(Data, size);
+#endif
+}
+
+static inline int usb_serial_generic_WRITE_DATA(void* pInstance, const char* Data, size_t size) {
+#ifdef MEL_USE_SERIAL_FRAMES
+	return send_framed_serial((const uint8_t *)Data, size, FALSE);
+#else
+	return CPU_USB_write(Data, size);
+#endif
 }
 
 static inline BOOL usb_serial_generic_INIT(void* pInstance) {
 	return CPU_USB_Initialize(0);
+}
+
+static inline int usb_serial_generic_READ_DATA(void* pInstance, char* Data, size_t size) {
+	int count;
+	if (size == 0) return usb_com2_rx_buf_sz; // Returns available bytes
+	GLOBAL_LOCK(irq);
+	if (size > usb_com2_rx_buf_sz) count = usb_com2_rx_buf_sz;
+	else count = size;
+	memcpy(Data, usb_com2_rx_buf, count);
+	usb_com2_rx_buf_sz -= count;
+	return count;
 }
 
 static inline int usb_serial_generic_READ(void* pInstance, char* Data, size_t size) {
@@ -43,6 +76,7 @@ static inline int usb_serial_generic_READ(void* pInstance, char* Data, size_t si
 	return read_serial_frame_buffer((uint8_t *)Data, size);
 }
 
+// WRITES DEBUG FRAMES
 static IGenericPort const mel_usb_serial_gport =
 {
     // default returns TRUE
@@ -79,7 +113,48 @@ extern const GenericPortTableEntry mel_usb_generic_port =
     NULL
 };
 
-extern GenericPortTableEntry const* const g_GenericPorts[TOTAL_GENERIC_PORTS] = { &mel_usb_generic_port };
+// WRITES DATA FRAMES
+static IGenericPort const mel_usb_serial_data_gport =
+{
+    // default returns TRUE
+    usb_serial_generic_INIT, //BOOL (*Initialize)( void* pInstance );
+
+    // default returns TRUE
+    NULL, //BOOL (*Uninitialize)( void* pInstance );
+
+    // default return 0
+    usb_serial_generic_WRITE_DATA, //int (*Write)( void* pInstance, const char* Data, size_t size );
+
+    // defualt return 0
+    usb_serial_generic_READ_DATA, //int (*Read)( void* pInstance, char* Data, size_t size );
+
+    // default return TRUE
+    NULL, //BOOL (*Flush)( void* pInstance );
+
+    // default do nothing
+    NULL, //void (*ProtectPins)( void* pInstance, BOOL On );
+
+    // default return FALSE
+    NULL, //BOOL (*IsSslSupported)( void* pInstance );
+
+    // default return FALSE
+    NULL, //BOOL (*UpgradeToSsl)( void* pInstance, const UINT8* pCACert, UINT32 caCertLen, const UINT8* pDeviceCert, UINT32 deviceCertLen, LPCSTR szTargetHost );
+
+    // default return FALSE
+    NULL, //BOOL (*IsUsingSsl)( void* pInstance );
+};
+
+extern const GenericPortTableEntry mel_usb_generic_data_port =
+{
+    mel_usb_serial_data_gport,
+    NULL
+};
+
+// TOTAL_GENERIC_PORTS is from platform_selector.h and should be 2
+#if (TOTAL_GENERIC_PORTS != 2)
+	#error "TOTAL_GENERIC_PORTS wrong???"
+#endif
+extern GenericPortTableEntry const* const g_GenericPorts[TOTAL_GENERIC_PORTS] = { &mel_usb_generic_port, &mel_usb_generic_data_port };
 // End Generic Port Stuff
 
 //#define INBUF_IDX usb_cdc_status.RxQueueBytes // Alias, to confuse people later
@@ -115,7 +190,6 @@ static uint8_t tx_pkt_buf[128*1024+1024] __attribute__ (( section (".ram_d1"), a
 static usb_cdc_status_t usb_cdc_status;
 
 static HAL_CONTINUATION usb_retry_contin;
-static HAL_CONTINUATION rx_event_contin;
 static lptim_task_t usb_retry_task;			// After a request is buffered, try again later (e.g., 25ms)
 static void do_usb_retry(void *p);			// The continuation function
 
@@ -191,7 +265,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len) {
 	usb_cdc_status.RxBytes += *Len;
 	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, rx_pkt_buf);
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-	rx_event_contin.Enqueue();
+	//rx_event_contin.Enqueue();
 	return (USBD_OK);
 }
 
@@ -251,6 +325,7 @@ HRESULT CPU_USB_Initialize( int Controller ) {
 		__HAL_RCC_USB2_OTG_FS_ULPI_CLK_SLEEP_DISABLE();
 
 		USB_initialized = true;
+		usb_com2_rx_buf_sz = 0;
 		reset_status(&usb_cdc_status);
 #if defined(PAUSE_AFTER_USB_INIT_MS) && PAUSE_AFTER_USB_INIT_MS > 0
 		HAL_Delay(PAUSE_AFTER_USB_INIT_MS);

@@ -4,10 +4,6 @@
 
 #include <tinyhal.h>
 
-#ifdef MEL_USE_SERIAL_FRAMES
-#include <Samraksh\serial_frame_pal.h>
-#endif
-
 BOOL DebuggerPort_Initialize( COM_HANDLE ComPortNum )
 {
     NATIVE_PROFILE_PAL_COM();

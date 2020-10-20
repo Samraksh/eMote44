@@ -161,7 +161,7 @@
 
 #define SUPPLY_VOLTAGE_MV               3300  // 3.3V supply
 
-#define TOTAL_GENERIC_PORTS             1 // ITM channel 0
+#define TOTAL_GENERIC_PORTS             2
 
 #define TOTAL_USB_CONTROLLER            0
 #define USB_MAX_QUEUES                  4 // 4 endpoints (EP0 + 3)
@@ -170,9 +170,8 @@
 // if we want to use our USB port as a USB device you must specify it as USB as the following declaration does
 //#define USB_SERIAL_PORT			0x221 // USB transport, controller instance 1, port 1
 
-#define COM1			ConvertCOM_GenericHandle(0)
-// #define COM1                   ConvertCOM_ComHandle(0)
-// #define COM2                   ConvertCOM_ComHandle(1)
+#define COM1			ConvertCOM_GenericHandle(0)		// DEBUG stream and debug type frames
+#define COM2            ConvertCOM_GenericHandle(1)		// DATA stream and data type frames
 // #define COM3                   ConvertCOM_ComHandle(2)
 // #define COM4                   ConvertCOM_ComHandle(3)
 // #define COM5                   ConvertCOM_ComHandle(4)
