@@ -205,15 +205,25 @@ bms_rx_v6_t * get_bms_data_v6(void) {
 	return &bms_data;
 }
 
+static int32_t avg24(uint32_t *x) {
+	int32_t ret=0;
+	for(int i=0; i<24; i++) {
+		ret += x[i];
+	}
+	return ret/24;
+}
+
 static void print_bms_data(bms_rx_v6_t *x, uint32_t i) {
 	hal_printf("ver: %lu\r\n", x->version);
 	hal_printf("hour: %lu\r\n", x->hour_idx);
 	hal_printf("cells: %lu %lu %lu %lu\r\n", x->cells[0], x->cells[1], x->cells[2], x->cells[3]);
 	hal_printf("tot: %lu\r\n", x->tot);
-	hal_printf("0 hr power in: %lu\r\n", x->power_in_24[i]);
-	hal_printf("0 hr power out: %lu\r\n", x->power_out_24[i]);
-	hal_printf("0 hr solar volt: %lu\r\n", x->solar_volt_24[i]);
-	hal_printf("0 hr temperature: %lu\r\n", (uint32_t)(x->temperature_24[i])); // Don't print floats
+	hal_printf("1 hr power in: %lu\r\n", x->power_in_24[i]);
+	hal_printf("1 hr power out: %lu\r\n", x->power_out_24[i]);
+	hal_printf("1 hr solar volt: %lu\r\n", x->solar_volt_24[i]);
+	hal_printf("24 hr power in: %lu\r\n", avg24(x->power_in_24));
+	hal_printf("24 hr power out: %lu\r\n", avg24(x->power_out_24));
+	hal_printf("1 hr temperature: %lu\r\n", (uint32_t)(x->temperature_24[i])); // Don't print floats
 }
 
 // Called on reception completed
