@@ -297,6 +297,7 @@ const UINT32 g_HardwareTimerFrequency[g_CountOfHardwareTimers] = { SYSTEM_APB1_C
 
 #define VIRT_TIMER_TIME 			70
 
+#define VIRT_TIMER_FAKE_I2S_DATA	131
 #define VIRT_TIMER_TIME_TEST	132
 #define VIRT_TIMER_RTC_TEST	138
 

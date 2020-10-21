@@ -8,6 +8,11 @@
 
 #define debug_printf hal_printf
 
+#define USE_FAKE_DATA
+#ifdef USE_FAKE_DATA
+#include <Samraksh/VirtualTimer.h>
+#endif
+
 //#define SEND_AUDIO_DATA_ONLY
 
 static HAL_CONTINUATION mic_cont;
@@ -204,12 +209,20 @@ float * get_ml_downstream(void) {
 void start_microphone(void) {
 	HAL_StatusTypeDef ret;
 	//mic_power_ctrl(MIC_ON); // on by default
+#ifdef USE_FAKE_DATA
+	VirtTimer_Start(VIRT_TIMER_FAKE_I2S_DATA);
+#else
 	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN);
 	if (ret != HAL_OK) __BKPT();
+#endif
 }
 
 void stop_microphone(void) {
+#ifdef USE_FAKE_DATA
+	VirtTimer_Stop(VIRT_TIMER_FAKE_I2S_DATA);
+#else
 	HAL_I2S_DMAStop(&hi2s3);
+#endif
 }
 
 void ManagedAICallback(UINT32 arg1, UINT32 arg2);
@@ -228,10 +241,48 @@ static void mic_data_callback(void *buf, unsigned len) {
 		}
 	}
 	amp_to_db((float *)output_swapped, NUM_BINS*NUM_HOPS);
+#ifndef USE_FAKE_DATA // Just to make sure it doesn't get linked
 	my_ai_process((float *)output_swapped);
+#endif
 	ManagedAICallback(0,0);
 	do_send = 0; // signal we are done with buffer
 }
+
+#ifdef USE_FAKE_DATA
+static int16_t lfsr1(void)
+{
+    static uint16_t start_state = 0xACE1u;  /* Any nonzero start state will work. */
+    uint16_t lfsr = start_state;
+    uint16_t bit;                    /* Must be 16-bit to allow bit<<15 later in the code */
+
+    {   /* taps: 16 14 13 11; feedback polynomial: x^16 + x^14 + x^13 + x^11 + 1 */
+        bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) /* & 1 */;
+        lfsr = (lfsr >> 1) | (bit << 15);
+    }
+    start_state = lfsr;
+	return lfsr;
+}
+
+static float rand_float(void) {
+	int16_t x = lfsr1();
+	return x/-32768.0;
+}
+
+void Fake_I2S_Data_Handler(void *arg) {
+	dBSPL = rand_float();
+	for(int i=0; i<256; i++) {
+		float f = rand_float();
+		if (f < 0) f = -f;
+		upstream_out[i] = f;
+	}
+	for(int i=0; i<8; i++) {
+		float f = rand_float();
+		if (f < 0) f = -f;
+		class_out_data[i] = f;
+	}
+	ManagedAICallback(0,0);
+}
+#endif
 
 // s = stereo source, m = mono dest, s_len stereo data length bytes
 static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
@@ -488,7 +539,11 @@ BOOL I2S_Internal_Initialize() {
 	isInit = true;
 	do_send = 0;
 	mic_power_ctrl(MIC_ON);
+#ifdef USE_FAKE_DATA
+	VirtTimer_SetTimer(VIRT_TIMER_FAKE_I2S_DATA, 0, 1000000, FALSE, FALSE, Fake_I2S_Data_Handler);
+#else
 	MX_X_CUBE_AI_Init();
+#endif
 	mfcc_init();
 	memset(mono_data, 0, sizeof(mono_data));
 	mic_cont.InitializeCallback(mic_cont_do, NULL);
