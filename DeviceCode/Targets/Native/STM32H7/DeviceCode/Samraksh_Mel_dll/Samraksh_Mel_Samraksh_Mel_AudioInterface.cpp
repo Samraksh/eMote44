@@ -29,32 +29,8 @@ using namespace Samraksh_Mel;
 #define ml_printf hal_printf
 #endif
 
-static int16_t lfsr1(void)
-{
-    static uint16_t start_state = 0xACE1u;  /* Any nonzero start state will work. */
-    uint16_t lfsr = start_state;
-    uint16_t bit;                    /* Must be 16-bit to allow bit<<15 later in the code */
-
-    {   /* taps: 16 14 13 11; feedback polynomial: x^16 + x^14 + x^13 + x^11 + 1 */
-        bit = ((lfsr >> 0) ^ (lfsr >> 2) ^ (lfsr >> 3) ^ (lfsr >> 5)) /* & 1 */;
-        lfsr = (lfsr >> 1) | (bit << 15);
-    }
-    start_state = lfsr;
-	return lfsr;
-}
-
-static float rand_float(void) {
-	int16_t x = lfsr1();
-	return x/-32768.0;
-}
-
 extern CLR_RT_HeapBlock_NativeEventDispatcher *AI_ne_Context;
 
-static float junk_data_delete_me[64][51];
-static float ai_output[8];
-static float upstream[256];
-static float dbSPL = -1.0;
-static BOOL is_SONYC_ML_init;
 static BOOL keepDown = TRUE;
 static BOOL keepUp = FALSE;
 
@@ -64,23 +40,23 @@ void ManagedAICallback(UINT32 arg1, UINT32 arg2)
 	SaveNativeEventToHALQueue( AI_ne_Context, arg1, arg2 );
 }
 
-void AudioInterfaceTimerHandler(void *arg){
-	float *x = (float *)junk_data_delete_me;
-	if (is_SONYC_ML_init == FALSE) {
-		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
-		return;
+static float my_down_thresh[8];
+void AudioInterface::mel_get_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr )
+{
+	for(int i=0; i<8; i++) {
+		param0[i] = my_down_thresh[i];
 	}
-	for(int i=0; i<sizeof(junk_data_delete_me)/sizeof(junk_data_delete_me[0]); i++) {
-		x[i] = rand_float();
-	}
-#ifndef KILL_SONYC_MODEL
-	aiRun(junk_data_delete_me, upstream);
-	aiRun2(upstream, ai_output);
-#endif // #ifndef KILL_SONYC_MODEL
-	ManagedAICallback(0,0);
 }
 
-INT8 AudioInterface::set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, INT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr )
+INT32 AudioInterface::mel_set_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr )
+{
+	for(int i=0; i<8; i++) {
+		my_down_thresh[i] = param0[i];
+	}
+    return 0;
+}
+
+INT8 AudioInterface::set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, UINT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr )
 {
 	return ML_FAIL;
 }
@@ -93,100 +69,81 @@ void AudioInterface::set_model_recording_internal( CLR_RT_HeapBlock* pMngObj, IN
 
 INT8 AudioInterface::Initialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	ml_printf("%s()\r\n", __func__);
-#ifndef KILL_SONYC_MODEL
-	MX_X_CUBE_AI_Init();
-#endif // #ifndef KILL_SONYC_MODEL
-	VirtTimer_SetTimer(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK, 0, 1000000, FALSE, FALSE, AudioInterfaceTimerHandler);
-	is_SONYC_ML_init = TRUE;
 	return ML_SUCCESS;
 }
 
+extern void stop_microphone(void);
 INT8 AudioInterface::Uninitialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	ml_printf("%s()\r\n", __func__);
-	if (is_SONYC_ML_init)
-		VirtTimer_Stop(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK);
-	is_SONYC_ML_init = FALSE;
-    return ML_SUCCESS;
+	stop_microphone();
+	return ML_SUCCESS;
 }
 
-// static float dbSPL = -1.0;
-// static BOOL is_SONYC_ML_init;
-// static BOOL keepDown = TRUE;
-// static BOOL keepUp = FALSE;
+// FIX ME IN SUPER RUSH
+float get_db_spl(void);
+float * get_ml_upstream(void);
+float * get_ml_downstream(void);
+
 // interop will call this function to populate the float array that will be sent to the C# app callback function
 INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, float * param0, CLR_RT_TypedArray_float param1, CLR_RT_TypedArray_float param2, HRESULT &hr )
 {
-	INT8 ret = ML_SUCCESS;
-
-	if (is_SONYC_ML_init == FALSE) {
-		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
-		return ML_FAIL;
-	} else {
-		ml_printf("%s()\r\n", __func__);
-	}
-
 	// Return dbSPL
-	*param0 = dbSPL;
+	*param0 = get_db_spl();
 
 	// Return upstream if on upstream_data
 	if (keepUp) {
-		// TODO: Check Size? param0.GetSize() if bad return CLR_E_BUFFER_TOO_SMALL ?? Size is bytes or len??? check below
-		volatile int debug_check_delete_me1 = param1.GetSize();
+		float *my_ret = get_ml_upstream();
 		float* data = param1.GetBuffer();
-		for (int i = 0; i < ARR_LEN(upstream); i++){
-			data[i] = upstream[i];
+		for (int i = 0; i < 256; i++) {
+			data[i] = my_ret[i];
 		}
 	}
 
 	// Return downstream if on
-	// TODO: This is bogus data
 	if (keepDown) {
-		volatile int debug_check_delete_me2 = param2.GetSize();
+		float *my_ret = get_ml_downstream();
 		float* data = param2.GetBuffer();
-		for (int i = 0; i < ARR_LEN(ai_output); i++){
-			data[i] = ai_output[i];
+		for (int i = 0; i < 8; i++){
+			data[i] = my_ret[i];
 		}
 	}
-
-    return ret;
+    return ML_SUCCESS;
 }
 
+extern void start_microphone(void);
 INT8 AudioInterface::start_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	if (is_SONYC_ML_init == FALSE) {
-		ml_printf("%s(): ERROR NOT INIT\r\n", __func__);
-		return ML_FAIL;
-	} else {
-		ml_printf("%s()\r\n", __func__);
-	}
-	VirtTimer_Start(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK);
-    return ML_SUCCESS;
+	start_microphone();
+	return ML_SUCCESS;
 }
 
 void AudioInterface::stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr )
 {
-	if (is_SONYC_ML_init == FALSE) return;
-	else VirtTimer_Stop(VIRT_TIMER_AUDIO_INTERFACE_CALLBACK);
+	stop_microphone();
 }
 
-INT8 AudioInterface::set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, INT32 param0, INT32 param1, HRESULT &hr )
+extern void set_ml_modulo(uint32_t x); // technical debt lol
+INT8 AudioInterface::set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, UINT32 param0, UINT32 param1, HRESULT &hr )
 {
-    return ML_FAIL;
+	if (param0 != 0) return ML_FAIL; // Kind of a fail, doesn't implement M of N as spec'd, but only 1 of N
+	set_ml_modulo(param1);
 }
 
+// NYI
 INT8 AudioInterface::set_raw_data_output( CLR_RT_HeapBlock* pMngObj, INT8 param0, HRESULT &hr )
 {
     return ML_FAIL;
 }
 
+extern void set_dBSPL_thresh(float x); // technical debt lol
 INT8 AudioInterface::set_dB_thresh( CLR_RT_HeapBlock* pMngObj, float param0, HRESULT &hr )
 {
-    return ML_FAIL;
+	set_dBSPL_thresh(param0);
+	return ML_SUCCESS;
 }
 
-INT8 AudioInterface::set_time_interval( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr )
+// NYI
+INT8 AudioInterface::set_time_interval( CLR_RT_HeapBlock* pMngObj, UINT32 param0, HRESULT &hr )
 {
 	return ML_FAIL;
 }

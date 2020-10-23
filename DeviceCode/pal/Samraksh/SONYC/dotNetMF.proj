@@ -11,9 +11,12 @@
 
 <ItemGroup>
 <HFile Include="filt_taps_fir.h" />
+<HFile Include="mfcc.h" />
 <Compile Include="sonyc_comp_filter.cpp" />
+<Compile Include="mfcc.cpp" />
 <IncludePaths Include="DeviceCode\include\Samraksh\SONYC_ML" />
 <HFile Include="sonyc_util.h" />
+<HFile Include="sonyc_ml.h" />
 </ItemGroup>
 
 <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />

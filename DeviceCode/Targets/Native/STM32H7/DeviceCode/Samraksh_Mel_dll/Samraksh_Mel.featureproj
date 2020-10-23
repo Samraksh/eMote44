@@ -2,14 +2,16 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <FeatureName>Samraksh_Mel</FeatureName>
-    <Guid>{e510e256-f1ef-4319-a6be-028c11242525}</Guid>
-    <Description>Audio and ML interface for SONYC MkII (aka Mel)</Description>
+    <Guid>{0021e7f2-4ed2-471c-a5ec-43cc55731f74}</Guid>
+    <Description>Interfaces for SONYC MkII (aka Mel)</Description>
     <Groups />
     <SAMRAKSH_MEL_FEATUREPROJ>True</SAMRAKSH_MEL_FEATUREPROJ>
   </PropertyGroup>
   <ItemGroup>
     <DriverLibs Include="Samraksh_Mel.$(LIB_EXT)" />
     <InteropFeature Include="Samraksh_Mel" />
+    <InteropFeature Include="AICallback" />
+	<InteropFeature Include="USBPortDataEvent" />
 	<!--<MMP_DAT_CreateDatabase Include="$(BUILD_TREE_CLIENT)\pe\$(ENDIANNESS)\Samraksh_Mel.pe" />-->
     <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Samraksh_Mel_dll\dotnetmf.proj" />
   </ItemGroup>

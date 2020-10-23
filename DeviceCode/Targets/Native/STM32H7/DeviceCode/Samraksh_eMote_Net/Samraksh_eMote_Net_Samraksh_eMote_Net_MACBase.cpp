@@ -25,6 +25,19 @@ MACEventHandler_t MACBase::Event_Handler;
 UINT8 MacID = 0;
 UINT8 MACBase::MyAppID;
 
+#define ARR_LEN(x) (sizeof(x) / sizeof(x[0]))
+
+#ifndef MACBASE_CALLBACK_QUEUE_DEPTH
+#define MACBASE_CALLBACK_QUEUE_DEPTH 3
+#endif
+typedef struct {
+	HAL_CONTINUATION macbase_cont;
+	UINT32 saved_args[2];
+} macbase_callback_t;
+static macbase_callback_t callback_queue[MACBASE_CALLBACK_QUEUE_DEPTH];
+static void do_macbase_callback(void *p);
+extern BOOL running_safe_continuation;
+
 enum CallBackTypes
 {
 	ReceivedCallback,
@@ -117,7 +130,14 @@ INT32 MACBase::InternalInitialize( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_
 	    hr = -1;
 	    result = DS_Fail;
 	}
-	
+
+	// Init all the continuation callbacks
+	for(int i=0; i<ARR_LEN(callback_queue); i++) {
+		HAL_CONTINUATION *x = &callback_queue[i].macbase_cont;
+		UINT32 *args = callback_queue[i].saved_args;
+		x->InitializeCallback(do_macbase_callback, args);
+	}
+
 	return result;
 }
 
@@ -284,13 +304,45 @@ void ManagedSendAckCallbackFn(void *msg, UINT16 size, NetOpStatus status, UINT8 
 	//}
 }
 
+// Test if in interrupt context
+static inline bool isInterrupt() {
+    return (SCB->ICSR & SCB_ICSR_VECTACTIVE_Msk) != 0;
+}
+
+static void do_macbase_callback(void *p) {
+	UINT32 *data = (UINT32 *)p;
+	GLOBAL_LOCK(irq);
+	SaveNativeEventToHALQueue( Net_ne_Context, data[0], data[1] );
+}
+
 void ManagedCallback(UINT32 arg1, UINT32 arg2)
 {
-	UINT32 data1, data2;
-	data1 = arg1;
-	data2 = arg2;
-	//data2 = arg2;
+	// If not an interrupt, put it on the HAL Queue immediately
+	// Interrupt context is OK if main context is a Continuation (and not the CLR) as long as it does necessary locking
+	if (running_safe_continuation || !isInterrupt()) {
+		GLOBAL_LOCK(irq);
+		SaveNativeEventToHALQueue( Net_ne_Context, arg1, arg2 );
+		return;
+	}
 
-	GLOBAL_LOCK(irq);
-	SaveNativeEventToHALQueue( Net_ne_Context, data1, data2 );
+	// If we are in ISR, SaveNativeEventToHALQueue() is not safe, put it on the Continuation queue
+	for(int i=0; i<ARR_LEN(callback_queue); i++) {
+		HAL_CONTINUATION *x = &callback_queue[i].macbase_cont;
+		if (x->IsLinked()) continue;
+		UINT32 *args = callback_queue[i].saved_args;
+		args[0] = arg1;
+		args[1] = arg2;
+		x->Enqueue();
+#ifdef _DEBUG
+		static int macbase_queue_highwater;
+		if (i>macbase_queue_highwater) {
+			macbase_queue_highwater = i;
+			hal_printf("%s(): new callback_queue depth %d\r\n", __func__, macbase_queue_highwater);
+		}
+#endif
+		return;
+	}
+	// We are presumed to be in ISR context so a printf() here is not necessarily a good idea but...
+	hal_printf("%s(): callback_queue (size %d) was full, dropping MACBase event\r\n", __func__, ARR_LEN(callback_queue));
+	return;
 }

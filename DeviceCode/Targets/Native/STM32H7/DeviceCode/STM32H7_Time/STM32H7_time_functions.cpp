@@ -219,9 +219,7 @@ UINT64 CPU_MillisecondsToTicks( UINT32 mSec, UINT16 Timer )
 
 //--//
 
-#pragma arm section code = "SectionForFlashOperations"
-
-UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uSec, UINT16 Timer )
+UINT64 CPU_MicrosecondsToTicks( UINT64 uSec, UINT16 Timer )
 {
 	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
@@ -235,7 +233,7 @@ UINT64 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT64 uS
 		return ( uSec * (timerFrequency / CLOCK_COMMON_FACTOR) );
 }
 
-UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uSec, UINT16 Timer )
+UINT32 CPU_MicrosecondsToTicks( UINT32 uSec, UINT16 Timer )
 {
 	UINT32 timerFrequency = TIM_CLK_HZ;
 	UINT8 i;
@@ -248,8 +246,6 @@ UINT32 __section("SectionForFlashOperations") CPU_MicrosecondsToTicks( UINT32 uS
 
 		return ( uSec * (timerFrequency / CLOCK_COMMON_FACTOR) );
 }
-
-#pragma arm section code
 
 //--//
 
@@ -279,11 +275,18 @@ int CPU_MicrosecondsToSystemClocks( int uSec )
     return Ticks;
 }*/
 
+// This isn't cleanest but whole time system needs help
 UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 {
-
-	UINT64 timerFrequency = TIM_CLK_HZ; // SYSTEM_TIME defaults to this
+	UINT64 timerFrequency = TIM_CLK_HZ; // DEFAULT_TIMER value
 	UINT8 i;
+
+	// Preferred if timerFrequency is multiple of CLOCK_COMMON_FACTOR
+	if (Timer == DEFAULT_TIMER) {
+		UINT64 ret;
+		ret = ticks/(timerFrequency/CLOCK_COMMON_FACTOR); // e.g. ticks/30
+		return ret;
+	}
 
 	for (i=0; i<g_CountOfHardwareTimers; i++){
 		if (Timer == g_HardwareTimerIDs[i]){
@@ -292,7 +295,15 @@ UINT64 CPU_TicksToMicroseconds( UINT64 ticks, UINT16 Timer )
 		}
 	}
 
-	return (UINT64)((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
+#ifdef _DEBUG
+	// To avoid overflow we need to assume that CLOCK_COMMON_FACTOR divides timerFrequency
+	if (timerFrequency % CLOCK_COMMON_FACTOR != 0)
+		__BKPT();
+#endif
+
+	// Lets assume that all timers are reported in 1 MHz or at least fake it
+	return ticks/(timerFrequency/CLOCK_COMMON_FACTOR);
+	//return (UINT64)((ticks * CLOCK_COMMON_FACTOR) / timerFrequency);
 }
 
 UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
@@ -311,7 +322,7 @@ UINT32 CPU_TicksToMicroseconds( UINT32 ticks, UINT16 Timer )
 
 	//ret = ((ticks * CLOCK_COMMON_FACTOR) / timerFrequency); // was overflowing trivally
 	calc = ((UINT64)ticks * CLOCK_COMMON_FACTOR) / timerFrequency;
-	if (calc > 0xFFFFFFFF) { ret = 0xFFFFFFFF; __BKPT(); }
+	if (calc > 0xFFFFFFFF) { ret = 0xFFFFFFFF; }
 	else ret = calc;
 
 	return ret;
@@ -434,8 +445,6 @@ UINT64 HAL_Time_CurrentTicks()
 {
 	return CPU_Timer_CurrentTicks(SYSTEM_TIME);    
 }
-
-#pragma arm section code
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef *htim)
 {
@@ -599,14 +608,12 @@ BOOL CPU_Timer_UnInitialize(UINT16 Timer)
 }
 
 
-#pragma arm section code = "SectionForFlashOperations"
-
 //
 // To calibrate this constant, uncomment #define CALIBRATE_SLEEP_USEC in TinyHAL.c
 //
 #define STM32H7_SLEEP_USEC_FIXED_OVERHEAD_CLOCKS 3
 
-void __section("SectionForFlashOperations") HAL_Time_Sleep_MicroSeconds( UINT32 uSec )
+void HAL_Time_Sleep_MicroSeconds( UINT32 uSec )
 {
     GLOBAL_LOCK(irq);
 
@@ -632,8 +639,6 @@ void HAL_Time_Sleep_MicroSeconds_InterruptEnabled( UINT32 uSec )
 
     CYCLE_DELAY_LOOP(iterations);
 }
-
-#pragma arm section code
 
 INT64 HAL_Time_TicksToTime( UINT64 Ticks )
 {

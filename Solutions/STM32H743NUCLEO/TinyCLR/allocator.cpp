@@ -7,25 +7,44 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 
+static unsigned bytes;
+
+// MFCC high water mark is 19376 bytes
+static uint8_t my_buf[19*1024] __attribute__ (( section (".ram_d1") ));
+
+static void *my_alloc( size_t n ) {
+	unsigned saved = bytes;
+	//hal_printf("mem: %u\r\n",bytes);
+	if (bytes + n > sizeof(my_buf)) {
+		//__BKPT();
+		return NULL;
+	}
+	bytes += n;
+	return &my_buf[saved];
+}
 
 void *operator new( size_t n )
 {
-    return private_malloc( n );
+    //return private_malloc( n );
+	return my_alloc(n);
 }
 
 void *operator new[]( size_t n )
 {
-    return private_malloc( n );
+    //return private_malloc( n );
+	return my_alloc(n);
 }
 
 void operator delete( void* p )
 {
-    return private_free( p );
+	//__BKPT();
+    //return private_free( p );
 }
 
 void operator delete[]( void* p )
 {
-    return private_free( p );
+	//__BKPT();
+    //return private_free( p );
 }
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -365,6 +365,7 @@ bool OMACScheduler::RunEventTask(){
 		CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 		#endif
 		m_lastHandler = DATA_TX_HANDLER;
+		//hal_printf(" SND \r\n");
 		m_DataTransmissionHandler.ExecuteEvent();
 		break;
 	case I_DATA_RCV_PENDING:
@@ -378,6 +379,7 @@ bool OMACScheduler::RunEventTask(){
 		CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
 		#endif
   		m_lastHandler = DATA_RX_HANDLER;
+		//hal_printf(" RCV \r\n");
 		m_DataReceptionHandler.ExecuteEvent();
 		break;
 	case I_TIMESYNC_PENDING:
@@ -400,7 +402,7 @@ bool OMACScheduler::RunEventTask(){
 		CPU_GPIO_SetPinState(SCHED_NEXT_EVENT, FALSE);
 #endif	
 
-	
+		//hal_printf(" DIS \r\n");
 		m_DiscoveryHandler.ExecuteEvent();
 		m_lastHandler = CONTROL_BEACON_HANDLER;
 		break;
@@ -408,6 +410,7 @@ bool OMACScheduler::RunEventTask(){
 #ifdef OMAC_DEBUG_GPIO	
 		CPU_GPIO_SetPinState(OMAC_SCHED_POST_POST_EXEC, TRUE);
 #endif
+		//hal_printf(" IDLE \r\n");
 		m_TimeSyncHandler.ExecuteEvent();
 		//PostExecution();
 #ifdef OMAC_DEBUG_GPIO		

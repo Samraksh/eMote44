@@ -50,6 +50,7 @@ void HAL_CONTINUATION::Abort()
     this->Unlink();
 }
 
+BOOL running_safe_continuation = FALSE;
 BOOL HAL_CONTINUATION::Dequeue_And_Execute()
 {
     NATIVE_PROFILE_PAL_ASYNC_PROC_CALL();
@@ -63,8 +64,10 @@ BOOL HAL_CONTINUATION::Dequeue_And_Execute()
 
     HAL_CALLBACK call = ptr->Callback;
 
+	running_safe_continuation = TRUE;
     irq.Release();
     call.Execute();
+	running_safe_continuation = FALSE;
     irq.Acquire();
 
     //SystemState_ClearNoLock( SYSTEM_STATE_NO_CONTINUATIONS );   // nestable

@@ -25,9 +25,9 @@
     <Set Name="SRAM1_BaseAddress"        Value="0x30000000"/>
     <Set Name="SRAM1_Size"               Value="0x00048000"/>
 	
-	<!-- Domain3 SRAM4 (64K) -->
-    <Set Name="SRAM4_BaseAddress"        Value="0x38000000"/>
-    <Set Name="SRAM4_Size"               Value="0x00010000"/>
+	<!-- Domain3 SRAM4 (64K) but first 8 words for bootloader -->
+    <Set Name="SRAM4_BaseAddress"        Value="0x38000020"/>
+    <Set Name="SRAM4_Size"               Value="0x0000FFE0"/>
 
 	<Set Name="Heap_End"       			Value="0x2001EBFF"/> <!-- 1KB -->
 	<Set Name="Custom_Heap_Begin"       Value="0x2001EC00"/> <!-- 1KB -->
@@ -44,21 +44,17 @@
     <Set Name="BooterCode_BaseAddress"  Value="%IFLASH_BaseAddress%"/>
     <Set Name="BooterCode_Size"         Value="0x00020000"/><!-- 128KB -->
 
-    <!-- Configuration section -->
-    <Set Name="Config_BaseAddress"      Value="0x081DF000"/>
-    <Set Name="Config_Size"             Value="0x00001000"/><!-- 4KB -->
-
     <!-- Native Code section -->
     <!-- <Set Name="Code_BaseAddress"        Value="0x08000000"/> -->
-	<Set Name="Code_BaseAddress"        Value="0x08020000"/>
-    <Set Name="Code_Size"               Value="0x001BF000"/>
+	<Set Name="Code_BaseAddress"        Value="0x08020400"/>
+    <Set Name="Code_Size"               Value="0x001BFC00"/>
 	
     <!-- Deployment fills the rest of flash... -->
 
     <!-- Internal DTCM -->
     <!-- Put Stack in DTCM for high speed access, reducing overhead of stack usage -->
-    <Set Name="Stack_Bottom"            Value="0x2001F000"/>
-	<Set Name="Stack_Size"              Value="0x1000" />
+    <Set Name="Stack_Bottom"            Value="0x2001E800"/>
+	<Set Name="Stack_Size"              Value="0x1800" />
 
 
     <If Name="TARGETLOCATION" Value="FLASH">
@@ -80,7 +76,6 @@
 		<LoadRegion Name="RAM_D2" Base="%SRAM1_BaseAddress%" Size="%SRAM1_Size%" />
 		<LoadRegion Name="RAM_D3" Base="%SRAM4_BaseAddress%" Size="%SRAM4_Size%" />
 		<LoadRegion Name="LR_%TARGETLOCATION%" Base="%Code_BaseAddress%" Size="%Code_Size%" />
-        <LoadRegion Name="LR_CONFIG" Base="%Config_BaseAddress%" Size="%Config_Size%"/>
     </NamedGroup>
 
     <NamedGroup Name="SECTIONS">
@@ -188,10 +183,6 @@
         <ExecRegion Name="ER_STACK_TOP" Base="%Stack_Bottom% + %Stack_Size%" Options="&gt;D_CCM">
             <FileMapping Name="*" Options="(SectionForStackTop)" />
 			<FileMapping Name="_estack = .;" />
-        </ExecRegion>
-
-        <ExecRegion Name="ER_CONFIG" Options="&gt;LR_CONFIG">
-            <FileMapping Name="*" Options="(SectionForConfig)" />
         </ExecRegion>
     </NamedGroup>
 

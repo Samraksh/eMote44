@@ -6,10 +6,39 @@
 
 static lptim_task_t * volatile task_HEAD = NULL;
 static lptim_task_t * volatile task_RUNNING = NULL;
+
+
+// Debug helpers
+#ifdef _DEBUG
 static volatile unsigned task_list_size = 0;
+static inline void inc_task_list_size(void) { task_list_size++; }
+static inline void dec_task_list_size(void) { task_list_size--; }
+#else
+#define inc_task_list_size() ((void)0)
+#define dec_task_list_size() ((void)0)
+#endif
 
-// TODO: CONSIDER LOCKING ETC
-
+#ifdef _DEBUG
+static void list_sanity_check(void) {
+	// Walk the list
+	GLOBAL_LOCK(irq);
+	lptim_task_t *x = task_HEAD;
+	int ret = 0;
+	while(x != NULL) {
+		if (x->next == x) {
+			x->next = NULL;
+			ret = 1;
+		}
+		x = x->next;
+	}
+	irq.Release();
+	if (ret) {
+		hal_printf("LPTIM list consistency error, breaking loop...\r\n");
+	}
+}
+#else
+#define list_sanity_check() ((void)0)
+#endif
 
 bool task_is_linked(lptim_task_t *x) {
 	lptim_task_t *HEAD;
@@ -20,12 +49,14 @@ bool task_is_linked(lptim_task_t *x) {
 }
 
 // Fast append to front
-static void add_lptim_task_front(lptim_task_t *x) {
+static bool add_lptim_task_front(lptim_task_t *x) {
+	GLOBAL_LOCK(irq);
 	lptim_task_t *prev = task_HEAD;
-	if (task_is_linked(x)) return; // Do nothing if node is already present
+	if (task_is_linked(x)) return true; // Do nothing if node is already present
 	task_HEAD = x;
 	x->next = prev;
-	task_list_size++;
+	inc_task_list_size();
+	return false;
 }
 
 
@@ -33,7 +64,7 @@ static void unlink_lptim_task(lptim_task_t *x) {
 	lptim_task_t *t = task_HEAD;
 	lptim_task_t *p = NULL;
 
-	if (x == NULL || t == NULL)  { __BKPT(); goto out_fail; }
+	if (x == NULL || t == NULL)  { goto out_fail; }
 
 	// Find element
 	while (t != x && t != NULL) {
@@ -41,7 +72,7 @@ static void unlink_lptim_task(lptim_task_t *x) {
 		t = t->next;
 	}
 
-	if (t == NULL) { __BKPT(); goto out_fail; } // not found in list
+	if (t == NULL) { goto out_fail; } // not found in list
 
 	// Snip
 	if (p == NULL) task_HEAD = t->next; // New HEAD node
@@ -50,7 +81,7 @@ static void unlink_lptim_task(lptim_task_t *x) {
 	x->next = NULL; // Explicit clear to be safe
 
 	if (x == task_RUNNING) task_RUNNING = NULL;
-	task_list_size--;
+	dec_task_list_size();
 out_fail:
 	return;
 }
@@ -75,18 +106,21 @@ void lptim_task_init(lptim_task_t *x) {
 	memset(x, 0, sizeof(lptim_task_t));
 }
 
-// Public facing function
 int lptim_add_oneshot(lptim_task_t *x) {
+	bool is_already_linked;
 	lptim_task_t *next;
 	int ret;
 
 	if (x == NULL) return -1;
-	add_lptim_task_front(x);
+	is_already_linked = add_lptim_task_front(x);
+	if (is_already_linked) return 0; // No change
 
 	next = get_next_task();
 	ret = lptim_set_delay_ms(next->delay_ms, LPTIM_DEBUG);
-	if (ret) __BKPT();
+	//if (ret) __BKPT();
 	task_RUNNING = next;
+	list_sanity_check();
+	return 0;
 }
 
 // ISR
@@ -94,6 +128,7 @@ void lptim_task_cb() {
 	lptim_task_t *task = task_RUNNING;
 	if (task_RUNNING == NULL) return; // Shouldn't happen
 	unlink_lptim_task(task_RUNNING);  // Do this early in case cb re-queues
+	list_sanity_check();
 
 	// run the ISR task
 	if (task->isr_cb != NULL) {
@@ -107,4 +142,5 @@ void lptim_task_cb() {
 		HAL_CONTINUATION *contin = (HAL_CONTINUATION *)task->contin;
 		contin->Enqueue();
 	}
+	list_sanity_check();
 }

@@ -434,7 +434,7 @@ namespace Samraksh.eMote.Net
         /// Specifies the marshalling buffer size, used by the config to pass data to native code 
         /// </summary>
         private const byte MarshalBufferSize = 9;
-        private const byte MACPacketSize = 126;
+        private const byte MACPacketSize = 255;
         /// <summary>Specifies the Neighbor size</summary>
         private const byte NeighborSize = 22; //Look at IMAC.cs to figure out the size of the Neighbor structure.
 

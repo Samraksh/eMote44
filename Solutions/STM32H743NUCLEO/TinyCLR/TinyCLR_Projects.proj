@@ -26,10 +26,14 @@
         <DriverLibs Include="CortexM7_ItmPort.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_ItmPort\dotNetMF.proj" />
     </ItemGroup>
-	
 	<ItemGroup>
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\dotNetMF.proj" />
         <DriverLibs Include="STM32H7xx_HAL_Driver.$(LIB_EXT)"/>
+	</ItemGroup>
+
+	<ItemGroup>
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\pal\Samraksh\serial_frame\dotNetMF.proj" />
+        <DriverLibs Include="serial_frame.$(LIB_EXT)"/>
 	</ItemGroup>
 	
 	<!-- Network Stack   -->
@@ -154,10 +158,10 @@
         <!-- <DriverLibs Include="STM32H7_RTC.$(LIB_EXT)" /> -->
         <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_RTC\dotNetMF.proj" /> -->
     <!-- </ItemGroup> -->
-	<!-- <ItemGroup> -->
-        <!-- <DriverLibs Include="STM32H7_I2S.$(LIB_EXT)" /> -->
-        <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\dotNetMF.proj" /> -->
-    <!-- </ItemGroup> -->
+	<ItemGroup>
+        <DriverLibs Include="STM32H7_I2S.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\STM32H7_I2S\dotNetMF.proj" />
+    </ItemGroup>
 	<ItemGroup>
         <DriverLibs Include="H7_driver_control.$(LIB_EXT)" />
         <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\Shutdown\dotNetMF.proj" />
@@ -352,9 +356,13 @@
         <PlatformIndependentLibs Include="Diagnostics_stub.$(LIB_EXT)" Condition="'$(FLAVOR)'=='rtm'" />
         <RequiredProjects Include="$(SPOCLIENT)\CLR\Diagnostics\dotNetMF_stub.proj" Condition="'$(FLAVOR)'=='rtm'" />
     </ItemGroup>
+    <!-- <ItemGroup> -->
+        <!-- <DriverLibs Include="usart_pal.$(LIB_EXT)" /> -->
+        <!-- <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\dotNetMF.proj" /> -->
+    <!-- </ItemGroup> -->
     <ItemGroup>
-        <DriverLibs Include="usart_pal.$(LIB_EXT)" />
-        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\dotNetMF.proj" />
+        <DriverLibs Include="usart_pal_stubs.$(LIB_EXT)" />
+        <RequiredProjects Include="$(SPOCLIENT)\DeviceCode\PAL\COM\USART\stubs\dotNetMF.proj" />
     </ItemGroup>
     <ItemGroup>
         <DriverLibs Include="usb_pal_stubs.$(LIB_EXT)" />

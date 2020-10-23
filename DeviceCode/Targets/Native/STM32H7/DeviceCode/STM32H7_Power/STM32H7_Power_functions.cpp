@@ -79,10 +79,6 @@ static int get_first_isr_after(int after) {
 void HAL_CPU_Sleep( SLEEP_LEVEL level, UINT64 wakeEvents )
 {
     NATIVE_PROFILE_HAL_PROCESSOR_POWER();
-#ifdef _DEBUG
-	//if (check_pending_isr()) return; // sanity check
-	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
-#endif
 
     switch(level) {
 		case SLEEP_LEVEL__SLEEP: __WFI(); break;
@@ -91,13 +87,11 @@ void HAL_CPU_Sleep( SLEEP_LEVEL level, UINT64 wakeEvents )
 		default: __BKPT(); // No other sleep levels are supported
     }
 	
-#ifdef _DEBUG
-	//HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_RESET);
-	// lets try to figure out who woke us...
-	if (!check_pending_isr()) __BKPT(); // sanity check
-	volatile int count = get_count_isr();
-	volatile int first = get_first_isr_after(0);
-#endif
+// #ifdef _DEBUG
+	// if (!check_pending_isr()) __BKPT(); // lets try to figure out who woke us...
+	// volatile int count = get_count_isr();
+	// volatile int first = get_first_isr_after(0);
+// #endif
 }
 
 void CPU_Halt()  // unrecoverable error

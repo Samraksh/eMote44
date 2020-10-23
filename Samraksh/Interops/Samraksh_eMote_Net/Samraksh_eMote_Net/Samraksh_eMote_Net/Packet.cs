@@ -137,7 +137,7 @@ namespace Samraksh.eMote.Net
         /// <summary>
         /// The default size of the mac packet
         /// </summary>
-        const byte MACPacketSize = 128;
+        const byte MACPacketSize = 255;
 
         /// <summary>Received Signal Strength (rssi) of packet</summary>
         public byte RSSI;

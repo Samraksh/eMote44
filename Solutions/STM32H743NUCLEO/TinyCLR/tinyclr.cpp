@@ -4,16 +4,21 @@
 #include <tinyclr_application.h>
 #include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
+#include <Samraksh/serial_frame_pal.h>
 
 #define GPIO_0 _P(B,12)
 #define GPIO_1 _P(B,13)
 #define GPIO_2 _P(C,12)
 
+#define IGNORE_FIR_TEST_CODE
+
+#ifndef IGNORE_FIR_TEST_CODE
 #include "Samraksh/SONYC_ML/sonyc_util.h"
 static float my_data[8000];
 volatile static float my_output[8000];
 static unsigned my_count;
 static UINT64 now1, now2;
+#endif
 
 //#include "core_cm7.h"  // Applies to all Cortex-M7
 
@@ -29,42 +34,16 @@ void start_cnt()
     DWT->CTRL |= 0x00000001 ; // enable the counter
 }
 
-void stop_cnt()
+static void stop_cnt()
 {
-    DWT->CTRL &= 0xFFFFFFFE ; // disable the counter    
+    DWT->CTRL &= 0xFFFFFFFE ; // disable the counter
 }
 
-unsigned getCycles()
+static unsigned getCycles()
 {
     return DWT->CYCCNT ;
 }
-
-#define DWT_LSR_Present_Msk ITM_LSR_Present_Msk
-#define DWT_LSR_Access_Msk ITM_LSR_Access_Msk
-#define DWT_LAR_KEY 0xC5ACCE55
-
-void dwt_access_enable( unsigned ena )
-{
-    uint32_t lsr = DWT->LSR;;
-
-    if( (lsr & DWT_LSR_Present_Msk) != 0 ) 
-    {
-        if( ena ) 
-        {
-            if ((lsr & DWT_LSR_Access_Msk) != 0) //locked: access need unlock
-            {    
-                DWT->LAR = DWT_LAR_KEY;
-            }
-        } 
-        else 
-        {
-            if ((lsr & DWT_LSR_Access_Msk) == 0) //unlocked
-            {   
-                DWT->LAR = 0;
-            }
-        }
-    }
-}
+// End Debug functions for timing
 
 extern void HAL_CPU_Sleep(SLEEP_LEVEL level, UINT64 wakeEvents);
 
@@ -116,22 +95,16 @@ void nathan_rtc_handler(void *arg) {
 		CPU_GPIO_SetPinState(GPIO_2, FALSE);
 }
 
-// extern "C" {
-// void MX_X_CUBE_AI_Init(void);
-// int aiRun(const void *in_data, void *out_data);
-// }
-
-//static float in_data[64][51];
-//static float out_data[8];
-
 ////////////////////////////////////////////////////////////////////////////////
 void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
+#ifdef MEL_USE_SERIAL_FRAMES
+	framed_serial_init();
+#endif
 
-	//hal_printf(" CLR 20 ");
 	// Initial delay to allow UART terminals to start and catch startup messages
-    HAL_Delay(6000);
+    //HAL_Delay(5000);
 
 	memset(&clrSettings, 0, sizeof(CLR_SETTINGS));
 
@@ -151,9 +124,6 @@ void ApplicationEntryPoint()
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_RED, 0, 100000, FALSE, FALSE, nathan_rtc_handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_RED);
 
-	//MX_X_CUBE_AI_Init();
-	//aiRun(in_data, out_data);
-
 	//CPU_GPIO_EnableOutputPin(GPIO_0, FALSE);
 	//CPU_GPIO_EnableOutputPin(GPIO_1, FALSE);
 /*	CPU_GPIO_EnableOutputPin(GPIO_2, FALSE);
@@ -168,11 +138,12 @@ void ApplicationEntryPoint()
 	VirtTimer_Start(VIRT_TIMER_RTC_TEST);*/
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	//I2S_Internal_Initialize();
+	I2S_Internal_Initialize();
 	//I2S_Test();
     //hal_printf(" CLR 30 ");
     //ClrStartup( clrSettings );
-	
+
+#ifndef IGNORE_FIR_TEST_CODE
 	for(int i=0; i<8000; i++)
 		my_data[i] = i/(float)8000.0;
 	volatile int x = sonyc_init_comp_filter();
@@ -186,6 +157,7 @@ void ApplicationEntryPoint()
 	my_count = getCycles();
 	
 	hal_printf("Took %u cycles time diff %lu\r\n", my_count, (uint32_t)(now2-now1));
+#endif
 
 	while(1) {
 		while( HAL_CONTINUATION::Dequeue_And_Execute() == TRUE ) ;

@@ -72,7 +72,7 @@ typedef UINT8 ErrorType;
 
 // Typedef defining the signature of the receive function
 
-typedef  void* (*ReceiveFuncPtrType) (void *msg, UINT16 Size);
+typedef void* (*ReceiveFuncPtrType) (void *msg, UINT16 Size);
 
 // Typedef defining the signature of the send function
 typedef void (*SendAckFuncPtrType) (void* msg, UINT16 Size, NetOpStatus status, UINT8 radioAckStatus);
@@ -80,7 +80,7 @@ typedef void (*SendAckFuncPtrType) (void* msg, UINT16 Size, NetOpStatus status, 
 // Typedef defining the signature of the RadioInterruptFuncPtr function
 typedef BOOL (*RadioInterruptFuncPtrType) (RadioInterrupt Interrupt, void *param);
 
-
+typedef void (*CADDoneFuncPtrType) (bool CADStatus);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -102,7 +102,7 @@ public:
 	ReceiveFuncPtrType ReceiveHandler;
 	SendAckFuncPtrType SendAckHandler;
 	RadioInterruptFuncPtrType RadioInterruptHandler;
-
+	CADDoneFuncPtrType CADDoneHandler;
 	/*RadioEventHandler(ReceiveFuncPtrType recieve_handler, SendAckFuncPtrType send_ack_handler,RadioInterruptFuncPtrType  radio_interrupt_handler, UINT32 radio_interrupt_mask )
 	{
 		this->RecieveHandler = recieve_handler;
@@ -126,6 +126,11 @@ public:
 		this->RadioInterruptHandler = radio_interrupt_handler;
 	}
 
+	void SetCADDoneInterruptHandler(CADDoneFuncPtrType cad_done_interrupt_handler)
+	{
+		this->CADDoneHandler = cad_done_interrupt_handler;
+	}
+	
 	ReceiveFuncPtrType GetReceiveHandler()
 	{
 		return this->ReceiveHandler;
@@ -141,6 +146,11 @@ public:
 		return this->RadioInterruptHandler;
 	}
 
+	CADDoneFuncPtrType GetCADDoneInterruptHandler()
+	{
+		return this->CADDoneHandler;
+	}
+	
 }RadioEventHandler_t;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////

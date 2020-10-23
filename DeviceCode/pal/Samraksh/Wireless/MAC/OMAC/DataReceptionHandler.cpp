@@ -341,21 +341,10 @@ void DataReceptionHandler::HandleRadioInterrupt(){ // This is the beginning of a
 #ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 #endif	
 
 	VirtualTimerReturnMessage rm;
@@ -409,15 +398,6 @@ void DataReceptionHandler::SendACKHandler(){ // Handler for end of tranmission i
 #ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 #endif	
@@ -455,12 +435,11 @@ void DataReceptionHandler::SendACKHandler(){ // Handler for end of tranmission i
 void DataReceptionHandler::HandleEndofReception(UINT16 address){
 #ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );	
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );	
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
-	
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
-	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 #endif	

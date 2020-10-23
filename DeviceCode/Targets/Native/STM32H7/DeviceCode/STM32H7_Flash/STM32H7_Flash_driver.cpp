@@ -117,7 +117,7 @@ static inline uint32_t GetBank(uint32_t Addr)
 //    No other functions in this interface may be called
 //    until after Init returns.
 //
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::ChipInitialize( void* context )
+BOOL STM32H7_Flash_Driver::ChipInitialize( void* context )
 {
     NATIVE_PROFILE_HAL_DRIVERS_FLASH();
     return TRUE;
@@ -133,7 +133,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::ChipInitialize(
 // Remarks:
 //   De initializes the device when no longer needed
 //
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::ChipUnInitialize( void* context )
+BOOL STM32H7_Flash_Driver::ChipUnInitialize( void* context )
 {
     NATIVE_PROFILE_HAL_DRIVERS_FLASH();
     return TRUE;
@@ -143,7 +143,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::ChipUnInitializ
 // Description:
 //    Gets the information describing the device
 //
-const BlockDeviceInfo* __section("SectionForFlashOperations")STM32H7_Flash_Driver::GetDeviceInfo( void* context )
+const BlockDeviceInfo* STM32H7_Flash_Driver::GetDeviceInfo( void* context )
 {
     MEMORY_MAPPED_NOR_BLOCK_CONFIG* config = (MEMORY_MAPPED_NOR_BLOCK_CONFIG*)context;
 
@@ -167,7 +167,7 @@ const BlockDeviceInfo* __section("SectionForFlashOperations")STM32H7_Flash_Drive
 // Remarks:
 //   This function reads the number of sectors specified from the device.
 //
-BOOL  __section("SectionForFlashOperations")STM32H7_Flash_Driver::Read( void* context, ByteAddress StartSector, UINT32 NumBytes, BYTE * pSectorBuff)
+BOOL STM32H7_Flash_Driver::Read( void* context, ByteAddress StartSector, UINT32 NumBytes, BYTE * pSectorBuff)
 {
     // XIP device does not need to read into a buffer
     NATIVE_PROFILE_HAL_DRIVERS_FLASH();
@@ -204,7 +204,7 @@ BOOL  __section("SectionForFlashOperations")STM32H7_Flash_Driver::Read( void* co
 // Remarks:
 //   This function reads the number of sectors specified from the device.
 //
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Write(void* context, ByteAddress Address, UINT32 NumBytes, BYTE * pSectorBuff, BOOL ReadModifyWrite)
+BOOL STM32H7_Flash_Driver::Write(void* context, ByteAddress Address, UINT32 NumBytes, BYTE * pSectorBuff, BOOL ReadModifyWrite)
 {
     NATIVE_PROFILE_PAL_FLASH();
 
@@ -274,7 +274,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Write(void* con
     return TRUE;
 }
 
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Memset(void* context, ByteAddress Address, UINT8 Data, UINT32 NumBytes)
+BOOL STM32H7_Flash_Driver::Memset(void* context, ByteAddress Address, UINT8 Data, UINT32 NumBytes)
 {
     NATIVE_PROFILE_PAL_FLASH();
 
@@ -282,13 +282,13 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::Memset(void* co
     return FALSE;
 }
 
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::GetSectorMetadata(void* context, ByteAddress SectorStart, SectorMetadata* pSectorMetadata)
+BOOL STM32H7_Flash_Driver::GetSectorMetadata(void* context, ByteAddress SectorStart, SectorMetadata* pSectorMetadata)
 {
     // no metadata
     return FALSE;
 }
 
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::SetSectorMetadata(void* context, ByteAddress SectorStart, SectorMetadata* pSectorMetadata)
+BOOL STM32H7_Flash_Driver::SetSectorMetadata(void* context, ByteAddress SectorStart, SectorMetadata* pSectorMetadata)
 {
     // no metadata
     return FALSE;
@@ -308,7 +308,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::SetSectorMetada
 // Remarks:
 //    Check  the block containing the sector address specified.
 //
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::IsBlockErased( void* context, ByteAddress BlockStart, UINT32 BlockLength )
+BOOL STM32H7_Flash_Driver::IsBlockErased( void* context, ByteAddress BlockStart, UINT32 BlockLength )
 {
     NATIVE_PROFILE_HAL_DRIVERS_FLASH();
 
@@ -341,7 +341,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::IsBlockErased( 
 // Remarks:
 //    Erases the block containing the sector address specified.
 //
-BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::EraseBlock( void* context, ByteAddress address )
+BOOL STM32H7_Flash_Driver::EraseBlock( void* context, ByteAddress address )
 {
   	FLASH_EraseInitTypeDef EraseInitStruct;
 	uint32_t EraseError = 0;
@@ -410,7 +410,7 @@ BOOL __section("SectionForFlashOperations")STM32H7_Flash_Driver::EraseBlock( voi
 //   shutting down the hardware when the system is 
 //   going into low power states.
 //
-void __section("SectionForFlashOperations")STM32H7_Flash_Driver::SetPowerState( void* context, UINT32 State )
+void STM32H7_Flash_Driver::SetPowerState( void* context, UINT32 State )
 {
 }
 
@@ -419,7 +419,7 @@ void __section("SectionForFlashOperations")STM32H7_Flash_Driver::SetPowerState( 
 
 #pragma arm section code = "SectionForFlashOperations"
 
-UINT32 __section("SectionForFlashOperations")STM32H7_Flash_Driver::MaxSectorWrite_uSec( void* context )
+UINT32 STM32H7_Flash_Driver::MaxSectorWrite_uSec( void* context )
 {
     NATIVE_PROFILE_PAL_FLASH();
 
@@ -429,7 +429,7 @@ UINT32 __section("SectionForFlashOperations")STM32H7_Flash_Driver::MaxSectorWrit
 }
 
 
-UINT32 __section("SectionForFlashOperations")STM32H7_Flash_Driver::MaxBlockErase_uSec( void* context )
+UINT32 STM32H7_Flash_Driver::MaxBlockErase_uSec( void* context )
 {
     NATIVE_PROFILE_PAL_FLASH();
 

@@ -8,6 +8,11 @@
 #define START_UP_DELAY() if (STARTUP_DELAY_MS > 0) HAL_Delay(STARTUP_DELAY_MS)
 #endif
 
+// If we are a BASE, always use 480 MHz (max). If a FENCE, allow for throttling
+#ifdef MKII_BASE_CONFIG
+#define MAX_CLOCK_ONLY
+#endif
+
 #define BREAKPOINT(x) __asm__("BKPT")
 //#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
 #define VECT_TAB_OFFSET 0x00000070
@@ -37,11 +42,22 @@ static void Error_Handler(void)
   * @retval None
   */
 // 480 MHz (Maximum clock, REV 'V' SILICON ONLY
-static void MaxSystemClock_Config(void)
+static int is_fast_clock = -1;
+
+void MaxSystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  if (is_fast_clock > 0 ) return;
+  is_fast_clock = 1;
+
+#ifndef MAX_CLOCK_ONLY
+  CPU_USB_Uninitialize(0);
+
+  HAL_RCC_DeInit();
+#endif
 
   HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
 
@@ -104,10 +120,90 @@ static void MaxSystemClock_Config(void)
   HAL_PWREx_EnableUSBVoltageDetector();
 }
 
+// 60 MHz
+#ifdef MAX_CLOCK_ONLY
+void MinSystemClock_Config(void) { return; }
+#else
+void MinSystemClock_Config(void)
+{
+  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInitStruct = {0};
+
+  if (is_fast_clock == 0) return;
+  is_fast_clock = 0;
+
+  HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+
+  HAL_RCC_DeInit();
+
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+
+  while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
+
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE|RCC_OSCILLATORTYPE_LSE;
+  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+  RCC_OscInitStruct.LSEState = RCC_LSE_BYPASS;
+  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLM = 1;
+  RCC_OscInitStruct.PLL.PLLN = 29;
+  RCC_OscInitStruct.PLL.PLLP = 4;
+  RCC_OscInitStruct.PLL.PLLQ = 5;
+  RCC_OscInitStruct.PLL.PLLR = 128;
+  RCC_OscInitStruct.PLL.PLLRGE = RCC_PLL1VCIRANGE_3;
+  RCC_OscInitStruct.PLL.PLLVCOSEL = RCC_PLL1VCOMEDIUM;
+  RCC_OscInitStruct.PLL.PLLFRACN = 2432;
+  if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2
+                              |RCC_CLOCKTYPE_D3PCLK1|RCC_CLOCKTYPE_D1PCLK1;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.SYSCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_HCLK_DIV2;
+  RCC_ClkInitStruct.APB3CLKDivider = RCC_APB3_DIV16;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_APB1_DIV2;  // NOTE DIFFERENT
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_APB2_DIV16;
+  RCC_ClkInitStruct.APB4CLKDivider = RCC_APB4_DIV16;
+
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2
+                              |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_SPI3
+                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_USB
+							  |RCC_PERIPHCLK_LPTIM2|RCC_PERIPHCLK_QSPI
+                              |RCC_PERIPHCLK_LPTIM1|RCC_PERIPHCLK_FMC
+                              |RCC_PERIPHCLK_CKPER;
+  PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL;
+  PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL;
+  PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSE;
+  PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
+  PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
+  PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+  PeriphClkInitStruct.Lptim1ClockSelection = RCC_LPTIM1CLKSOURCE_LSE;
+  PeriphClkInitStruct.Lptim2ClockSelection = RCC_LPTIM2CLKSOURCE_LSE;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  HAL_PWREx_EnableUSBVoltageDetector();
+}
+#endif // MAX_CLOCK_ONLY
+
 void HAL_MspInit(void)
 {
   __HAL_RCC_SYSCFG_CLK_ENABLE();
 }
+
+//extern UART_HandleTypeDef huart2;
+extern void MX_USART2_UART_Init(void);
 
 extern "C" {
 void HARD_Breakpoint() {
@@ -158,7 +254,7 @@ void HardFault_HandlerC(unsigned long *hardfault_args) {
   	volatile unsigned long _AFSR ;
   	volatile unsigned long _BFAR ;
   	volatile unsigned long _MMAR ;
- 
+
   	stacked_r0 = ((unsigned long)hardfault_args[0]) ;
   	stacked_r1 = ((unsigned long)hardfault_args[1]) ;
   	stacked_r2 = ((unsigned long)hardfault_args[2]) ;
@@ -167,23 +263,23 @@ void HardFault_HandlerC(unsigned long *hardfault_args) {
   	stacked_lr = ((unsigned long)hardfault_args[5]) ;
   	stacked_pc = ((unsigned long)hardfault_args[6]) ;
   	stacked_psr = ((unsigned long)hardfault_args[7]) ;
- 
+
   	// Configurable Fault Status Register
   	// Consists of MMSR, BFSR and UFSR
   	_CFSR = (*((volatile unsigned long *)(0xE000ED28))) ;
 
 	// Usage Fault Status Register
 	_UFSR = _CFSR >> 0x10;
- 
+
   	// Hard Fault Status Register
   	_HFSR = (*((volatile unsigned long *)(0xE000ED2C))) ;
- 
+
   	// Debug Fault Status Register
   	_DFSR = (*((volatile unsigned long *)(0xE000ED30))) ;
- 
+
   	// Auxiliary Fault Status Register
   	_AFSR = (*((volatile unsigned long *)(0xE000ED3C))) ;
- 
+
   	// Read the Fault Address Registers. These may not contain valid values.
   	// Check BFARVALID/MMARVALID to see if they are valid values
   	// MemManage Fault Address Register
@@ -251,11 +347,11 @@ void HardFault_HandlerC(unsigned long *hardfault_args) {
     pCoreDebug = CoreDebug;
 #endif // defined(DEBUG)
 
- 	// at this point you can read data from the variables with 
+ 	// at this point you can read data from the variables with
 	// "p/x stacked_pc"
 	// "info symbol <address>" should list the code line
 	// "info address <FunctionName>"
-	// "info registers" might help 
+	// "info registers" might help
 	// "*((char *)0x00) = 5;" should create a hard-fault to test
 	BREAKPOINT();
 	while(1);
@@ -361,7 +457,12 @@ void BootstrapCode() {
 	SCB_EnableDCache();
 
 	HAL_Init(); // Later calls HAL_MspInit()
+#ifdef MAX_CLOCK_ONLY
 	MaxSystemClock_Config();
+#else
+	MinSystemClock_Config();
+#endif
+	MX_USART2_UART_Init();
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
 	__HAL_DBGMCU_FREEZE_TIM5();

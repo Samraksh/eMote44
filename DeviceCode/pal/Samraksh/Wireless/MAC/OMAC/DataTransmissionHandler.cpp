@@ -64,6 +64,10 @@ void PublicDataTxCallback(void * param){
 	g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.PostExecuteEvent();
 }*/
 
+void PublicTxCADCallback(void* param){
+	g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.VerifyCAD(false);
+}
+
 void PublicFastRecoveryCallback(void* param){
 	g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.SendRetry();
 }
@@ -126,9 +130,13 @@ void DataTransmissionHandler::Initialize(){
 	m_backoff_seed = 119 * 119 * (g_OMAC.GetMyAddress() + 1); // The initial seed
 	//m_TXMsg = (DataMsg_t*)m_TXMsgBuffer.GetPayload() ;
 
+	int tempCADDetectionTime = 1500;
+	
 	VirtualTimerReturnMessage rm;
 	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_TRANSMITTER, 0, g_OMAC.MAX_PACKET_TX_DURATION_MICRO, TRUE, FALSE, PublicDataTxCallback, OMACClockSpecifier); //1 sec Timer in micro seconds
 	ASSERT_SP(rm == TimerSupported);
+	rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, tempCADDetectionTime, TRUE, FALSE, PublicTxCADCallback, OMACClockSpecifier);
+	ASSERT_SP(rm == TimerSupported);	
 	//rm = VirtTimer_SetTimer(VIRT_TIMER_OMAC_TRANSMITTER_POST_EXEC, 0, ACK_RX_MAX_DURATION_MICRO, TRUE, FALSE, PublicDataTxPostExecCallback, OMACClockSpecifier);
 	ASSERT_SP(rm == TimerSupported);
 }
@@ -150,6 +158,8 @@ UINT64 DataTransmissionHandler::CalculateNextTxMicro(UINT16 dest){
 		if(nextTXmicro > g_OMAC.CCA_PERIOD_ACTUAL) {
 			nextTXmicro -= g_OMAC.CCA_PERIOD_ACTUAL ;
 		}
+/// create different contention window value 
+			
 	}
 	if(FAST_RECOVERY){
 		if(nextTXmicro > GUARDTIME_MICRO) {
@@ -417,112 +427,93 @@ void DataTransmissionHandler::SendRetry(){ // BK: This function is called to ret
 	}
 }
 
-void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts sending routine for a packet
-#ifdef OMAC_DEBUG_GPIO //Mark 3 ExecuteEventHelper Start
-	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
-	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
-#endif
 
-	bool canISend = true;
-	UINT64 y;
-	DeviceStatus DS = DS_Success;
+void DataTransmissionHandler::CADDoneHandler(bool status){
+	g_OMAC.m_omac_scheduler.m_DataTransmissionHandler.VerifyCAD(status);	
+}
+
+void DataTransmissionHandler::VerifyCAD(bool status) {
 	VirtualTimerReturnMessage rm;
+	rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+	
+	if (status) {
+		m_cad_true_count++;
+	}
+	else {
+		m_cad_false_count++;
+	}
+	
+	if (m_cad_true_count+m_cad_false_count < 4) {
+		ExecuteCAD();
+	}
+	else {
+		if(m_cad_true_count > 1){
+			OMAC_HAL_PRINTF("TransmissionHandler::CAD!%d %d %d\r\n", m_cad_true_count, m_cad_false_count, m_cad_running_count);
+			m_cad_running_count = 0;
+			m_cad_true_count = 0;
+			m_cad_false_count = 0;
+			ExecuteSendingPacket(false);
 
-#ifdef OMAC_DEBUG_GPIO
-	CPU_GPIO_SetPinState( DATATX_PIN, FALSE );
-	CPU_GPIO_SetPinState( DATATX_PIN, TRUE );
-#endif
-
-	//The number 500 was chosen arbitrarily. In reality it should be the sum of backoff period + CCA period + guard band.
-	//For GUARDTIME_MICRO period check the channel before transmitting
-	//140 usec is the time taken for CCA to return a result
-	if(EXECUTE_WITH_CCA) y = g_OMAC.m_Clock.GetCurrentTimeinTicks();
-
-	while(EXECUTE_WITH_CCA){
-		//If retrying, don't do CCA, but perform random backoff and transmit
-		if(m_currentSlotRetryAttempt > 0){
-			break;
 		}
-		//Check CCA only for DATA packets
-
-#if OMAC_DTH_DEBUG_CCA
-		if(DATATX_CCA_PIN_TOGGLER != DISABLED_PIN){
-			CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
-			CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
-		}
-#endif
-		DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
-
-#if OMAC_DTH_DEBUG_CCA
-		if(DATATX_CCA_PIN_TOGGLER != DISABLED_PIN){
-			CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
-			CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
-		}
-#endif
-
-
-		if(DS != DS_Success){
-#ifdef OMAC_DEBUG_PRINTF
-			OMAC_HAL_PRINTF("transmission detected!\r\n");
-#endif
-			//i = GUARDTIME_MICRO/140;
-			canISend = false;
-			break;
-		}
-		else { 
-#ifdef OMAC_DEBUG_PRINTF
-			OMAC_HAL_PRINTF("transmission CAD not detected!\r\n");
-#endif
-		} 
-		canISend = true;
-
-		if(m_currentSlotRetryAttempt == 0){
-			if( g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_Clock.GetCurrentTimeinTicks() - y) > CCA_PERIOD_MICRO){
-				break;
-			}
-		}
-		else{
-			if( g_OMAC.m_Clock.ConvertTickstoMicroSecs(g_OMAC.m_Clock.GetCurrentTimeinTicks() - y) > CCA_PERIOD_FRAME_RETRY_MICRO){
-				break;
-			}
+		else {			
+			OMAC_HAL_PRINTF("TransmissionHandler::NO CAD!%d %d %d\r\n", m_cad_true_count, m_cad_false_count, m_cad_running_count);
+			m_cad_running_count = 0;
+			m_cad_true_count = 0;
+			m_cad_false_count = 0;
+			ExecuteSendingPacket(true); 
 		}
 	}
+}
 
-#ifdef OMAC_DEBUG_GPIO //Mark 4 After CCA
-	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
-	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
-#endif
-
-	//Perform CCA for random backoff period (only for retries)
-	if(m_RANDOM_BACKOFF){
-		UINT16 randVal = g_OMAC.m_omac_scheduler.m_seedGenerator.RandWithMask(&m_backoff_seed, m_backoff_mask);
-		m_backoff_seed = randVal;
-		int i = 0;
-		int finalBackoffValue = randVal % g_OMAC.RANDOM_BACKOFF_COUNT_MAX;
-		//OMAC_HAL_PRINTF("rand value is %d\r\n", (randVal % RANDOM_BACKOFF_COUNT));
-		while(i <= (randVal % g_OMAC.RANDOM_BACKOFF_COUNT_MAX)){
-			++i;
-			DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
-			if(DS != DS_Success){
-				OMAC_HAL_PRINTF("transmission detected (inside backoff)!\r\n");
-				canISend = false;
-				break;
-			}
-		}
+void DataTransmissionHandler::ExecuteCAD() {
+	DeviceStatus DS;
+	VirtualTimerReturnMessage rm;
+	rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+	
+	int tempCADDetectionTime = 1500;
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+#if OMAC_DTH_DEBUG_CCA
+	if(DATATX_CCA_PIN_TOGGLER != DISABLED_PIN){
+		CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
+		CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
 	}
+#endif
+	txhandler_state = DTS_WAITING_FOR_CAD;
+	DS = CPU_Radio_ClearChannelAssesment(g_OMAC.radioName);
 
-#ifdef OMAC_DEBUG_GPIO //Mark 5 After Random Backoff
-	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
-	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
+	if(DS == DS_Success) {		
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, tempCADDetectionTime, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+		if(rm != TimerSupported){
+			PostExecuteEvent();
+		}		
+	}
+	else {	
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, 1, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+		if(rm != TimerSupported){
+			PostExecuteEvent();
+		}
+	}		
+		
+
+#if OMAC_DTH_DEBUG_CCA
+	if(DATATX_CCA_PIN_TOGGLER != DISABLED_PIN){
+		CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
+		CPU_GPIO_SetPinState( DATATX_CCA_PIN_TOGGLER, !CPU_GPIO_GetPinState(DATATX_CCA_PIN_TOGGLER) );
+	}
 #endif
 
-
-#ifdef OMAC_DEBUG_GPIO
-	CPU_GPIO_SetPinState( DATATX_PIN, FALSE );
-	CPU_GPIO_SetPinState( DATATX_PIN, TRUE );
-#endif
+}
+void DataTransmissionHandler::ExecuteSendingPacket(bool status) {
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );	
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	VirtualTimerReturnMessage rm;
 	//Transmit
-	if(canISend){
+	if(status){
 		txhandler_state = DTS_CCA_CLEAR;
 		//resendSuccessful = false;
 
@@ -530,11 +521,6 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 		CPU_GPIO_SetPinState( DATATX_DATA_PIN, TRUE );
 		CPU_GPIO_SetPinState( DATATX_DATA_PIN, FALSE );
 #endif
-
-
-
-
-
 		bool rv = Send();
 
 		if(rv) {
@@ -551,8 +537,6 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 				hal_printf("TXATTEMPT_SUCCESS NO m_outgoingEntryPtr \r\n");
 			}
 #endif
-
-
 			txhandler_state = DTS_SEND_INITIATION_SUCCESS;
 			if(CPU_Radio_GetRadioAckType() == NO_ACK){
 				DropPacket();
@@ -599,8 +583,6 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 #endif
 
 		txhandler_state = DTS_CCA_BUSY;
-
-
 
 		//Increment number of retries for the current packet
 		m_outgoingEntryPtr = SelectPacketForDest(m_outgoingEntryPtr_dest);
@@ -655,6 +637,56 @@ void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts
 #ifdef OMAC_DEBUG_GPIO
 	CPU_GPIO_SetPinState( DATATX_PIN, FALSE );
 #endif
+}
+
+
+
+void DataTransmissionHandler::ExecuteEventHelper() { // BK: This function starts sending routine for a packet
+#ifdef OMAC_DEBUG_GPIO //Mark 3 ExecuteEventHelper Start
+	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
+	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
+#endif
+
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( DATATX_PIN, FALSE );
+	CPU_GPIO_SetPinState( DATATX_PIN, TRUE );
+#endif
+	VirtualTimerReturnMessage rm;
+	//The number 500 was chosen arbitrarily. In reality it should be the sum of backoff period + CCA period + guard band.
+	//For GUARDTIME_MICRO period check the channel before transmitting
+	//140 usec is the time taken for CCA to return a result
+	if(EXECUTE_WITH_CCA || m_RANDOM_BACKOFF) {
+		UINT16 randVal = g_OMAC.m_omac_scheduler.m_seedGenerator.RandWithMask(&m_backoff_seed, m_backoff_mask);
+		m_backoff_seed = randVal;
+		m_cad_running_count = ((randVal % g_OMAC.RANDOM_BACKOFF_COUNT_MAX));
+		//m_cad_running_count = 20;
+		rm = VirtTimer_Stop(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+		rm = VirtTimer_Change(VIRT_TIMER_OMAC_TRANSMITTER_CAD, 0, m_cad_running_count*500, TRUE, OMACClockSpecifier );
+		rm = VirtTimer_Start(VIRT_TIMER_OMAC_TRANSMITTER_CAD);
+		if(rm != TimerSupported){
+			PostExecuteEvent();
+		}
+		
+		m_cad_true_count = 0;
+		m_cad_false_count = 0;
+		m_total_cad_count = 0;	
+		//ExecuteCAD();	
+	}
+	else {
+		ExecuteSendingPacket(true);
+	}
+
+#ifdef OMAC_DEBUG_GPIO //Mark 5 After Random Backoff
+	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
+	CPU_GPIO_SetPinState( DTH_STATE_PIN_TOGGLER, !CPU_GPIO_GetPinState(DTH_STATE_PIN_TOGGLER) );
+#endif
+
+
+#ifdef OMAC_DEBUG_GPIO
+	CPU_GPIO_SetPinState( DATATX_PIN, FALSE );
+	CPU_GPIO_SetPinState( DATATX_PIN, TRUE );
+#endif
+
 }
 
 /*
@@ -770,10 +802,18 @@ void DataTransmissionHandler::SelectRetrySlotNumForNeighborBackOff(){
 }
 
 void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radioAckStatus){
+//	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+//	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+//	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+//	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
 
 #if OMAC_DTH_DEBUG_SendACKHandler //Mark 7
 	if(DATATX_SendACKHandler_PIN_TOGGLER != DISABLED_PIN){
@@ -1005,8 +1045,11 @@ void DataTransmissionHandler::SendACKHandler(Message_15_4_t* rcv_msg, UINT8 radi
 }
 
 void DataTransmissionHandler::ReceiveDATAACK(UINT16 sourceaddress){ //Mark 8
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, FALSE );
+	CPU_GPIO_SetPinState( RX_RADIO_TURN_OFF, TRUE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, TRUE );
 	CPU_GPIO_SetPinState( RX_RADIO_TURN_ON, FALSE );
+	
 	//2) Check if DataTransmissionHandler is active
 	//1) SOFTWARE_ACKs are used
 	//3) If the sourceID is equal to the destination of the original message

@@ -146,7 +146,7 @@ namespace TestSuite
 
                 var chan2 = new MACPipe(myOMACObj, PayloadType.Type02);
                 chan2.OnReceive += Receive;
-                chan1.OnSendStatus += ReceiveSendStatus2;
+                chan2.OnSendStatus += ReceiveSendStatus2;
 
                 //Samraksh_Mel.AudioInterface audI = new AudioInterface(retDataSize);
                 //audI.audio_inference_callback += AICallback;

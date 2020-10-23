@@ -29,6 +29,8 @@ enum DiscoState{
 	FAILSAFE_STOPPING,
 	WAIT_AFTER_BEACON1,
 	WAIT_AFTER_BEACON2,
+	CAD_FOR_BEACON1,
+	CAD_FOR_BEACON2,
 };
 
 /*
@@ -90,7 +92,9 @@ class DiscoveryHandler: public EventHandler {
   	void PostExecuteEvent();
 
   	void CreateMessage(DiscoveryMsg_t* discoveryMsg);
-
+	
+	DeviceStatus CADDoneHandler(bool status);
+	void ExecuteCAD();
 
 	//void SetParentSchedulerPtr(void * scheduler);
   	DeviceStatus Receive(RadioAddress_t source, DiscoveryMsg_t* disMsg, MsgLinkQualityMetrics_t* msgLinkQualityMetrics);

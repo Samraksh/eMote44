@@ -3,11 +3,16 @@
 #include "..\stm32h7xx.h"
 #include "lptim.h"
 
-#define LPTIM_DEBUG_VERBOSE
+//#define LPTIM_DEBUG_VERBOSE
 #define DELTA_TICKS_GUARD 2 // <= this amt is "now"
 #define DELTA_TICKS_EXTRA 0  // Manually compensate this many ticks on set compare
 
 #define LSE_HZ 32768
+
+#ifndef ALLOW_BKPT
+#undef __BKPT
+#define __BKPT() ((void)0)
+#endif
 
 static LPTIM_HandleTypeDef hlptim1;
 static LPTIM_HandleTypeDef hlptim2;
@@ -39,9 +44,7 @@ typedef enum {
 } lptim_lock_id_t;
 
 static void LPTIM_Error_Handler(void) {
-#ifdef LPTIM_DEBUG_VERBOSE
-		__BKPT();
-#endif
+
 }
 
 static inline void wait_64_nop(void) {
@@ -100,6 +103,13 @@ static void free_lock(volatile uint32_t *Lock_Variable) {
 	return;
 }
 
+uint64_t lptim_get_counter_us_fast(void) {
+	// uint64_t read = HAL_LPTIM_ReadCounter(my_lptim);
+	// return (lse_counter32 << 16);
+	uint64_t read = lse_counter32;
+	read = (read << 16) + HAL_LPTIM_ReadCounter(my_lptim);
+	return read * 1000000 / LSE_HZ;
+}
 
 // Returns LSE native tick count (32-bit)
 static uint64_t my_get_counter_lptim(volatile uint32_t *counter32, LPTIM_HandleTypeDef *lptim_ptr) {

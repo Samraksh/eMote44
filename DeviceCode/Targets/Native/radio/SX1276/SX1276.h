@@ -611,6 +611,8 @@ void SX1276BoardSetRfTxPower( int8_t power );
 
 void SX1276BoardSetAntSw( uint8_t opMode );
 
+static uint8_t GetFskBandwidthRegValue( uint32_t bandwidth );
+
 DeviceStatus sx1276_interop_change_channel(int interopChannel);
 DeviceStatus sx1276_interop_change_power(int interopPower);
 DeviceStatus sx1276_interop_change_bandwidth(int interopBandwidth);

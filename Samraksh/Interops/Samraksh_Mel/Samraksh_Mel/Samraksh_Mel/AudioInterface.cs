@@ -1,10 +1,266 @@
 using System;
-using Microsoft.SPOT;
+//using Microsoft.SPOT;
+//using System.Collections;
+//using System.Threading;
 using System.Runtime.CompilerServices;
 using Microsoft.SPOT.Hardware;
 
+using System.Text;
+
+#pragma warning disable 1591
+
 namespace Samraksh_Mel
 {
+    public class MelUtility
+    {
+        public const int STATUS_SIZE = 10; // whole bank [0] + each cell [1-4] + temperature [5] + solar [6-7] + power [8-9]
+        public const int BATTERY_SIZE = 5;
+
+        // Returns battery status in mV
+        public static int[] GetBatteryStatus()
+        {
+            int[] ret = new int[STATUS_SIZE];
+            GetMelStatus(ret);
+            int[] batt = new int[BATTERY_SIZE];
+
+            Array.Copy(ret, batt, BATTERY_SIZE);
+
+            return batt;
+        }
+
+        // Returns Solar status
+        public static int[] GetSolarStatus()
+        {
+            int[] ret = new int[STATUS_SIZE];
+            GetMelStatus(ret);
+            int[] solar = new int[2];
+
+            solar[0] = ret[6];
+            solar[1] = ret[7];
+
+            return solar;
+        }
+
+        public static int[] GetPowerStatus()
+        {
+            int[] ret = new int[STATUS_SIZE];
+            GetMelStatus(ret);
+            int[] power = new int[2];
+
+            power[0] = ret[8];
+            power[1] = ret[9];
+
+            return power;
+        }
+
+        // Returns Temperature in degrees C
+        public static int GetTemperature()
+        {
+            int[] ret = new int[STATUS_SIZE];
+            GetMelStatus(ret);
+            return ret[5];
+        }
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern private static int GetMelStatus(int[] data);
+    }
+    /// <summary>
+    /// USB Serial Interface hacked by NPS at Samraksh 2020-07-22
+    /// </summary>
+    public class UsbSerialInterface
+    {
+        // RX Event stuff attempting to use Native_UART/SerialPort.cs as template
+        // This all feels very Loony Tunes to me as an embedded C guy but whatever
+        private bool m_fDisposed;
+        public delegate void SerialDataReceivedEventHandler();
+        private NativeEventDispatcher m_evtDataEvent = null;
+        private SerialDataReceivedEventHandler m_callbacksDataEvent = null;
+
+        private event SerialDataReceivedEventHandler InternalDataRX
+        {
+            [MethodImplAttribute(MethodImplOptions.Synchronized)]
+            add
+            {
+                if (m_fDisposed)
+                {
+                    throw new ObjectDisposedException();
+                }
+                SerialDataReceivedEventHandler callbacksOld = m_callbacksDataEvent;
+                SerialDataReceivedEventHandler callbacksNew = (SerialDataReceivedEventHandler)Delegate.Combine(callbacksOld, value);
+
+                try
+                {
+                    m_callbacksDataEvent = callbacksNew;
+                    if (callbacksOld == null && m_callbacksDataEvent != null)
+                    {
+                        m_evtDataEvent.OnInterrupt += new NativeEventHandler(DataEventHandler);
+                    }
+                }
+                catch
+                {
+                    m_callbacksDataEvent = callbacksOld;
+                    throw;
+                }
+            }
+            [MethodImplAttribute(MethodImplOptions.Synchronized)]
+            remove
+            {
+                if (m_fDisposed)
+                {
+                    throw new ObjectDisposedException();
+                }
+                SerialDataReceivedEventHandler callbacksOld = m_callbacksDataEvent;
+                SerialDataReceivedEventHandler callbacksNew = (SerialDataReceivedEventHandler)Delegate.Remove(callbacksOld, value);
+                try
+                {
+                    m_callbacksDataEvent = callbacksNew;
+                    if (m_callbacksDataEvent == null)
+                    {
+                        m_evtDataEvent.OnInterrupt -= new NativeEventHandler(DataEventHandler);
+                    }
+                }
+                catch
+                {
+                    m_callbacksDataEvent = callbacksOld;
+                    throw;
+                }
+            }
+        }
+
+        private void DataEventHandler(uint evt, uint data2, DateTime timestamp)
+        {
+            if (m_callbacksDataEvent != null)
+            {
+                //m_callbacksDataEvent(this, new SerialDataReceivedEventArgs((SerialData)evt));
+                m_callbacksDataEvent();
+            }
+        }
+
+        protected void Dispose(bool disposing)
+        {
+            if (!m_fDisposed)
+            {
+                try
+                {
+                    if (disposing)
+                    {
+
+                        if (m_callbacksDataEvent != null)
+                        {
+                            m_evtDataEvent.OnInterrupt -= new NativeEventHandler(DataEventHandler);
+                            m_callbacksDataEvent = null;
+                            m_evtDataEvent.Dispose();
+                        }
+                    }
+                }
+                finally
+                {
+                    m_fDisposed = true;
+                }
+            }
+        }
+
+        public uint BytesToRead { get { return BytesInBuffer(); } }
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern private uint BytesInBuffer();
+
+        /// <summary>Delegate for read callback</summary>
+        /// <param name="readBytes">Bytes read</param>
+        /// <param name="mode">Indicates source, typ 0</param>
+        public delegate void ReceiveCallback(byte[] readBytes, int mode);
+
+        /// <summary>Client callback (can be null)</summary>
+        public event ReceiveCallback DataReceived;
+
+        /// <summary>
+        /// USB Serial Interface constructor
+        /// </summary>
+        public UsbSerialInterface(ReceiveCallback receiveCallback = null)
+        {
+            m_fDisposed = false;
+            m_evtDataEvent = new NativeEventDispatcher("USBPortDataEvent", 0);
+            if (receiveCallback != null)
+            {
+                DataReceived += receiveCallback;
+            }
+            InternalDataRX += PortHandler;
+        }
+
+        private void PortHandler()
+        {
+            var numBytes = BytesToRead;
+            var recvBuffer = new byte[numBytes];
+            mel_serial_rx(recvBuffer, numBytes);
+            if (DataReceived == null)
+            {
+                return;
+            } else
+            {
+                DataReceived(recvBuffer, 0); // Default mode 0 for serial
+            }
+        }
+
+        // END RX HANDLER STUFF
+
+        private readonly char[] _oneCharArray = new char[1];
+        /// <summary>
+        /// Write a single char
+        /// </summary>
+        /// <param name="theChar"></param>
+        /// <returns></returns>
+        public bool Write(char theChar)
+        {
+            _oneCharArray[0] = theChar;
+            return Write(_oneCharArray);
+        }
+
+        /// <summary>
+        /// Write a char array to the port
+        /// </summary>
+        /// <param name="theChars"></param>
+        /// <returns></returns>
+        public bool Write(char[] theChars)
+        {
+            uint chan = 0;
+            int ret;
+            var bytes = new byte[theChars.Length];
+            for (var i = 0; i < theChars.Length; i++)
+            {
+                bytes[i] = (byte)theChars[i];
+            }
+            ret = mel_serial_tx(bytes, chan, bytes.Length);
+            if (ret != 0) return false;
+            else return true;
+        }
+
+        /// <summary>
+        /// Write a string to the port
+        /// </summary>
+        /// <param name="str">The string to write</param>
+        /// <remarks>Flushes the port after writing the bytes to ensure it all gets sent.</remarks>
+        /// <returns></returns>
+        public bool Write(string str)
+        {
+            uint chan = 0;
+            int ret;
+            var bytes = Encoding.UTF8.GetBytes(str);
+            ret = mel_serial_tx(bytes, chan, bytes.Length);
+            if (ret != 0) return false;
+            else return true;
+        }
+
+        /// <summary>
+        /// Sends a block of data out the USB serial port
+        /// </summary>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern int mel_serial_tx(byte[] data, uint chan, int len);
+
+        /// <summary>
+        /// Read a block of data from the buffer
+        /// </summary>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern int mel_serial_rx(byte[] data, uint max);
+    }
     /// <summary>
     /// Audio Interface 
     /// </summary>
@@ -12,8 +268,8 @@ namespace Samraksh_Mel
     {
         // Constants
         private static readonly float[] EMPTY_FLOAT = new float[0];
-        private const int DOWNSTREAM_LEN = 8; // floats
-        private const int UPSTREAM_LEN = 256; // floats
+        public const int DOWNSTREAM_LEN = 8; // floats
+        public const int UPSTREAM_LEN = 256; // floats
 
         // State and defaults
         private bool collectUpStream;
@@ -25,9 +281,10 @@ namespace Samraksh_Mel
         /// <summary>
         /// Audio Interface constructor
         /// </summary>
-        public AudioInterface() : base("AICallback", 0)
+        public AudioInterface(float[] thresh = null) : base("AICallback", 0)
         {
             Initialize();
+            if (thresh != null) change_class_thresh(thresh);
             set_model_recording(collectUpStream_reset, collectDownStream_reset);
             OnInterrupt += aiCallbackFunction;
         }
@@ -39,6 +296,32 @@ namespace Samraksh_Mel
         {
             Uninitialize();
         }
+
+        public int change_class_thresh(float[] thresh)
+        {
+            if (thresh.Length != DOWNSTREAM_LEN) return -1;
+            int ret = mel_set_thresh(thresh);
+            return 0;
+        }
+
+        public float[] get_class_thresh()
+        {
+            float[] ret = new float[DOWNSTREAM_LEN];
+            mel_get_thresh(ret);
+            return ret;
+        }
+
+        /// <summary>
+        /// Get Mel ML downstream class thresholds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern void mel_get_thresh(float[] data);
+
+        /// <summary>
+        /// Set Mel ML thresholds
+        /// </summary>
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private extern int mel_set_thresh(float[] data);
 
         /// <summary>
         /// Set Model data to collect.
@@ -203,3 +486,4 @@ namespace Samraksh_Mel
         public extern bool set_time_interval(uint time_ms);
     }
 }
+#pragma warning restore 1591

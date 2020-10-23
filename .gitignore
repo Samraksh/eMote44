@@ -55,6 +55,7 @@ Listings/
 DeviceCode/include/Samraksh/githash.h
 DeviceCode/include/Samraksh/teamid.h
 
-# Added by Dhrubo...since we're saving zipped TinyCLR now
+# Added by Dhrubo...since we're saving zipped TinyCLR and bootloader now
 binaries/tinyclr.axf
 binaries/tinyclr_and_bootloader.axf
+binaries/tinyclr_and_bootloader.srec

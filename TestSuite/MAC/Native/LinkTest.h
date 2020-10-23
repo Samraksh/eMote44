@@ -12,7 +12,7 @@
 
 struct MyMessage{
 	UINT64 packetID;
-	UINT8 paylaod[97];
+	UINT8 payload[97];
 };
 
 class LinkTest

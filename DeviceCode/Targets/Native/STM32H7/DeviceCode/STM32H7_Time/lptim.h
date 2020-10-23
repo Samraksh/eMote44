@@ -30,6 +30,7 @@ struct lptim_task {
 
 void MX_LPTIM_Init(void);
 uint64_t lptim_get_counter_us(int lptim);
+uint64_t lptim_get_counter_us_fast(void);
 
 // task stuff, not VT
 bool task_is_linked(lptim_task_t *x);

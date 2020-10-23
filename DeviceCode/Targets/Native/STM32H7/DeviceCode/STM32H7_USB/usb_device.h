@@ -9,6 +9,7 @@
 #include "usbd_def.h"
 
 void MX_USB_DEVICE_Init(void);
+void MX_USB_DEVICE_DeInit(void);
 
 #ifdef __cplusplus
 }

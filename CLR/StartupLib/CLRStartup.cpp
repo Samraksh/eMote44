@@ -313,7 +313,7 @@ struct Settings
 
             CLR_RT_Assembly* assm;
 
-            CLR_Debug::Printf( "Attaching deployed file.\r\n" );
+            //CLR_Debug::Printf( "Attaching deployed file.\r\n" );
 
             // Creates instance of assembly, sets pointer to native functions, links to g_CLR_RT_TypeSystem 
             if (FAILED(LoadAssembly( header, assm ) ))

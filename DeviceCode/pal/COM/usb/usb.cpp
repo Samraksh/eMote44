@@ -8,7 +8,7 @@
 #define USB_FLUSH_RETRY_COUNT 1000
 
 //--//
-
+/*
 #if defined(BUILD_RTM)
 void USB_debug_printf( const char*format, ... ) {}
 #else
@@ -33,6 +33,7 @@ void USB_debug_printf( const char*format, ... )
     va_end( arg_ptr );
 }
 #endif
+*/
 
 //--//
 
@@ -1907,6 +1908,7 @@ STREAM_DRIVER_DETAILS* USB1_driver_details( UINT32 handle )
     return &details;
 }
 
+#ifndef DOES_NOT_USE_USB_CPP
 int USB1_read( char* buffer, size_t size )
 {
     return USB_Read( ConvertCOM_UsbStream(USB1), buffer, size );
@@ -1916,4 +1918,4 @@ int USB1_write( char* buffer, size_t size )
 {
     return USB_Write( ConvertCOM_UsbStream(USB1), buffer, size );
 }
-
+#endif // #ifndef DOES_NOT_USE_USB_CPP

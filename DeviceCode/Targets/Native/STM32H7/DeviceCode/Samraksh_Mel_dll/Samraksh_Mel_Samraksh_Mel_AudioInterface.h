@@ -14,13 +14,6 @@
 #ifndef _SAMRAKSH_MEL_SAMRAKSH_MEL_AUDIOINTERFACE_H_
 #define _SAMRAKSH_MEL_SAMRAKSH_MEL_AUDIOINTERFACE_H_
 
-// from libSONYC_ML.a
-extern "C" {
-void MX_X_CUBE_AI_Init(void);
-int aiRun(const void *in_data, void *out_data);
-int aiRun2(const void *in_data, void *out_data);
-}
-
 namespace Samraksh_Mel
 {
     struct AudioInterface
@@ -33,17 +26,19 @@ namespace Samraksh_Mel
         static UNSUPPORTED_TYPE& Get_audio_inference_callback( CLR_RT_HeapBlock* pMngObj )    { return Interop_Marshal_GetField_UNSUPPORTED_TYPE( pMngObj, Library_Samraksh_Mel_Samraksh_Mel_AudioInterface::FIELD__audio_inference_callback ); }
 
         // Declaration of stubs. These functions are implemented by Interop code developers
-		static INT8 set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, INT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr );
+        static void mel_get_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr );
+        static INT32 mel_set_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr );
+        static INT8 set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, UINT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr );
         static void set_model_recording_internal( CLR_RT_HeapBlock* pMngObj, INT8 param0, INT8 param1, HRESULT &hr );
         static INT8 Initialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
         static INT8 Uninitialize( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
         static INT8 GetResultData( CLR_RT_HeapBlock* pMngObj, float * param0, CLR_RT_TypedArray_float param1, CLR_RT_TypedArray_float param2, HRESULT &hr );
         static INT8 start_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
         static void stop_audio_inference( CLR_RT_HeapBlock* pMngObj, HRESULT &hr );
-        static INT8 set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, INT32 param0, INT32 param1, HRESULT &hr );
+        static INT8 set_ml_duty_cycle( CLR_RT_HeapBlock* pMngObj, UINT32 param0, UINT32 param1, HRESULT &hr );
         static INT8 set_raw_data_output( CLR_RT_HeapBlock* pMngObj, INT8 param0, HRESULT &hr );
         static INT8 set_dB_thresh( CLR_RT_HeapBlock* pMngObj, float param0, HRESULT &hr );
-        static INT8 set_time_interval( CLR_RT_HeapBlock* pMngObj, INT32 param0, HRESULT &hr );
+        static INT8 set_time_interval( CLR_RT_HeapBlock* pMngObj, UINT32 param0, HRESULT &hr );
     };
 }
 #endif  //_SAMRAKSH_MEL_SAMRAKSH_MEL_AUDIOINTERFACE_H_

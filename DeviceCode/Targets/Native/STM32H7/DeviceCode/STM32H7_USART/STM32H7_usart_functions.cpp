@@ -23,12 +23,12 @@ void USART_Interrupt(int ComPortNum);
 
 
 extern "C" {
-void USART2_IRQHandler(void)
-{
- INTERRUPT_START;
- USART_Interrupt(1); 
- INTERRUPT_END;
-}
+// void USART2_IRQHandler(void)
+// {
+ // INTERRUPT_START;
+ // USART_Interrupt(1); 
+ // INTERRUPT_END;
+// }
 
 void USART3_IRQHandler(void)
 {
@@ -61,6 +61,7 @@ void USART_Interrupt(int ComPortNum) {
 	}
 }
 
+/*
 void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
 	GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -70,11 +71,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
 		__HAL_RCC_GPIOA_CLK_ENABLE();
 		__HAL_RCC_GPIOD_CLK_ENABLE();
-		
-		/**USART2 GPIO Configuration    
-		PA2     ------> USART3_TX
-		PD6     ------> USART3_RX 
-		*/
+		 
+		// PA2     ------> USART3_TX
+		// PD6     ------> USART3_RX 
+
 		GPIO_InitStruct.Pin = USART2_RX_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -97,10 +97,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		__HAL_RCC_USART3_CLK_ENABLE();
 
 		__HAL_RCC_GPIOD_CLK_ENABLE();
-		/**USART2 GPIO Configuration    
-		PD8     ------> USART3_TX
-		PD9     ------> USART3_RX 
-		*/
+		
+		// PD8     ------> USART3_TX
+		// PD9     ------> USART3_RX 
+
 		GPIO_InitStruct.Pin = USART3_RX_PIN | USART3_TX_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -116,10 +116,10 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 		__HAL_RCC_UART5_CLK_ENABLE();
 
 		__HAL_RCC_GPIOB_CLK_ENABLE();
-		/**UART5 GPIO Configuration    
-		PB13     ------> USART3_TX
-		PB12     ------> USART3_RX 
-		*/
+
+		// PB13     ------> USART3_TX
+		// PB12     ------> USART3_RX 
+
 		GPIO_InitStruct.Pin = UART5_RX_PIN | UART5_TX_PIN;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
 		GPIO_InitStruct.Pull = GPIO_PULLUP;
@@ -131,51 +131,55 @@ void HAL_UART_MspInit(UART_HandleTypeDef* huart)
   
 	}
 }
+*/
+
+/*
 void HAL_UART_MspDeInit(UART_HandleTypeDef *huart)
 {
 	if(huart->Instance==USART2)
 	{	
-		/*##-1- Reset peripherals ##################################################*/
+
 		__HAL_RCC_USART2_FORCE_RESET();
 		__HAL_RCC_USART2_RELEASE_RESET();
 
 		HAL_NVIC_DisableIRQ(USART2_IRQn);
-		/*##-2- Disable peripherals and GPIO Clocks #################################*/
-		/* Configure USART6 Tx as alternate function  */
+
 		HAL_GPIO_DeInit(USART2_TX_GPIO_PORT, USART2_TX_PIN);
-		/* Configure USART6 Rx as alternate function  */
+
 		HAL_GPIO_DeInit(USART2_RX_GPIO_PORT, USART2_RX_PIN);
 	}
 	else if(huart->Instance==USART3)
 	{	
-		/*##-1- Reset peripherals ##################################################*/
+
 		__HAL_RCC_USART3_FORCE_RESET();
 		__HAL_RCC_USART3_RELEASE_RESET();
 
 		HAL_NVIC_DisableIRQ(USART3_IRQn);
-		/*##-2- Disable peripherals and GPIO Clocks #################################*/
-		/* Configure USART6 Tx as alternate function  */
+
 		HAL_GPIO_DeInit(USART3_TX_GPIO_PORT, USART3_TX_PIN);
-		/* Configure USART6 Rx as alternate function  */
+
 		HAL_GPIO_DeInit(USART3_RX_GPIO_PORT, USART3_RX_PIN);
 	}
 	else if(huart->Instance==UART5)
 	{	
-		/*##-1- Reset peripherals ##################################################*/
+
 		__HAL_RCC_UART5_FORCE_RESET();
 		__HAL_RCC_UART5_RELEASE_RESET();
 
 		HAL_NVIC_DisableIRQ(UART5_IRQn);
-		/*##-2- Disable peripherals and GPIO Clocks #################################*/
-		/* Configure USART6 Tx as alternate function  */
+
 		HAL_GPIO_DeInit(UART5_TX_GPIO_PORT, UART5_TX_PIN);
-		/* Configure USART6 Rx as alternate function  */
+
 		HAL_GPIO_DeInit(UART5_RX_GPIO_PORT, UART5_RX_PIN);
 	}
 }
+*/
   
 BOOL CPU_USART_Initialize( int ComPortNum, int BaudRate, int Parity, int DataBits, int StopBits, int FlowValue )
 {
+#ifdef MEL_KILL_UART5
+	if (ComPortNum == 5) return TRUE;
+#endif
 	GLOBAL_LOCK(irq);
 	
 	switch (ComPortNum) {
@@ -385,4 +389,67 @@ static void Error_Handler(void)
 
 void Debug_Print_in_HAL(const char* format){
 	hal_printf(format);
+}
+
+// FIX ME MAKE NOT A MESS
+// For comms with the BMS
+
+UART_HandleTypeDef huart2;
+void MX_USART2_UART_Init(void)
+{
+
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = 57600;
+  huart2.Init.WordLength = UART_WORDLENGTH_8B;
+  huart2.Init.StopBits = UART_STOPBITS_1;
+  huart2.Init.Parity = UART_PARITY_NONE;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  huart2.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+  huart2.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
+  huart2.Init.ClockPrescaler = UART_PRESCALER_DIV1;
+  huart2.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
+  if (HAL_UART_Init(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetTxFifoThreshold(&huart2, UART_TXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_SetRxFifoThreshold(&huart2, UART_RXFIFO_THRESHOLD_1_8) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  if (HAL_UARTEx_DisableFifoMode(&huart2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
+
+void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(uartHandle->Instance==USART2)
+  {
+    __HAL_RCC_USART2_CLK_ENABLE();
+  
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    /**USART2 GPIO Configuration    
+    PA2     ------> USART2_TX
+    PA3     ------> USART2_RX 
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+    GPIO_InitStruct.Alternate = GPIO_AF7_USART2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    /* USART2 interrupt Init */
+    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+  }
 }

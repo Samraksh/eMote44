@@ -20,6 +20,7 @@ UINT64 received_ts_ticks;
 UINT16 radio_address;
 INT8 radioName;
 UINT16 preloadedMsgSize;
+INT16 packetRSSI;
 
 // This somehow gets put in the radio function. Out of scope for now, but fix me later.
 static void GetCPUSerial(uint8_t * ptr, unsigned num_of_bytes ){
@@ -90,10 +91,13 @@ void SX1276_HAL_RxDone(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr
 		return;
 	}
 	//hal_printf("RX Done \r\n");
+	//hal_printf("RSSI: %d\n\r", packetRSSI+164);
+	packetRSSI = rssi;
 	Message_15_4_t* pckt_ptr = reinterpret_cast<Message_15_4_t*>(payload);
 	if(received_ts_ticks == UNSET_TS)
 		received_ts_ticks = HAL_Time_CurrentTicks();
 	pckt_ptr->GetMetaData()->SetReceiveTimeStamp(received_ts_ticks);
+	pckt_ptr->GetMetaData()->SetRssi((UINT8)(packetRSSI+164));
 	(Radio_event_handler.GetReceiveHandler())(payload, size);
 }
 
@@ -120,12 +124,15 @@ void SX1276_HAL_RxError(){
 void SX1276_HAL_FhssChangeChannel(uint8_t currentChannel ){
 
 }
+
 void SX1276_HAL_CadDone(bool channelActivityDetected){	
 	m_rm = SLEEP;
-	SX1276_HAL_SetCADStatus(channelActivityDetected);
-	SX1276_HAL_SetCADRunningStatus(false);
+	//SX1276_HAL_SetCADStatus(channelActivityDetected);
+	//SX1276_HAL_SetCADRunningStatus(false);
 	//CAD_Status = channelActivityDetected;
 	//Is_CAD_Running = false;
+	//hal_printf("SX1276_HAL_CadDone\r\n");
+	(Radio_event_handler.GetCADDoneInterruptHandler())(channelActivityDetected);
 }
 
 
@@ -152,6 +159,7 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 	Radio_event_handler.SetReceiveHandler(event_handler->GetReceiveHandler());
 	Radio_event_handler.SetSendAckHandler(event_handler->GetSendAckHandler());
 	Radio_event_handler.SetRadioInterruptHandler(event_handler->GetRadioInterruptHandler());
+	Radio_event_handler.SetCADDoneInterruptHandler(event_handler->GetCADDoneInterruptHandler());
 	
 	events.TxDone 				= SX1276_HAL_TxDone;
 	events.TxTimeout 			= SX1276_HAL_TxTimeout;
@@ -302,33 +310,24 @@ DeviceStatus SX1276_HAL_AddToTxBuffer(void* msg, UINT16 size){
 }
 
 
+
 DeviceStatus SX1276_HAL_ChannelActivityDetection(){
-	SX1276_HAL_SetCADRunningStatus(true);
-	SX1276_HAL_SetCADStatus(false);
+	Is_CAD_Running = true;
+	CAD_Status = false;
 	VirtualTimerReturnMessage rm;
 	//rm = VirtTimer_Start(VIRT_TIMER_SX1276_CADTimer);
 
 	m_rm = RX;
-	SX1276StartCad();
-
-	UINT32 i = 1;
-	while(SX1276_HAL_GetCADRunningStatus()) { // && i < 20000){
-		i++;		
-	};
-
-	//HAL_Delay(1);
-	//hal_printf("CAD Detected");
+	//if( ( SX1276Read( REG_OPMODE ) & ~RF_OPMODE_MASK ) == RF_OPMODE_SLEEP )
+	//{
+	SX1276SetStby();
+	//}
 	
-	//return DS_Success;
-	if(SX1276_HAL_GetCADStatus()) {
-		//hal_printf("CAD Detected\r\n");
-		return DS_Success;
-	}
-	else {
-		//hal_printf("CAD Done\r\n");
-		return DS_Fail;
-	}
+	SX1276StartCad();
+	//HAL_Delay(1);
+	return DS_Success;
 }
+	
 
 void SX1276_HAL_PacketLoadTimerHandler(void* param) {
 	UINT64 delay;
@@ -458,12 +457,18 @@ void SX1276_HAL_ChooseRadioConfig() {
 
 }
 
+UINT32 SX1276_HAL_ReadPacketRssi() {
+	// the LORA rssi is negative value so 164 which is RSSI_OFFSET_LF is added	
+	return (UINT32)(packetRSSI+164);	
+}
+
 UINT32 SX1276_HAL_ReadRssi() {
 	UINT32 value;	
+// the LORA rssi is negative value so 164 which is RSSI_OFFSET_LF is added
 #if defined( USE_MODEM_LORA )
-	value = (UINT32)SX1276ReadRssi(MODEM_LORA);
+	value = SX1276ReadRssi(MODEM_LORA) + 164;
 #elif defined( USE_MODEM_FSK )
-	value = (UINT32)SX1276ReadRssi(MODEM_FSK);
+	value = SX1276ReadRssi(MODEM_FSK) + 164;
 #endif
 	return value;
 }
@@ -485,20 +490,6 @@ INT8 SX1276_HAL_GetRadioName(){
 }
 void SX1276_HAL_SetRadioName(INT8 rn){
 	radioName = rn;
-}
-
-BOOL SX1276_HAL_GetCADStatus(){
-	return CAD_Status;
-}
-void SX1276_HAL_SetCADStatus(BOOL status){
-	CAD_Status = status;
-}
-
-BOOL SX1276_HAL_GetCADRunningStatus(){
-	return Is_CAD_Running;
-}
-void SX1276_HAL_SetCADRunningStatus(BOOL status){
-	Is_CAD_Running = status;
 }
 
 bool SX1276_Packet_PreparePayload(void* msg, UINT16 size, const UINT64& t, ClockIdentifier_t c) {
