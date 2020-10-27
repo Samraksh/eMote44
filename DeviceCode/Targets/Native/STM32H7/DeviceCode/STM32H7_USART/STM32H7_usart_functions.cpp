@@ -425,7 +425,7 @@ void MX_USART2_UART_Init(void)
   {
     Error_Handler();
   }
-
+  CLEAR_BIT(huart2.Instance->CR1, USART_CR1_UE); // LL_USART_Disable()
 }
 
 void HAL_UART_MspInit(UART_HandleTypeDef* uartHandle)

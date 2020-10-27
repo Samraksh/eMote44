@@ -32,6 +32,7 @@
 #define STM32H743xx
 
 #define MKII_BASE_CONFIG // Otherwise fence assumed
+#define MKII_DEBUG_PRINT_BMS
 //#define ALLOW_BKPT
 #define PAUSE_AFTER_USB_INIT_MS 5000 // in milli-seconds to allow terminal to be bought up etc. Can be undefined.
 #define PRINTF_MAX_RETRIES 0
