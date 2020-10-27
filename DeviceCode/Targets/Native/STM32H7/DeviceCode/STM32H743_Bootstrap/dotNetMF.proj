@@ -46,7 +46,8 @@
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Settings" />
   <ItemGroup>
     <HFiles Include="..\stm32h7xx.h" />
-	<!--<Compile Include="startup_stm32h753xx.s" />-->
+	<HFiles Include="fmc.h" />
+	<Compile Include="fmc.c" />
 	<Compile Include="STM32H7_bootstrap.cpp" />
   </ItemGroup>
   <Import Project="$(SPOCLIENT)\tools\targets\Microsoft.SPOT.System.Targets" />

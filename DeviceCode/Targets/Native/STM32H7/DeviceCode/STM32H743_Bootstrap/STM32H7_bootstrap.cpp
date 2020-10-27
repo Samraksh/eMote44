@@ -2,6 +2,8 @@
 #include <stm32h7xx_hal.h>
 #include "..\stm32h7xx.h"
 
+#include "fmc.h"
+
 #ifndef STARTUP_DELAY_MS
 #define START_UP_DELAY() ((void)0)
 #else
@@ -14,17 +16,8 @@
 #endif
 
 #define BREAKPOINT(x) __asm__("BKPT")
-//#define TINY_CLR_VECTOR_TABLE_OFFSET 0x00040000
 #define VECT_TAB_OFFSET 0x00000070
-//#if defined(TARGETLOCATION_RAM)
-//extern UINT32 Load$$ER_RAM$$Base;
-//#elif defined(TARGETLOCATION_FLASH)
-//	extern const uint32_t _vectors_start_;
-//	#define ROM_START ((uint32_t *)&_vectors_start_)
 extern UINT32 Load$$ER_FLASH$$Base;
-//#else
-//    !ERROR
-//#endif
 
 // Note: Not an ISR
 static void Error_Handler(void)
@@ -37,10 +30,6 @@ static void Error_Handler(void)
 #endif
 }
 
-/**
-  * @brief System Clock Configuration
-  * @retval None
-  */
 // 480 MHz (Maximum clock, REV 'V' SILICON ONLY
 static int is_fast_clock = -1;
 
@@ -99,17 +88,20 @@ void MaxSystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2
-                              |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_SPI3
-                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_USB
-							  |RCC_PERIPHCLK_LPTIM2|RCC_PERIPHCLK_QSPI
+                              /*|RCC_PERIPHCLK_UART5*/|RCC_PERIPHCLK_SPI3
+                              |RCC_PERIPHCLK_SPI1/*|RCC_PERIPHCLK_USB*/
+							  |RCC_PERIPHCLK_LPTIM2/*|RCC_PERIPHCLK_QSPI*/
                               |RCC_PERIPHCLK_LPTIM1|RCC_PERIPHCLK_FMC
                               |RCC_PERIPHCLK_CKPER;
+#ifdef MKII_BASE_CONFIG
+  PeriphClkInitStruct.PeriphClockSelection |= RCC_PERIPHCLK_USB;
+  PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+#endif
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL;
-  PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL;
+  //PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL;
   PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSE;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
   PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
-  PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
   PeriphClkInitStruct.Lptim1ClockSelection = RCC_LPTIM1CLKSOURCE_LSE;
   PeriphClkInitStruct.Lptim2ClockSelection = RCC_LPTIM2CLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -175,17 +167,20 @@ void MinSystemClock_Config(void)
     Error_Handler();
   }
   PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_USART2
-                              |RCC_PERIPHCLK_UART5|RCC_PERIPHCLK_SPI3
-                              |RCC_PERIPHCLK_SPI1|RCC_PERIPHCLK_USB
-							  |RCC_PERIPHCLK_LPTIM2|RCC_PERIPHCLK_QSPI
+                              /*|RCC_PERIPHCLK_UART5*/|RCC_PERIPHCLK_SPI3
+                              |RCC_PERIPHCLK_SPI1/*|RCC_PERIPHCLK_USB*/
+							  |RCC_PERIPHCLK_LPTIM2/*|RCC_PERIPHCLK_QSPI*/
                               |RCC_PERIPHCLK_LPTIM1|RCC_PERIPHCLK_FMC
                               |RCC_PERIPHCLK_CKPER;
+#ifdef MKII_BASE_CONFIG
+  PeriphClkInitStruct.PeriphClockSelection |= RCC_PERIPHCLK_USB;
+  PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+#endif
   PeriphClkInitStruct.FmcClockSelection = RCC_FMCCLKSOURCE_PLL;
-  PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL;
+  //PeriphClkInitStruct.QspiClockSelection = RCC_QSPICLKSOURCE_PLL;
   PeriphClkInitStruct.CkperClockSelection = RCC_CLKPSOURCE_HSE;
   PeriphClkInitStruct.Spi123ClockSelection = RCC_SPI123CLKSOURCE_CLKP;
   PeriphClkInitStruct.Usart234578ClockSelection = RCC_USART234578CLKSOURCE_D2PCLK1;
-  PeriphClkInitStruct.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
   PeriphClkInitStruct.Lptim1ClockSelection = RCC_LPTIM1CLKSOURCE_LSE;
   PeriphClkInitStruct.Lptim2ClockSelection = RCC_LPTIM2CLKSOURCE_LSE;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct) != HAL_OK)
@@ -202,7 +197,7 @@ void HAL_MspInit(void)
   __HAL_RCC_SYSCFG_CLK_ENABLE();
 }
 
-//extern UART_HandleTypeDef huart2;
+// TODO FIX ME
 extern void MX_USART2_UART_Init(void);
 
 extern "C" {
@@ -463,6 +458,7 @@ void BootstrapCode() {
 	MinSystemClock_Config();
 #endif
 	MX_USART2_UART_Init();
+	//MX_FMC_Init();
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
 	__HAL_DBGMCU_FREEZE_TIM5();
