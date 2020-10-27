@@ -49,6 +49,7 @@ enum {
 	FRAME_TYPE_NACK				=8,
 	FRAME_TYPE_HELLO			=9,
 	FRAME_TYPE_DEBUG_STRING_BMS	=10,
+	FRAME_TYPE_BMS_STATS_v7		=11,
 };
 
 // Dest types

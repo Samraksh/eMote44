@@ -32,6 +32,7 @@ static volatile unsigned rx_cnt=0;
 static mel_status_t serial_frame_status;
 
 static void my_free(uint32_t x);
+static void bms_stats_frame_handler(serial_frame_t *f, mel_status_t *status);
 
 int send_framed_serial_data(const uint8_t *data, unsigned sz, uint32_t frame_type);
 
@@ -69,6 +70,7 @@ static void handle_frame(serial_frame_t *f, mel_status_t *status) {
 		case FRAME_TYPE_DEBUG_STRING: debug_frame_handler(f, status); break;
 		case FRAME_TYPE_BOOTLOADER_BIN: bootloader_frame_handler(f, status); break;
 		case FRAME_TYPE_DATA_STRING: data_string_frame_handler(f, status); break;
+		case FRAME_TYPE_BMS_STATS_v7: bms_stats_frame_handler(f, status); break;
 		// case FRAME_TYPE_BIN_AUDIO: audio_frame_handler(f, status); break;
 		default: break;
 	}
@@ -76,25 +78,31 @@ static void handle_frame(serial_frame_t *f, mel_status_t *status) {
 }
 
 #define CHECK_FLAG(x) {if (flag & x) hal_printf("Flag: " #x "\r\n");}
-static bool parse_frame(serial_frame_t *f, mel_status_t *status) {
+static bool parse_frame(serial_frame_t *f, mel_status_t *status, bool do_malloc_free) {
 	if (f == NULL) { frame_error_handler(); return false; }
 	frame_flag_t flag = f->flag;
 	if (f->err == NO_FRAME) return false;
 	if (f->err) hal_printf("Frame Error %d\r\n", f->err);
 
-	CHECK_FLAG(NONE_FLAG);
+	//CHECK_FLAG(NONE_FLAG);
 	//CHECK_FLAG(FRAME_FOUND);
 	//CHECK_FLAG(PARTIAL);
-	CHECK_FLAG(NO_PAYLOAD);
-	CHECK_FLAG(CRC_ERROR);
+	//CHECK_FLAG(NO_PAYLOAD);
+	//CHECK_FLAG(CRC_ERROR);
 
+	// Ignore CRC error frames but we still have to free them
 	if (flag & CRC_ERROR) {
-		hal_printf("DEBUG: PAYLOAD SIZE: %u\r\n", f->sz);
+		if (do_malloc_free)
+			my_free(f->sz);
+		f->buf = NULL;
+		f->sz = 0;
+		return false;
 	}
 
 	if (flag & FRAME_FOUND) {
 		handle_frame(f, status);
-		my_free(f->sz);
+		if (do_malloc_free)
+			my_free(f->sz);
 		f->buf = NULL;
 		f->sz = 0;
 		return true;
@@ -113,7 +121,7 @@ static void handle_serial_rx(void *p) {
 		decode_ret = serial_frame_decode(&rx_buf[i], cnt-i, &f);
 		if (decode_ret < 0) { frame_error_handler(); break; }
 		i += decode_ret;
-		go = parse_frame(&f, &serial_frame_status);
+		go = parse_frame(&f, &serial_frame_status, true);
 	} while (go);
 
 	GLOBAL_LOCK(irq);
@@ -175,12 +183,23 @@ static int get_cts(void) { return CPU_GPIO_GetPinState( _P(A,0) ); }
 static void bms_clear_rts(void)  { CPU_GPIO_SetPinState( _P(A,1), FALSE); }
 static void bms_assert_rts(void) { CPU_GPIO_SetPinState( _P(A,1), TRUE); }
 
+static void uart2_enable(bool set) {
+	if (set) {
+		SET_BIT(BMS_UART->Instance->CR1, USART_CR1_UE); // LL_USART_Enable
+	}
+	else {
+		CLEAR_BIT(BMS_UART->Instance->CR1, USART_CR1_UE); // LL_USART_Disable
+	}
+}
+
 static void set_uart_rx_it(bool set) {
 	if (set) {
 		SET_BIT  (BMS_UART->Instance->CR1, USART_CR1_RXNEIE_RXFNEIE);
+		SET_BIT  (BMS_UART->Instance->CR3, USART_CR3_EIE); // enable error interrupt
 	}
 	else {
 		CLEAR_BIT(BMS_UART->Instance->CR1, USART_CR1_RXNEIE_RXFNEIE);
+		CLEAR_BIT(BMS_UART->Instance->CR3, USART_CR3_EIE);
 	}
 }
 
@@ -213,35 +232,56 @@ static int32_t avg24(uint32_t *x) {
 }
 
 static void print_bms_data(bms_rx_v6_t *x, uint32_t i) {
-	hal_printf("ver: %lu\r\n", x->version);
+	hal_printf("version: %lu\r\n", x->version);
 	hal_printf("hour: %lu\r\n", x->hour_idx);
-	hal_printf("cells: %lu %lu %lu %lu\r\n", x->cells[0], x->cells[1], x->cells[2], x->cells[3]);
-	hal_printf("tot: %lu\r\n", x->tot);
-	hal_printf("1 hr power in: %lu\r\n", x->power_in_24[i]);
-	hal_printf("1 hr power out: %lu\r\n", x->power_out_24[i]);
-	hal_printf("1 hr solar volt: %lu\r\n", x->solar_volt_24[i]);
+	hal_printf("cells: #0:%lu mV #1:%lu mV #2:%lu mV #3:%lu mV total: %lu mV\r\n", x->cells[0], x->cells[1], x->cells[2], x->cells[3], x->tot);
+	hal_printf("last hr power in: %lu\r\n", x->power_in_24[i]);
+	hal_printf("last hr power out: %lu\r\n", x->power_out_24[i]);
+	hal_printf("last hr solar volt: %lu\r\n", x->solar_volt_24[i]);
 	hal_printf("24 hr power in: %lu\r\n", avg24(x->power_in_24));
 	hal_printf("24 hr power out: %lu\r\n", avg24(x->power_out_24));
-	hal_printf("1 hr temperature: %lu\r\n", (uint32_t)(x->temperature_24[i])); // Don't print floats
+	hal_printf("last hr temperature: %lu\r\n", (uint32_t)(x->temperature_24[i])); // Don't print floats
+}
+
+static void bms_stats_frame_handler(serial_frame_t *f, mel_status_t *status) {
+	uint8_t *buf = f->buf;
+	int expected_size = sizeof(bms_rx_v6_t);
+	if (f->sz != expected_size) { // bad size
+		hal_printf("Bad BMS Data frame size %lu\r\n", f->sz);
+		return;
+	}
+
+	memcpy(&bms_data, buf, expected_size);
+
+	// bms_data.hour_idx normally points to the *next* hour so step back one to get current
+	if (bms_data.hour_idx == 0) bms_data.hour_idx = 23;
+	else bms_data.hour_idx = bms_data.hour_idx - 1;
+
+#ifdef MKII_DEBUG_PRINT_BMS
+	print_bms_data(&bms_data, bms_data.hour_idx);
+#endif
 }
 
 // Called on reception completed
 static void handle_bms_rx(void *p) {
-	//set_uart_rx_it(false);
-	UART_EndRxTransfer(BMS_UART);
-	__DMB();
-	if (uart2_error) return; // Discard results
-	if (bms_rx_bytes != sizeof(bms_rx_v6_t)) return; // Unexpected size
+	serial_frame_t f = {0};
+	mel_status_t bms_frame_status; // not saved for now
+	int decode_ret;
+	int err=0;
+	bool parse_ret;
 
-	memcpy(&bms_data, (const void *)bms_rx_buf, sizeof(bms_rx_v6_t));
+	UART_EndRxTransfer(BMS_UART); // should be redundant
+	uart2_enable(false);
 
-	// we want the current hour_idx
-	// bms_data.hour_idx normally points to the *next* hour so step back one
-	if (bms_data.hour_idx == 0) bms_data.hour_idx = 23;
-	else bms_data.hour_idx = bms_data.hour_idx - 1;
+	if (uart2_error) { err = -1; goto out; }
+	decode_ret = serial_frame_decode((const uint8_t *)bms_rx_buf, bms_rx_bytes, &f);
+	if (decode_ret < 0) { err = -1; goto out; }
+	parse_ret = parse_frame(&f, &bms_frame_status, false); // should resolve to bms_stats_frame_handler()
+	if (parse_ret == false) { err = -1; goto out; }
 
-	hal_printf("Got %lu bytes BMS data\r\n", bms_rx_bytes);
-	print_bms_data(&bms_data, bms_data.hour_idx);
+out:
+	if (err) hal_printf("Failed BMS Data Reception\r\n");
+	return;
 }
 
 static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
@@ -251,11 +291,12 @@ static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
 		return;
 	}
 	// Setup for incoming BMS transmission
+	uart2_enable(true);
 	bms_rx_bytes = 0;
 	uart2_error = false;
 	uart2_timeout = 1000;
 	set_uart_rx_it(true);
-	bms_assert_rts();
+	bms_assert_rts(); // must be last
 }
 
 
@@ -263,11 +304,6 @@ static void bms_uart_abort(UART_HandleTypeDef *huart) {
 	uint32_t isrflags   = READ_REG(huart->Instance->ISR);
 	uint32_t cr1its     = READ_REG(huart->Instance->CR1);
 	uint32_t cr3its     = READ_REG(huart->Instance->CR3);
-
-	//uint32_t errorflags;
-	uint32_t errorcode;
-
-	uart2_error = true;
 
 	/* UART parity error interrupt occurred -------------------------------------*/
 	if (((isrflags & USART_ISR_PE) != 0U) && ((cr1its & USART_CR1_PEIE) != 0U))
@@ -307,19 +343,23 @@ static void bms_uart_abort(UART_HandleTypeDef *huart) {
 }
 
 static void bms_uart_irq_handler(void) {
-
+	const uint32_t USART_ISR_RXNE = 0x20;
 	uint32_t isrflags   = READ_REG(BMS_UART->Instance->ISR);
-	uint32_t errorflags;
-	errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
-	if (errorflags != 0U || --uart2_timeout == 0) {
+	uint32_t errorflags = (isrflags & (uint32_t)(USART_ISR_PE | USART_ISR_FE | USART_ISR_ORE | USART_ISR_NE));
+
+	uart2_timeout--;
+
+	if (errorflags != 0U || uart2_timeout == 0 || bms_rx_bytes >= sizeof(bms_rx_buf)) {
 		bms_uart_abort(BMS_UART);
+		uart2_error = true;
 		return;
 	}
 
-	uint8_t data = (uint8_t)(BMS_UART->Instance->RDR & (uint8_t)0xFF);
-	if (bms_rx_bytes == 0 && !bms_active_transmit) bms_clear_rts();
-	if (bms_rx_bytes >= sizeof(bms_rx_buf)) return; // ignore out of bounds
-	bms_rx_buf[bms_rx_bytes++] = data;
+	if (isrflags & USART_ISR_RXNE) {
+		uint8_t data = (uint8_t)(BMS_UART->Instance->RDR & (uint8_t)0xFF);
+		if (bms_rx_bytes == 0 && !bms_active_transmit) bms_clear_rts();
+		bms_rx_buf[bms_rx_bytes++] = data;
+	}
 }
 
 extern "C" {
