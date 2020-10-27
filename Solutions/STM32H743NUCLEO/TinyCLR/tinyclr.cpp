@@ -10,14 +10,15 @@
 #define GPIO_1 _P(B,13)
 #define GPIO_2 _P(C,12)
 
-#define IGNORE_FIR_TEST_CODE
+//#define IGNORE_FIR_TEST_CODE
 
 #ifndef IGNORE_FIR_TEST_CODE
 #include "Samraksh/SONYC_ML/sonyc_util.h"
-static float my_data[8000];
-volatile static float my_output[8000];
+static volatile uint32_t test_ram __attribute__ (( section (".ext_sram"), aligned(32) ));
+static float my_data[8000] __attribute__ (( section (".ext_sram"), aligned(32) ));
+static volatile float my_output[8000] __attribute__ (( section (".ext_sram"), aligned(32) ));
 static unsigned my_count;
-static UINT64 now1, now2;
+//static UINT64 now1, now2;
 #endif
 
 //#include "core_cm7.h"  // Applies to all Cortex-M7
@@ -94,11 +95,12 @@ void nathan_rtc_handler(void *arg) {
 	else
 		CPU_GPIO_SetPinState(GPIO_2, FALSE);
 }
-
+extern "C" void MX_FMC_Init(void);
 ////////////////////////////////////////////////////////////////////////////////
 void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
+	MX_FMC_Init();
 #ifdef MEL_USE_SERIAL_FRAMES
 	framed_serial_init();
 #endif
@@ -144,19 +146,21 @@ void ApplicationEntryPoint()
     //ClrStartup( clrSettings );
 
 #ifndef IGNORE_FIR_TEST_CODE
+	test_ram = 1234;
 	for(int i=0; i<8000; i++)
 		my_data[i] = i/(float)8000.0;
 	volatile int x = sonyc_init_comp_filter();
 	
 	reset_cnt();
-	now1 = HAL_Time_CurrentTicks();
+	//now1 = HAL_Time_CurrentTicks();
 	start_cnt();
 	sonyc_comp_filter_go(my_data, (float *)my_output);
 	stop_cnt();
-	now2 = HAL_Time_CurrentTicks();
+	//now2 = HAL_Time_CurrentTicks();
 	my_count = getCycles();
 	
-	hal_printf("Took %u cycles time diff %lu\r\n", my_count, (uint32_t)(now2-now1));
+	hal_printf("Took %u cycles -- %u ms\r\n", my_count, my_count/480000);
+	//hal_printf("Took %u cycles time diff %lu OR %lu ms\r\n", my_count, (uint32_t)(now2-now1), my_count/480000);
 #endif
 
 	while(1) {

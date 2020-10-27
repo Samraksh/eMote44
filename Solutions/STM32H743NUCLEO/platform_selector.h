@@ -37,7 +37,7 @@
 #define PRINTF_MAX_RETRIES 0
 //#define KILL_SONYC_MODEL // Debugging option. Keeps model out of the binary.
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
-#define MEL_USE_SERIAL_FRAMES
+//#define MEL_USE_SERIAL_FRAMES
 #define BOOTLOADER_MAGIC_WORD 0xEE33BB22
 #define BOOTLOADER_MAGIC_ADDR 0x38000000 // first word of D3
 
