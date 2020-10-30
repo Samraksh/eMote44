@@ -15,8 +15,8 @@
 #ifndef IGNORE_FIR_TEST_CODE
 #include "Samraksh/SONYC_ML/sonyc_util.h"
 static volatile uint32_t test_ram __attribute__ (( section (".ext_sram"), aligned(32) ));
-static float my_data[8000] __attribute__ (( section (".ext_sram"), aligned(32) ));
-static volatile float my_output[8000] __attribute__ (( section (".ext_sram"), aligned(32) ));
+static float my_data[32000] __attribute__ (( section (".ext_sram"), aligned(32) ));
+static volatile float my_output[32000] __attribute__ (( section (".ext_sram"), aligned(32) ));
 static unsigned my_count;
 //static UINT64 now1, now2;
 #endif
@@ -147,9 +147,9 @@ void ApplicationEntryPoint()
 
 #ifndef IGNORE_FIR_TEST_CODE
 	test_ram = 1234;
-	for(int i=0; i<8000; i++)
-		my_data[i] = i/(float)8000.0;
-	volatile int x = sonyc_init_comp_filter();
+	for(int i=0; i<32000; i++)
+		my_data[i] = i/(float)32000.0;
+	sonyc_init_comp_filter();
 	
 	reset_cnt();
 	//now1 = HAL_Time_CurrentTicks();

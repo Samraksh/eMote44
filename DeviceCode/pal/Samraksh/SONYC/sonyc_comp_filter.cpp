@@ -6,13 +6,14 @@
 #include <stdbool.h>
 #include "sonyc_util.h"
 
-#include "filt_taps_fir.h" // const float filt_taps_fir[1025]
+// Not a real header, just has the taps array in a separate file
+#include "filt_taps_fir.h" // float filt_taps_fir
 
 #define NUM_TAPS (sizeof(filt_taps_fir) / sizeof(filt_taps_fir[0]))
-#define BLOCK_SIZE 8000 // samples per run
+#define BLOCK_SIZE 32000 // samples per run
 
 
-static float32_t firStateF32[BLOCK_SIZE + NUM_TAPS - 1];
+static float32_t firStateF32[BLOCK_SIZE + NUM_TAPS - 1] __attribute__ (( section (".ram_d1"), aligned(32) ));
 static arm_fir_instance_f32 S;
 
 #ifdef _DEBUG
