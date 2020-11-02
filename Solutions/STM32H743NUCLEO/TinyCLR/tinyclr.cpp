@@ -6,15 +6,15 @@
 #include <Samraksh/VirtualTimer.h>
 #include <Samraksh/serial_frame_pal.h>
 
+#include "Samraksh/SONYC_ML/sonyc_util.h" // for sonyc filter init
+
 #define GPIO_0 _P(B,12)
 #define GPIO_1 _P(B,13)
 #define GPIO_2 _P(C,12)
 
-//#define IGNORE_FIR_TEST_CODE
+#define IGNORE_FIR_TEST_CODE
 
 #ifndef IGNORE_FIR_TEST_CODE
-#include "Samraksh/SONYC_ML/sonyc_util.h"
-static volatile uint32_t test_ram __attribute__ (( section (".ext_sram"), aligned(32) ));
 static float my_data[32000] __attribute__ (( section (".ext_sram"), aligned(32) ));
 static volatile float my_output[32000] __attribute__ (( section (".ext_sram"), aligned(32) ));
 static unsigned my_count;
@@ -101,9 +101,8 @@ void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
 	MX_FMC_Init();
-#ifdef MEL_USE_SERIAL_FRAMES
 	framed_serial_init();
-#endif
+	sonyc_init_filters();
 
 	// Initial delay to allow UART terminals to start and catch startup messages
     //HAL_Delay(5000);
@@ -140,16 +139,14 @@ void ApplicationEntryPoint()
 	VirtTimer_Start(VIRT_TIMER_RTC_TEST);*/
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	I2S_Internal_Initialize();
+	//I2S_Internal_Initialize();
 	//I2S_Test();
     //hal_printf(" CLR 30 ");
-    //ClrStartup( clrSettings );
+    ClrStartup( clrSettings );
 
 #ifndef IGNORE_FIR_TEST_CODE
-	test_ram = 1234;
 	for(int i=0; i<32000; i++)
 		my_data[i] = i/(float)32000.0;
-	sonyc_init_comp_filter();
 	
 	reset_cnt();
 	//now1 = HAL_Time_CurrentTicks();
@@ -158,9 +155,16 @@ void ApplicationEntryPoint()
 	stop_cnt();
 	//now2 = HAL_Time_CurrentTicks();
 	my_count = getCycles();
+	hal_printf("FIR Took %u cycles -- %u ms\r\n", my_count, my_count/480000);
 	
-	hal_printf("Took %u cycles -- %u ms\r\n", my_count, my_count/480000);
-	//hal_printf("Took %u cycles time diff %lu OR %lu ms\r\n", my_count, (uint32_t)(now2-now1), my_count/480000);
+	reset_cnt();
+	//now1 = HAL_Time_CurrentTicks();
+	start_cnt();
+	sonyc_iir_filter_go(my_data, (float *)my_output);
+	stop_cnt();
+	//now2 = HAL_Time_CurrentTicks();
+	my_count = getCycles();
+	hal_printf("IIR Took %u cycles -- %u ms\r\n", my_count, my_count/480000);
 #endif
 
 	while(1) {
