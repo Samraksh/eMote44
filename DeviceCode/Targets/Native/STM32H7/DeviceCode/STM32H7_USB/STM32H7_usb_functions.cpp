@@ -183,10 +183,9 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 static bool USB_initialized = false;
 static unsigned last_malloc_size;
-static uint8_t rx_pkt_buf[128]; 			// TODO: Assumes packets are handled fast
+static uint8_t rx_pkt_buf[64]; 			// TODO: Assumes packets are handled fast, and should be size 64
 
-// TX buffer is huge to accomodate simple 32 kHz Mic streaming
-static uint8_t tx_pkt_buf[128*1024+1024] __attribute__ (( section (".ram_d1"), aligned(32) ));
+static uint8_t tx_pkt_buf[4*1024] __attribute__ (( section (".ram_d2"), aligned(32) ));
 static usb_cdc_status_t usb_cdc_status;
 
 static HAL_CONTINUATION usb_retry_contin;

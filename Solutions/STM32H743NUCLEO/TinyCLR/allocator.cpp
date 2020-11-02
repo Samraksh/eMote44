@@ -10,7 +10,7 @@
 static unsigned bytes;
 
 // MFCC high water mark is 19376 bytes
-static uint8_t my_buf[19*1024] __attribute__ (( section (".ram_d1") ));
+static uint8_t my_buf[19*1024] __attribute__ (( section (".ram_d2") ));
 
 static void *my_alloc( size_t n ) {
 	unsigned saved = bytes;

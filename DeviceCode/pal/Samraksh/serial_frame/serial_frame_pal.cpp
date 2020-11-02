@@ -8,7 +8,8 @@ extern "C" {
 }
 
 #ifndef JUMBO_FRAME_MAX
-#define JUMBO_FRAME_MAX (128*1024) // 128 kiB
+//#define JUMBO_FRAME_MAX (128*1024) // 128 kiB
+#define JUMBO_FRAME_MAX (3*1024) // 3 kiB
 #endif
 
 // Mostly hold-over from host side
@@ -21,7 +22,7 @@ typedef struct {
 } mel_status_t;
 
 #ifdef PLATFORM_ARM_STM32H743NUCLEO
-static uint8_t rx_buf[FRAME_MAX_SIZE] __attribute__ (( section (".ram_d1"), aligned(32) ));
+static uint8_t rx_buf[FRAME_MAX_SIZE] __attribute__ (( section (".ram_d2"), aligned(32) ));
 #else
 static uint8_t rx_buf[FRAME_MAX_SIZE];
 #endif
@@ -398,7 +399,7 @@ int send_framed_serial_data(const uint8_t *data, unsigned sz, uint32_t frame_typ
 }
 
 #ifdef PLATFORM_ARM_STM32H743NUCLEO
-static uint8_t frame_scrach_space[FRAME_MAX_SIZE] __attribute__ (( section (".ram_d1"), aligned(32) ));
+static uint8_t frame_scrach_space[FRAME_MAX_SIZE] __attribute__ (( section (".ram_d2"), aligned(32) ));
 #else
 static uint8_t frame_scrach_space[FRAME_MAX_SIZE];
 #endif

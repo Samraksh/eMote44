@@ -59,7 +59,7 @@ class MFCC{
     MFCC(int frame_len);
     ~MFCC();
     void mfcc_compute(const int32_t* data);
-	//void mfcc_compute_float(const float* data);
+	void mfcc_compute_float(const float* data);
 	
 	float * get_mel_energies() {
 		return mel_energies;

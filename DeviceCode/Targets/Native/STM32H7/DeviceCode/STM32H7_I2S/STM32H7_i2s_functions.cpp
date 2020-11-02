@@ -3,27 +3,34 @@
 
 #include <Samraksh\serial_frame_pal.h>
 #include <Samraksh\SONYC_ML\sonyc_ml.h>
+#include "Samraksh/SONYC_ML/sonyc_util.h" // for sonyc filter
 
 #include <STM32H7_Time\lptim.h>
 
 #define debug_printf hal_printf
 
-//#define SEND_AUDIO_DATA_ONLY
+#ifndef MKII_DO_NOT_FILTER_MIC
+#define DO_COMP_AND_A_WEIGHT_FILTERS
+#endif
 
 static HAL_CONTINUATION mic_cont;
-
+static HAL_CONTINUATION mic_error_cont;
 static I2S_HandleTypeDef hi2s3;
 static DMA_HandleTypeDef hdma_spi3_rx;
-
 static void stereo_to_mono(uint32_t *s, int32_t *m, uint32_t s_len_bytes) __attribute__ ((unused));
+static void stereo_to_mono_float(uint32_t *s, float *m, uint32_t s_len_bytes) __attribute__ ((unused));
+
+#define ARRAY_LEN(x) (sizeof(x) / sizeof(x[0]))
 
 // DMA audio parameters
 #define SAMPLE_DMA_SEC 2 // seconds to be buffered per FULL dma transfer
-#define SAMP_RATE_HZ 8000UL
+#define SAMP_RATE_HZ 16000UL // 32 kHz
+#define ML_SAMP_RATE_HZ 8000UL // 8 kHz is the input ML rate
 
-#define MONO_DATA_BYTES (SAMP_RATE_HZ/2 * SAMPLE_DMA_SEC * 3) // HALF transfer size, post-fixup
+#define MONO_DATA_BYTES (ML_SAMP_RATE_HZ * SAMPLE_DMA_SEC / 2 * 4) // HALF transfer size, MONO, but AFTER DECIMATION
 #define RAW_AUD_LEN (SAMP_RATE_HZ * SAMPLE_DMA_SEC * 2) // FULL DMA transfer size, in SAMPLES, pre-fixup
 #define RAW_HALF_DMA_BYTES (RAW_AUD_LEN * 4 / 2) // 4 bytes per sample, HALF transfer
+#define FILTER_BUF_SZ_SAMPS (SAMP_RATE_HZ * SAMPLE_DMA_SEC / 2)	// HALF transfer (e.g., 1s) of MONO samples
 
 #if ( (RAW_AUD_LEN * 4) % 32 != 0)
 	#error "raw_data[] size must be % 32 for DMA"
@@ -31,22 +38,13 @@ static void stereo_to_mono(uint32_t *s, int32_t *m, uint32_t s_len_bytes) __attr
 
 #define MIC_OFF_Pin GPIO_PIN_0
 #define MIC_OFF_GPIO_Port GPIOC
-#define MIC_POWER_CTRL _P(C,0)
+#define MIC_POWER_CTRL_PIN _P(C,0)
 
-#define NO_HW_BREAKPOINTS
+//#define NO_HW_BREAKPOINTS
 #ifdef NO_HW_BREAKPOINTS
 #define __BKPT() ((void)0)
 #endif
 
-typedef enum { MIC_OFF, MIC_ON } mic_power_state_t;
-static void mic_power_ctrl(mic_power_state_t x) __attribute__ ((unused));
-static void mic_power_ctrl(mic_power_state_t x) {
-	switch(x) {
-		case MIC_OFF: HAL_GPIO_WritePin(MIC_OFF_GPIO_Port, MIC_OFF_Pin, GPIO_PIN_SET);   break;
-		case MIC_ON:  HAL_GPIO_WritePin(MIC_OFF_GPIO_Port, MIC_OFF_Pin, GPIO_PIN_RESET); break;
-		default: __BKPT();
-	}
-}
 
 /*
 At given settings:
@@ -62,37 +60,55 @@ Reserve DTCM for stack and misc
 */
 
 // Mono-channel data packed to 24-bit
-#ifdef SEND_AUDIO_DATA_ONLY
-static uint8_t mono_data[MONO_DATA_BYTES] __attribute__ (( section (".ram_d1"), aligned(32) ));
-#define mono_data_padded NULL
-#else
-static int32_t mono_data[FRAME_SIZE+FFT_SIZE] __attribute__ (( section (".ram_d1"), aligned(32) ));
-#endif
+static float mono_data[FRAME_SIZE+FFT_SIZE] __attribute__ (( section (".ram_d2"), aligned(32) ));
 
 // Stereo-channel 32-bis per frame (note mic data is 24-bit)
-static int32_t raw_data[RAW_AUD_LEN]     __attribute__ (( section (".ram_d2"), aligned(32) ));
+// 32 kHz * 2 channels * 2 seconds * 4 bytes per sample = 500 kByte
+// Only could fit in ext_sram or use up almost all the D1, but save the D1 for higher performance stuff
+static int32_t raw_data[RAW_AUD_LEN]     __attribute__ (( section (".ext_sram"), aligned(32) ));
 
+// Mono-sized buffers for sending data through the filters
+static float filter_buf0[FILTER_BUF_SZ_SAMPS] __attribute__ (( section (".ram_d1"), aligned(32) ));
+static float filter_buf1[FILTER_BUF_SZ_SAMPS] __attribute__ (( section (".ram_d1"), aligned(32) ));
+
+// ML outputs
+static myTypeA output_swapped __attribute__ (( section (".ram_d2") )); // 64 x 51 floats
+static float upstream_out[256] __attribute__ (( section (".ram_d2") ));
+static float class_out_data[8] __attribute__ (( section (".ram_d2") ));
 static volatile uint32_t do_send; // flag
-static bool isInit;
 
-static uint64_t start_time;
+typedef enum { MIC_OFF, MIC_ON } mic_power_state_t;
+static void mic_power_ctrl(mic_power_state_t x) {
+	switch(x) {
+		case MIC_OFF: HAL_GPIO_WritePin(MIC_OFF_GPIO_Port, MIC_OFF_Pin, GPIO_PIN_SET);   break;
+		case MIC_ON:  HAL_GPIO_WritePin(MIC_OFF_GPIO_Port, MIC_OFF_Pin, GPIO_PIN_RESET); break;
+		default: __BKPT();
+	}
+}
 
-static inline uint64_t start_stopwatch(void) {
+static void decimate_32_to_8(float *dest, float *src, unsigned in_len) {
+	if (dest == NULL || src == NULL || in_len % 4 != 0) { __BKPT(); return; }
+
+	for(int i=0,j=0; i<in_len; i += 4, j++) {
+		dest[j] = src[i];
+	}
+}
+
+static uint64_t start_stopwatch(void) {
 	return lptim_get_counter_us_fast();
 }
 
-static inline uint32_t stop_stopwatch_ms(uint64_t start) {
+static uint32_t stop_stopwatch_ms(uint64_t start) {
 	uint64_t now = lptim_get_counter_us_fast();
 	now = (now - start)/1000; // to ms
 	return now&0xFFFFFFFF;
 }
 
-static inline uint64_t stop_stopwatch_us(uint64_t start) {
+static uint64_t stop_stopwatch_us(uint64_t start) {
 	uint64_t now = lptim_get_counter_us_fast();
 	now = (now - start); // us
 	return now;
 }
-
 
 #define ICS43434_AOP_DBSPL 120.0
 static float compute_spl_db(int32_t *x, uint32_t len) {
@@ -109,9 +125,19 @@ static float compute_spl_db(int32_t *x, uint32_t len) {
 	return (float)rms;
 }
 
-#ifndef SEND_AUDIO_DATA_ONLY
-static float upstream_out[256] __attribute__ (( section (".ram_d1") ));
-static float class_out_data[8] __attribute__ (( section (".ram_d1") ));
+static float compute_spl_db_float(float *x, uint32_t len) {
+	double rms=0.0;
+	for(int i=0; i<len; i++) {
+		// sample will be range [-1 to 1)
+		rms += x[i]*x[i];
+	}
+	rms = rms / len;
+	rms = sqrt(rms);
+	// convert to dB
+	rms = 20.0*log10(rms) + ICS43434_AOP_DBSPL;
+	return (float)rms;
+}
+
 static float * my_ai_process(float *data) {
 	// Upstream
 	int res;
@@ -124,69 +150,6 @@ static float * my_ai_process(float *data) {
 
 	return class_out_data;
 }
-#endif
-
-#ifndef SEND_AUDIO_DATA_ONLY
-static myTypeA output_swapped __attribute__ (( section (".ram_d1") )); // 64 x 51 floats
-static const char * class_to_string(int x) {
-	switch(x) {
-		case 0: return "engine";
-		case 1: return "machinery-impact";
-		case 2: return "non-machinery-impact";
-		case 3: return "powered-saw";
-		case 4: return "alert-signal";
-		case 5: return "music";
-		case 6: return "human-voice";
-		case 7: return "dog";
-		default: return "BAD CLASS";
-	}
-}
-#endif
-
-/*
-// Padded version is for MFCC + ML processing
-static void mic_data_callback(void *buf, unsigned len) {
-	static bool doneOne = false;
-	if (!doneOne) { doneOne = true; return; } // Skip the initial Mic output as it contains garbage
-#ifdef SEND_AUDIO_DATA_ONLY
-	//HAL_I2S_DMAStop(&hi2s3);
-	send_framed_serial_data((uint8_t *)buf, len, FRAME_TYPE_BIN_AUDIO);
-#else
-	int ret;
-	float *my_classes;
-	float dBSPL;
-	int32_t dBSPL_print;
-	int32_t score;
-	int32_t *my_raw_data = (int32_t *) buf;
-	uint64_t end_time, proc_end;
-	uint32_t diff_time_ms, proc_end_ms;
-
-	// Compute db SPL
-	dBSPL = compute_spl_db(my_raw_data, len/sizeof(int32_t));
-	dBSPL_print = (int32_t) dBSPL;
-
-	// Get Mels from all 51 hops
-	// Note transpose step to match ML input
-	for(int i=0; i<NUM_HOPS; i++) {
-		float *energies = mfcc_test(&my_raw_data[i*HOP_SIZE]);
-		for(int j=0; j<NUM_BINS; j++) {
-			output_swapped[j][i] = energies[j];
-		}
-	}
-	amp_to_db((float *)output_swapped, NUM_BINS*NUM_HOPS);
-	proc_end_ms = stop_stopwatch_ms(start_time);
-	my_classes = my_ai_process((float *)output_swapped);
-	ret = maxarg_float((const float *)my_classes, 8);
-	diff_time_ms = stop_stopwatch_ms(start_time);
-	score = my_classes[ret]*100;
-	switch(ret) {
-		case 0:  hal_printf("Classified: %s (%d)\t\t\tscore: %ld dBSPL: %ld  took: %lums  non-ML: %lums\r\n", 	class_to_string(ret), ret, score, dBSPL_print, diff_time_ms, proc_end_ms); break;
-		case 1:  hal_printf("Classified: %s (%d)\tscore: %ld dBSPL: %ld  took: %lums  non-ML: %lums\r\n", 		class_to_string(ret), ret, score, dBSPL_print, diff_time_ms, proc_end_ms); break;
-		default: hal_printf("Classified: %s (%d)\t\tscore: %ld dBSPL: %ld  took: %lums  non-ML: %lums\r\n", 	class_to_string(ret), ret, score, dBSPL_print, diff_time_ms, proc_end_ms);
-	}
-#endif
-}
-*/
 
 static float dBSPL;
 static float dBSPL_thresh = -100;
@@ -204,7 +167,7 @@ float * get_ml_downstream(void) {
 void start_microphone(void) {
 	HAL_StatusTypeDef ret;
 	mic_power_ctrl(MIC_ON); // on by default
-	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN);
+	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN/2);
 	if (ret != HAL_OK) __BKPT();
 }
 
@@ -226,24 +189,41 @@ uint32_t ml_run_modulo = ML_RUN_MODULO_DEFAULT;
 void set_ml_modulo(uint32_t x) { ml_run_modulo = x; }
 uint32_t get_ml_modulo(void) { return ml_run_modulo; }
 
-static void mic_data_callback(void *buf, unsigned len) {
+// At this point, 32 kHz mono data is in float filter_buf0[]
+//static void mic_data_callback(void *buf, unsigned len) {
+static void mic_data_callback(void) {
 	static uint32_t ml_run_idx = 0;
-	
-	if (ml_run_idx++ % ml_run_modulo != 0)
-		return;
+	static uint64_t last;
+	uint64_t now;
 
+	if (ml_run_idx++ % ml_run_modulo != 0) {
+		do_send = 0; // reset
+		return;
+	}
+
+	// Burst to max clock speed
+	now = start_stopwatch();
 	GLOBAL_LOCK(irq);
 	MaxSystemClock_Config();
 	irq.Release();
-	int32_t *my_raw_data = (int32_t *) buf;
+
+#ifdef DO_COMP_AND_A_WEIGHT_FILTERS
+	// Do the filtering...
+	sonyc_comp_filter_go(filter_buf0, filter_buf1); // Mic compensated data is in filter_buf1
+	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
+	sonyc_iir_filter_go(filter_buf1, filter_buf0); // Data for SPL computation is in filter_buf0
+#else
+	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf0, FILTER_BUF_SZ_SAMPS); // Mono-data now contains 8 kHz data for ML
+#endif
+
 	// Compute db SPL
-	dBSPL = compute_spl_db(my_raw_data, len/sizeof(int32_t));
+	dBSPL = compute_spl_db_float(filter_buf0, ARRAY_LEN(filter_buf0));
 	if (dBSPL < dBSPL_thresh) goto out; // Below threshold, do not run ML
 
 	// Get Mels from all 51 hops
 	// Note transpose step to match ML input
 	for(int i=0; i<NUM_HOPS; i++) {
-		float *energies = mfcc_test(&my_raw_data[i*HOP_SIZE]);
+		float *energies = mfcc_test_float(&mono_data[i*HOP_SIZE]);
 		for(int j=0; j<NUM_BINS; j++) {
 			output_swapped[j][i] = energies[j];
 		}
@@ -251,20 +231,45 @@ static void mic_data_callback(void *buf, unsigned len) {
 	amp_to_db((float *)output_swapped, NUM_BINS*NUM_HOPS);
 	my_ai_process((float *)output_swapped);
 	ManagedAICallback(0,0);
+	hal_printf("Audio Processing Took %lu ms\r\n", stop_stopwatch_ms(now));
+	hal_printf("Time since last frame: %lu\r\n", stop_stopwatch_ms(last));
+	last = now;
 out:
 	do_send = 0; // signal we are done with buffer
 	irq.Acquire();
 	MinSystemClock_Config();
 }
 
+static void stereo_to_mono_float(int32_t *s, float *m, uint32_t s_len_bytes) {
+	unsigned mono_samples = s_len_bytes / 8; // 4 bytes each, every other sample
+
+#ifdef _DEBUG // Sanity checks
+	if (s == NULL || m == NULL || s_len_bytes == 0) { /*__BKPT();*/ return; }
+	if (s_len_bytes % 4 != 0) { /*__BKPT();*/ return; }
+#endif
+
+	// Because DMA happens outside cache visibility
+	SCB_InvalidateDCache_by_Addr(s, s_len_bytes);
+
+	// Sign extend from
+	// http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
+	// This compiles to SBFX instruction which seems optimal
+	for(int i=0; i < mono_samples; i++) {
+		struct {int32_t x:24;} temp;
+		int32_t x = s[i*2];
+		temp.x = x;
+		m[i] = (float)(temp.x)/(1<<23);
+	}
+
+}
+
 // s = stereo source, m = mono dest, s_len stereo data length bytes
 static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
 	unsigned mono_samples = s_len_bytes / 8; // 4 bytes each, every other sample
 
-#ifdef _DEBUG
-	// Sanity checks
-	if (s == NULL || m == NULL || s_len_bytes == 0) { __BKPT(); return; }
-	if (s_len_bytes % 4 != 0) { __BKPT(); return; }
+#ifdef _DEBUG // Sanity checks
+	if (s == NULL || m == NULL || s_len_bytes == 0) { /*__BKPT();*/ return; }
+	if (s_len_bytes % 4 != 0) { /*__BKPT();*/ return; }
 #endif
 
 	// Because DMA happens outside cache visibility
@@ -280,137 +285,63 @@ static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
 	}
 }
 
+static volatile bool mic_dma_error_flag = false;
+static void mic_err_do(void *p) {
+	hal_printf("Microphone DMA dropped frame or error (%d)\r\n", mic_dma_error_flag);
+}
+
 static void mic_cont_do(void *p) {
 	if (do_send == 0) return; // should never happen
 	else if (do_send == 1) {
-		stereo_to_mono(&raw_data[0], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
+		//stereo_to_mono(&raw_data[0], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
+		stereo_to_mono_float(&raw_data[0], filter_buf0, RAW_HALF_DMA_BYTES);
 		do_send = 3; // flag send needed
 	}
 	else if (do_send == 2) {
-		stereo_to_mono(&raw_data[RAW_AUD_LEN/2], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
+		//stereo_to_mono(&raw_data[RAW_AUD_LEN/2], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
+		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/2], filter_buf0, RAW_HALF_DMA_BYTES);
 		do_send = 3; // flag send needed
 	}
 
 	// Send on prepared data
 	// This should always be true, funny structure inherited
 	if (do_send == 3) {
-		mic_data_callback(mono_data, MONO_DATA_BYTES);
-		// mic_data_callback() changes do_send
+		//mic_data_callback(mono_data, MONO_DATA_BYTES);
+		mic_data_callback(); // changes do_send
 	}
 }
 
 
-static void wait_one(void) {
-	while( HAL_CONTINUATION::Dequeue_And_Execute() == TRUE ) ;
-	__disable_irq();
-	if (do_send == 0) __WFI();
-	__enable_irq();
-}
-
-void mic_test(void) __attribute__ ((noreturn));
-#ifndef SEND_AUDIO_DATA_ONLY
-void mic_test(void) {
-	HAL_StatusTypeDef ret;
-	do_send = 0;
-
-	if (isInit == false) __BKPT();
-	memset(mono_data, 0, sizeof(mono_data));
-
-	mic_power_ctrl(MIC_ON);
-	debug_printf("Enabled mic power\r\n");
-
-	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN);
-	if (ret != HAL_OK) { __BKPT(); goto out_mic_test_bad; }
-	debug_printf("I2S sampling started\r\n");
-
-	while (1) {
-		if (do_send == 0) wait_one();
-		else if (do_send == 1) {
-			start_time = start_stopwatch();
-			stereo_to_mono(&raw_data[0], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
-			do_send = 3; // flag send needed
-		}
-		else if (do_send == 2) {
-			start_time = start_stopwatch();
-			stereo_to_mono(&raw_data[RAW_AUD_LEN/2], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
-			do_send = 3; // flag send needed
-		}
-		// Send on prepared data
-		else if (do_send == 3) {
-			mic_data_callback(mono_data, MONO_DATA_BYTES);
-			do_send = 0; // flag data processed
-		}
-	}
-
-out_mic_test_bad:
-	debug_printf("Fatal Error... aborting\r\n");
-	while(1) { wait_one(); }
-}
-#else
-void mic_test(void) {
-	HAL_StatusTypeDef ret;
-	do_send = 0;
-
-	if (isInit == false) __BKPT();
-
-	mic_power_ctrl(MIC_ON);
-	debug_printf("Enabled mic power\r\n");
-
-	ret = HAL_I2S_Receive_DMA(&hi2s3, (uint16_t *)raw_data, RAW_AUD_LEN);
-	if (ret != HAL_OK) { __BKPT(); goto out_mic_test_bad; }
-	debug_printf("I2S sampling started\r\n");
-	debug_printf("Output: Signed 24-bit PCM Mono @ %lu Hz\r\n", SAMP_RATE_HZ);
-
-	while (1) {
-		if (do_send == 0) wait_one();
-		else if (do_send == 1) {
-			SCB_InvalidateDCache_by_Addr(raw_data, RAW_HALF_DMA_BYTES);
-			for (int i=0,j=0; j<MONO_DATA_BYTES; j+=12, i+=8) {
-				memcpy(&mono_data[j+0], (uint8_t *) &raw_data[i+0], 3);
-				memcpy(&mono_data[j+3], (uint8_t *) &raw_data[i+2], 3);
-				memcpy(&mono_data[j+6], (uint8_t *) &raw_data[i+4], 3);
-				memcpy(&mono_data[j+9], (uint8_t *) &raw_data[i+6], 3);
-			}
-			do_send = 3; // flag send needed
-		}
-		else if (do_send == 2) {
-			SCB_InvalidateDCache_by_Addr(&raw_data[RAW_AUD_LEN/2], RAW_HALF_DMA_BYTES);
-			for (int i=RAW_AUD_LEN/2,j=0; j<MONO_DATA_BYTES; j+=12, i+=8) {
-				memcpy(&mono_data[j+0], (uint8_t *) &raw_data[i+0], 3);
-				memcpy(&mono_data[j+3], (uint8_t *) &raw_data[i+2], 3);
-				memcpy(&mono_data[j+6], (uint8_t *) &raw_data[i+4], 3);
-				memcpy(&mono_data[j+9], (uint8_t *) &raw_data[i+6], 3);
-			}
-			do_send = 3; // flag send needed
-		}
-
-		// Send on prepared data
-		else if (do_send == 3) {
-			mic_data_callback(mono_data, MONO_DATA_BYTES);
-			do_send = 0; // flag data processed
-		}
-	}
-
-out_mic_test_bad:
-	debug_printf("Fatal Error... aborting\r\n");
-	while(1) { __WFI(); }
-}
-#endif // #ifndef SEND_AUDIO_DATA_ONLY
+// static void wait_one(void) {
+	// while( HAL_CONTINUATION::Dequeue_And_Execute() == TRUE ) ;
+	// __disable_irq();
+	// if (do_send == 0) __WFI();
+	// __enable_irq();
+// }
 
 // IRQs
 extern "C" {
 void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
-	__BKPT();
+	mic_dma_error_flag = true;
+	mic_cont.Enqueue();
 }
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
-	if (do_send != 0) __BKPT();
+	if (do_send != 0) {
+		//__BKPT();
+		mic_error_cont.Enqueue();
+		return; // Abort. Behind schedule?
+	}
 	do_send = 1;
 	mic_cont.Enqueue();
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
-	if (do_send != 0) __BKPT();
+	if (do_send != 0) {
+		//__BKPT();
+		mic_error_cont.Enqueue();
+		return; // Abort. Behind schedule?
+	}
 	do_send = 2;
 	mic_cont.Enqueue();
 }
@@ -418,12 +349,7 @@ void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
 void DMA1_Stream0_IRQHandler(void) {
 	HAL_DMA_IRQHandler(&hdma_spi3_rx);
 }
-
-// Not used
-// void SPI3_IRQHandler(void) {
-  // HAL_I2S_IRQHandler(&hi2s3);
-// }
-}
+} // extern "C" {
 
 void HAL_I2S_MspInit(I2S_HandleTypeDef* i2sHandle)
 {
@@ -495,7 +421,7 @@ static void MX_DMA_Init(void) {
 
 BOOL I2S_Internal_Initialize() {
 	MX_DMA_Init();
-	CPU_GPIO_EnableOutputPin(MIC_POWER_CTRL, FALSE);
+	CPU_GPIO_EnableOutputPin(MIC_POWER_CTRL_PIN, FALSE);
 	hi2s3.Instance = SPI3;
 	hi2s3.Init.Mode = I2S_MODE_MASTER_RX;
 	hi2s3.Init.Standard = I2S_STANDARD_PHILIPS;
@@ -507,25 +433,21 @@ BOOL I2S_Internal_Initialize() {
 	hi2s3.Init.WSInversion = I2S_WS_INVERSION_DISABLE;
 	hi2s3.Init.Data24BitAlignment = I2S_DATA_24BIT_ALIGNMENT_RIGHT;
 	hi2s3.Init.MasterKeepIOState = I2S_MASTER_KEEP_IO_STATE_DISABLE;
-	if (HAL_I2S_Init(&hi2s3) != HAL_OK)
-		__BKPT();
-	isInit = true;
+	if (HAL_I2S_Init(&hi2s3) != HAL_OK) { /*__BKPT();*/ return FALSE; }
 	do_send = 0;
 	mic_power_ctrl(MIC_ON);
 	MX_X_CUBE_AI_Init();
 	mfcc_init();
-	memset(mono_data, 0, sizeof(mono_data));
+	//memset(mono_data, 0, sizeof(mono_data));
 	mic_cont.InitializeCallback(mic_cont_do, NULL);
+	mic_error_cont.InitializeCallback(mic_err_do, NULL);
+	return TRUE;
 }
 
+// Not used
 void I2S_Test() {
-#ifndef SEND_AUDIO_DATA_ONLY
 	MX_X_CUBE_AI_Init();
 	mfcc_init();
-#endif
-	mic_test();
 }
 
-BOOL I2S_Internal_Uninitialize() {
-
-}
+BOOL I2S_Internal_Uninitialize() { stop_microphone(); }

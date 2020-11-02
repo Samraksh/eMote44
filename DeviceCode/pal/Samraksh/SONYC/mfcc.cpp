@@ -54,10 +54,10 @@ float * mfcc_test(const int32_t *data) {
 	return my_mfcc->get_mel_energies();
 }
 
-// float * mfcc_test_float(const float *data) {
-	// my_mfcc->mfcc_compute_float(data);
-	// return my_mfcc->get_mel_energies();
-// }
+float * mfcc_test_float(const float *data) {
+	my_mfcc->mfcc_compute_float(data);
+	return my_mfcc->get_mel_energies();
+}
 
 // Sizes match first param (target)
 void my_transpose(myTypeA A, myTypeB B) {
@@ -262,6 +262,53 @@ void MFCC::mfcc_compute(const int32_t * audio_data) {
   //TensorFlow way of normalizing .wav data to (-1,1)
   for (i = 0; i < frame_len; i++) {
     frame[i] = (float)audio_data[i]/(1<<23);
+  }
+  //Fill up remaining with zeros
+  memset(&frame[frame_len], 0, sizeof(float) * (frame_len_padded-frame_len));
+
+  for (i = 0; i < frame_len; i++) {
+    frame[i] *= window_func[i];
+  }
+
+
+  //Compute FFT
+  arm_rfft_fast_f32(rfft, frame, buffer, 0);
+
+  //Convert to power spectrum
+  //frame is stored as [real0, realN/2-1, real1, im1, real2, im2, ...]
+  int32_t half_dim = frame_len_padded/2;
+  float first_energy = buffer[0] * buffer[0],
+        last_energy =  buffer[1] * buffer[1];  // handle this special case
+  for (i = 1; i < half_dim; i++) {
+    float real = buffer[i*2], im = buffer[i*2 + 1];
+    buffer[i] = real*real + im*im;
+  }
+  buffer[0] = first_energy;
+  buffer[half_dim] = last_energy;
+
+  float sqrt_data;
+  //Apply mel filterbanks
+  for (bin = 0; bin < NUM_FBANK_BINS; bin++) {
+    j = 0;
+    float mel_energy = 0;
+    int32_t first_index = fbank_filter_first[bin];
+    int32_t last_index = fbank_filter_last[bin];
+    for (i = first_index; i <= last_index; i++) {
+      arm_sqrt_f32(buffer[i],&sqrt_data);
+      mel_energy += (sqrt_data) * mel_fbank[bin][j++];
+    }
+    mel_energies[bin] = mel_energy;
+  }
+}
+
+void MFCC::mfcc_compute_float(const float * audio_data) {
+
+  int32_t i, j, bin;
+
+  //TensorFlow way of normalizing .wav data to (-1,1)
+  for (i = 0; i < frame_len; i++) {
+    //frame[i] = (float)audio_data[i]/(1<<23);
+	frame[i] = audio_data[i];
   }
   //Fill up remaining with zeros
   memset(&frame[frame_len], 0, sizeof(float) * (frame_len_padded-frame_len));

@@ -139,7 +139,7 @@ void ApplicationEntryPoint()
 	VirtTimer_Start(VIRT_TIMER_RTC_TEST);*/
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
-	//I2S_Internal_Initialize();
+	I2S_Internal_Initialize();
 	//I2S_Test();
     //hal_printf(" CLR 30 ");
     ClrStartup( clrSettings );
