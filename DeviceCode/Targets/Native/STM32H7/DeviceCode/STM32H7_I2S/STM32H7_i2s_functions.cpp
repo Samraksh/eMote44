@@ -49,7 +49,7 @@ static void stereo_to_mono_float(uint32_t *s, float *m, uint32_t s_len_bytes) __
 #define MIC_OFF_GPIO_Port GPIOC
 #define MIC_POWER_CTRL_PIN _P(C,0)
 
-//#define NO_HW_BREAKPOINTS
+#define NO_HW_BREAKPOINTS
 #ifdef NO_HW_BREAKPOINTS
 #define __BKPT() ((void)0)
 #endif

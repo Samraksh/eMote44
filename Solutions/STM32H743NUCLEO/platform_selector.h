@@ -32,12 +32,13 @@
 #define STM32H743xx
 
 #define MKII_BASE_CONFIG // Otherwise fence assumed
+#define MKII_DEBUG_PRINT_BMS
 //#define ALLOW_BKPT
 #define PAUSE_AFTER_USB_INIT_MS 5000 // in milli-seconds to allow terminal to be bought up etc. Can be undefined.
 #define PRINTF_MAX_RETRIES 0
 //#define KILL_SONYC_MODEL // Debugging option. Keeps model out of the binary.
 #define NO_INITIAL_TIME // Don't assume that boot up time is 1/1/2009:00:00:00.000
-//#define MEL_USE_SERIAL_FRAMES
+#define MEL_USE_SERIAL_FRAMES
 #define BOOTLOADER_MAGIC_WORD 0xEE33BB22
 #define BOOTLOADER_MAGIC_ADDR 0x38000000 // first word of D3
 

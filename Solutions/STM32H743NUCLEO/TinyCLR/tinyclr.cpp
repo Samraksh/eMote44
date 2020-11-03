@@ -5,32 +5,21 @@
 #include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
 #include <Samraksh/serial_frame_pal.h>
-
 #include "Samraksh/SONYC_ML/sonyc_util.h" // for sonyc filter init
 
 #define GPIO_0 _P(B,12)
 #define GPIO_1 _P(B,13)
 #define GPIO_2 _P(C,12)
 
-#define IGNORE_FIR_TEST_CODE
-
-#ifndef IGNORE_FIR_TEST_CODE
-static float my_data[32000] __attribute__ (( section (".ext_sram"), aligned(32) ));
-static volatile float my_output[32000] __attribute__ (( section (".ext_sram"), aligned(32) ));
-static unsigned my_count;
-//static UINT64 now1, now2;
-#endif
-
-//#include "core_cm7.h"  // Applies to all Cortex-M7
-
-void reset_cnt()
+// Debug functions for timing
+static void reset_cnt()
 {
     CoreDebug->DEMCR |= 0x01000000;
     DWT->CYCCNT = 0; // reset the counter
-    DWT->CTRL = 0; 
+    DWT->CTRL = 0;
 }
 
-void start_cnt()
+static void start_cnt()
 {
     DWT->CTRL |= 0x00000001 ; // enable the counter
 }
@@ -95,7 +84,9 @@ void nathan_rtc_handler(void *arg) {
 	else
 		CPU_GPIO_SetPinState(GPIO_2, FALSE);
 }
-extern "C" void MX_FMC_Init(void);
+
+extern "C" void MX_FMC_Init(void); // TODO MAKE NOT STUPID
+
 ////////////////////////////////////////////////////////////////////////////////
 void ApplicationEntryPoint()
 {
@@ -140,37 +131,12 @@ void ApplicationEntryPoint()
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
 	I2S_Internal_Initialize();
-	//I2S_Test();
-    //hal_printf(" CLR 30 ");
     ClrStartup( clrSettings );
 
-#ifndef IGNORE_FIR_TEST_CODE
-	for(int i=0; i<32000; i++)
-		my_data[i] = i/(float)32000.0;
-	
-	reset_cnt();
-	//now1 = HAL_Time_CurrentTicks();
-	start_cnt();
-	sonyc_comp_filter_go(my_data, (float *)my_output);
-	stop_cnt();
-	//now2 = HAL_Time_CurrentTicks();
-	my_count = getCycles();
-	hal_printf("FIR Took %u cycles -- %u ms\r\n", my_count, my_count/480000);
-	
-	reset_cnt();
-	//now1 = HAL_Time_CurrentTicks();
-	start_cnt();
-	sonyc_iir_filter_go(my_data, (float *)my_output);
-	stop_cnt();
-	//now2 = HAL_Time_CurrentTicks();
-	my_count = getCycles();
-	hal_printf("IIR Took %u cycles -- %u ms\r\n", my_count, my_count/480000);
-#endif
-
-	while(1) {
-		while( HAL_CONTINUATION::Dequeue_And_Execute() == TRUE ) ;
-		__WFI();
-	}
+	// while(1) {
+		// while( HAL_CONTINUATION::Dequeue_And_Execute() == TRUE ) ;
+		// __WFI();
+	// }
 
 #if !defined(BUILD_RTM)
     debug_printf( "Exiting.\r\n" );

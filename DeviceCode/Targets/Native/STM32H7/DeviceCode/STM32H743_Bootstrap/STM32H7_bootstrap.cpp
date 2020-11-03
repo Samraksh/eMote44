@@ -197,7 +197,6 @@ void HAL_MspInit(void)
   __HAL_RCC_SYSCFG_CLK_ENABLE();
 }
 
-// TODO FIX ME
 extern void MX_USART2_UART_Init(void);
 
 extern "C" {
@@ -458,7 +457,6 @@ void BootstrapCode() {
 	MinSystemClock_Config();
 #endif
 	MX_USART2_UART_Init();
-	//MX_FMC_Init();
 	#ifdef DEBUG
 	__HAL_DBGMCU_FREEZE_TIM2();
 	__HAL_DBGMCU_FREEZE_TIM5();
