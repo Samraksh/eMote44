@@ -43,7 +43,8 @@ typedef enum {
 // Toggle the 5th bit (starting from 0)
 enum { FLAG_FLAG=0x7E, FLAG_ESC=0x7D, TOGGLE_BIT=0x20 };
 
-static uint8_t out[FRAME_MAX_SIZE];	// Working buffer
+//static uint8_t out[FRAME_MAX_SIZE];	// Working buffer
+static uint8_t out[FRAME_MAX_SIZE] __attribute__ (( section (".ram_d2"), aligned(32) ));	// Working buffer
 static uint32_t in_idx;				// index into INPUT buffer
 static uint32_t out_idx;			// index into OUT buffer
 static frame_state_t state;			// State of decoding, preserved over calls

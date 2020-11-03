@@ -12,13 +12,15 @@
 
 #define debug_printf hal_printf
 
+//#define MKII_AUDIO_PROCESSING_DEBUG_STATS
+
 //#define MKII_DO_NOT_FILTER_MIC
 #ifndef MKII_DO_NOT_FILTER_MIC
 #define DO_COMP_AND_A_WEIGHT_FILTERS
 #endif
 
 #define SPL_CALC_SAMPLE_SKIP 256 // At front *and* back
-#define IIR_FILTER_SKIP 1024 // At front *and* back
+#define IIR_FILTER_SKIP 780 // At front *and* back (but only front for ML calc)
 
 static HAL_CONTINUATION mic_cont;
 static HAL_CONTINUATION mic_error_cont;
@@ -74,7 +76,7 @@ static float mono_data[FRAME_SIZE+FFT_SIZE] __attribute__ (( section (".ram_d2")
 // Only could fit in ext_sram or use up almost all the D1, but save the D1 for higher performance stuff
 //static int32_t raw_data[RAW_AUD_LEN]     __attribute__ (( section (".ext_sram"), aligned(32) ));
 static int32_t raw_data[RAW_AUD_LEN/2]     __attribute__ (( section (".ext_sram"), aligned(32) )); // ARGH the DMA can't transfer > 1s @ 32 kHz per half, so we have to quarter it =(
-static int32_t raw_data_dma_extra[RAW_AUD_LEN/4]     __attribute__ (( section (".ext_sram"), aligned(32) )); // extra swap space for 3rd layer =(
+static float raw_data_dma_extra[RAW_AUD_LEN/8]     __attribute__ (( section (".ram_d2"), aligned(32) )); // extra side buffer
 
 // Mono-sized buffers for sending data through the filters
 static float filter_buf0[FILTER_BUF_SZ_SAMPS] __attribute__ (( section (".ram_d1"), aligned(32) ));
@@ -199,30 +201,32 @@ void set_ml_modulo(uint32_t x) { ml_run_modulo = x; }
 uint32_t get_ml_modulo(void) { return ml_run_modulo; }
 
 // At this point, 32 kHz mono data is in float filter_buf0[]
-//static void mic_data_callback(void *buf, unsigned len) {
 static void mic_data_callback(void) {
 	static uint32_t ml_run_idx = 0;
+#ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
 	static uint64_t last;
 	uint64_t now;
+#endif
 
 	if (ml_run_idx++ % ml_run_modulo != 0) {
 		do_send = 0; // reset
 		return;
 	}
 
-	// Burst to max clock speed
+#ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
 	now = start_stopwatch();
+#endif
+	// Burst to max clock speed
 	GLOBAL_LOCK(irq);
 	MaxSystemClock_Config();
 	irq.Release();
 
 #ifdef DO_COMP_AND_A_WEIGHT_FILTERS // Do the filtering...
 	sonyc_comp_filter_go(filter_buf0, filter_buf1, FILTER_BUF_SZ_SAMPS); // Mic compensated data is in filter_buf1
-
+	memset(filter_buf1, 0, IIR_FILTER_SKIP*sizeof(float)); // Clear the start of the filtered data which is garbage due to FIR delay
 	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
-	//decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
 
-	sonyc_iir_filter_reset(); // good idea or no, given that we have duty cycling (but also skipping...) ???
+	sonyc_iir_filter_reset(); // not sure if good idea... given that we have duty cycling (but also skipping...) ???
 	sonyc_iir_filter_go(&filter_buf1[IIR_FILTER_SKIP], filter_buf0, FILTER_BUF_SZ_SAMPS-IIR_FILTER_SKIP*2); // Data for SPL computation is now in filter_buf0
 #else
 	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf0, FILTER_BUF_SZ_SAMPS); // Mono-data now contains 8 kHz data for ML
@@ -230,8 +234,12 @@ static void mic_data_callback(void) {
 
 	// Compute db SPL with SPL_CALC_SAMPLE_SKIP just because I'm a little paranoid around the edges
 	dBSPL = compute_spl_db_float(&filter_buf0[SPL_CALC_SAMPLE_SKIP], ARRAY_LEN(filter_buf0)-SPL_CALC_SAMPLE_SKIP*2);
-	//dBSPL = compute_spl_db_float(&filter_buf1[SPL_CALC_SAMPLE_SKIP], ARRAY_LEN(filter_buf1)-SPL_CALC_SAMPLE_SKIP*2);
-	if (dBSPL < dBSPL_thresh) goto out; // Below threshold, do not run ML
+	if (dBSPL < dBSPL_thresh) {
+#ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
+		hal_printf("SPL of %d below processing threshold, skipping\r\n", (int)dBSPL);
+#endif
+		goto out; // Below threshold, do not run ML
+	}
 
 	// Get Mels from all 51 hops
 	// Note transpose step to match ML input
@@ -244,9 +252,11 @@ static void mic_data_callback(void) {
 	amp_to_db((float *)output_swapped, NUM_BINS*NUM_HOPS);
 	my_ai_process((float *)output_swapped);
 	ManagedAICallback(0,0);
+#ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
 	hal_printf("Audio Processing Took %lu ms\r\n", stop_stopwatch_ms(now));
 	hal_printf("Time since last frame: %lu\r\n", stop_stopwatch_ms(last));
 	last = now;
+#endif
 out:
 	irq.Acquire();
 	MinSystemClock_Config();
@@ -302,31 +312,38 @@ static void mic_err_do(void *p) {
 	hal_printf("Mic dropped frame or error %d\r\n", mic_dma_error_flag);
 }
 
+/*
+	OK this sucks...
+	At 32 kHz sampling we cannot transfer 1-second of data in a single DMA shot (half transfer) as we could at 8 kHz.
+	So instead of 1-second half transfers we must use 0.5 second half transfers and stitch them together.
+	This requires an extra side buffer, 'raw_data_dma_extra' which is needed so that we don't stomp on 'filter_buf0' while in use.
+	Note that stereo_to_mono_float() is doing a lot of work: removes unused channel, sign extends, converts to float, and copys to processing buffer
+*/
 static void mic_cont_do(void *p) {
 	static int rx_state=0;
 
+	// 16k samples to processing buffer
 	if (rx_state == 0 && do_send == 1) {
 		stereo_to_mono_float(&raw_data[0], &filter_buf0[0], RAW_HALF_DMA_BYTES/2);
 		do_send = 0;
 		rx_state = 0;
 	}
+	// Next 16k samples to processing buffer and ship it
 	else if (rx_state == 0 && do_send == 2) {
 		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
 		do_send = 3;
 		rx_state = 1;
 	}
+	// Copy 16k samples to side buffer (because processing buffer might be in use)
 	else if (rx_state == 1 && do_send == 1) {
-		//stereo_to_mono_float(&raw_data[0], filter_buf0, RAW_HALF_DMA_BYTES/2);
-		SCB_InvalidateDCache_by_Addr(&raw_data[0], RAW_HALF_DMA_BYTES/2);
-		memcpy(raw_data_dma_extra, &raw_data[0], RAW_HALF_DMA_BYTES/2);
+		stereo_to_mono_float(&raw_data[0], raw_data_dma_extra, RAW_HALF_DMA_BYTES/2);
 		do_send = 0;
 		rx_state = 1;
 	}
+	// Processing buffer *must* be free now so copy both the previous side buffer and the new data to procsesing buffer and ship it
 	else if (rx_state == 1 && do_send == 2) {
-		//memcpy(&raw_data_dma_extra[RAW_AUD_LEN/4], &raw_data[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
-		stereo_to_mono_float(raw_data_dma_extra, &filter_buf0[0], RAW_HALF_DMA_BYTES/2);
+		memcpy(filter_buf0, raw_data_dma_extra, sizeof(raw_data_dma_extra));
 		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
-
 		do_send = 3;
 		rx_state = 0;
 	}
@@ -335,7 +352,7 @@ static void mic_cont_do(void *p) {
 	// Send on prepared data
 	if (do_send == 3) {
 		do_send = 0;
-		mic_data_callback(); // changes do_send
+		mic_data_callback();
 	}
 }
 
