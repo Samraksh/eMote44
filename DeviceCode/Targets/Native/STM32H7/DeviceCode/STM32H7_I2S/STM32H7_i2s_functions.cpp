@@ -1,3 +1,6 @@
+#pragma GCC push_options
+#pragma GCC optimize ("Og")
+
 #include <tinyhal.h>
 //#include <limits.h>
 
@@ -9,9 +12,13 @@
 
 #define debug_printf hal_printf
 
+//#define MKII_DO_NOT_FILTER_MIC
 #ifndef MKII_DO_NOT_FILTER_MIC
 #define DO_COMP_AND_A_WEIGHT_FILTERS
 #endif
+
+#define SPL_CALC_SAMPLE_SKIP 256 // At front *and* back
+#define IIR_FILTER_SKIP 1024 // At front *and* back
 
 static HAL_CONTINUATION mic_cont;
 static HAL_CONTINUATION mic_error_cont;
@@ -24,7 +31,7 @@ static void stereo_to_mono_float(uint32_t *s, float *m, uint32_t s_len_bytes) __
 
 // DMA audio parameters
 #define SAMPLE_DMA_SEC 2 // seconds to be buffered per FULL dma transfer
-#define SAMP_RATE_HZ 16000UL // 32 kHz
+#define SAMP_RATE_HZ 32000UL // 32 kHz
 #define ML_SAMP_RATE_HZ 8000UL // 8 kHz is the input ML rate
 
 #define MONO_DATA_BYTES (ML_SAMP_RATE_HZ * SAMPLE_DMA_SEC / 2 * 4) // HALF transfer size, MONO, but AFTER DECIMATION
@@ -65,7 +72,9 @@ static float mono_data[FRAME_SIZE+FFT_SIZE] __attribute__ (( section (".ram_d2")
 // Stereo-channel 32-bis per frame (note mic data is 24-bit)
 // 32 kHz * 2 channels * 2 seconds * 4 bytes per sample = 500 kByte
 // Only could fit in ext_sram or use up almost all the D1, but save the D1 for higher performance stuff
-static int32_t raw_data[RAW_AUD_LEN]     __attribute__ (( section (".ext_sram"), aligned(32) ));
+//static int32_t raw_data[RAW_AUD_LEN]     __attribute__ (( section (".ext_sram"), aligned(32) ));
+static int32_t raw_data[RAW_AUD_LEN/2]     __attribute__ (( section (".ext_sram"), aligned(32) )); // ARGH the DMA can't transfer > 1s @ 32 kHz per half, so we have to quarter it =(
+static int32_t raw_data_dma_extra[RAW_AUD_LEN/4]     __attribute__ (( section (".ext_sram"), aligned(32) )); // extra swap space for 3rd layer =(
 
 // Mono-sized buffers for sending data through the filters
 static float filter_buf0[FILTER_BUF_SZ_SAMPS] __attribute__ (( section (".ram_d1"), aligned(32) ));
@@ -207,17 +216,21 @@ static void mic_data_callback(void) {
 	MaxSystemClock_Config();
 	irq.Release();
 
-#ifdef DO_COMP_AND_A_WEIGHT_FILTERS
-	// Do the filtering...
-	sonyc_comp_filter_go(filter_buf0, filter_buf1); // Mic compensated data is in filter_buf1
+#ifdef DO_COMP_AND_A_WEIGHT_FILTERS // Do the filtering...
+	sonyc_comp_filter_go(filter_buf0, filter_buf1, FILTER_BUF_SZ_SAMPS); // Mic compensated data is in filter_buf1
+
 	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
-	sonyc_iir_filter_go(filter_buf1, filter_buf0); // Data for SPL computation is in filter_buf0
+	//decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
+
+	sonyc_iir_filter_reset(); // good idea or no, given that we have duty cycling (but also skipping...) ???
+	sonyc_iir_filter_go(&filter_buf1[IIR_FILTER_SKIP], filter_buf0, FILTER_BUF_SZ_SAMPS-IIR_FILTER_SKIP*2); // Data for SPL computation is now in filter_buf0
 #else
 	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf0, FILTER_BUF_SZ_SAMPS); // Mono-data now contains 8 kHz data for ML
 #endif
 
-	// Compute db SPL
-	dBSPL = compute_spl_db_float(filter_buf0, ARRAY_LEN(filter_buf0));
+	// Compute db SPL with SPL_CALC_SAMPLE_SKIP just because I'm a little paranoid around the edges
+	dBSPL = compute_spl_db_float(&filter_buf0[SPL_CALC_SAMPLE_SKIP], ARRAY_LEN(filter_buf0)-SPL_CALC_SAMPLE_SKIP*2);
+	//dBSPL = compute_spl_db_float(&filter_buf1[SPL_CALC_SAMPLE_SKIP], ARRAY_LEN(filter_buf1)-SPL_CALC_SAMPLE_SKIP*2);
 	if (dBSPL < dBSPL_thresh) goto out; // Below threshold, do not run ML
 
 	// Get Mels from all 51 hops
@@ -235,7 +248,6 @@ static void mic_data_callback(void) {
 	hal_printf("Time since last frame: %lu\r\n", stop_stopwatch_ms(last));
 	last = now;
 out:
-	do_send = 0; // signal we are done with buffer
 	irq.Acquire();
 	MinSystemClock_Config();
 }
@@ -273,7 +285,7 @@ static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
 #endif
 
 	// Because DMA happens outside cache visibility
-	SCB_InvalidateDCache_by_Addr(s, s_len_bytes);
+	//SCB_InvalidateDCache_by_Addr(s, s_len_bytes);
 
 	// Sign extend from
 	// http://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend
@@ -287,37 +299,45 @@ static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
 
 static volatile bool mic_dma_error_flag = false;
 static void mic_err_do(void *p) {
-	hal_printf("Microphone DMA dropped frame or error (%d)\r\n", mic_dma_error_flag);
+	hal_printf("Mic dropped frame or error %d\r\n", mic_dma_error_flag);
 }
 
 static void mic_cont_do(void *p) {
-	if (do_send == 0) return; // should never happen
-	else if (do_send == 1) {
-		//stereo_to_mono(&raw_data[0], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
-		stereo_to_mono_float(&raw_data[0], filter_buf0, RAW_HALF_DMA_BYTES);
-		do_send = 3; // flag send needed
+	static int rx_state=0;
+
+	if (rx_state == 0 && do_send == 1) {
+		stereo_to_mono_float(&raw_data[0], &filter_buf0[0], RAW_HALF_DMA_BYTES/2);
+		do_send = 0;
+		rx_state = 0;
 	}
-	else if (do_send == 2) {
-		//stereo_to_mono(&raw_data[RAW_AUD_LEN/2], &mono_data[HALF_FFT], RAW_HALF_DMA_BYTES);
-		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/2], filter_buf0, RAW_HALF_DMA_BYTES);
-		do_send = 3; // flag send needed
+	else if (rx_state == 0 && do_send == 2) {
+		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
+		do_send = 3;
+		rx_state = 1;
 	}
+	else if (rx_state == 1 && do_send == 1) {
+		//stereo_to_mono_float(&raw_data[0], filter_buf0, RAW_HALF_DMA_BYTES/2);
+		SCB_InvalidateDCache_by_Addr(&raw_data[0], RAW_HALF_DMA_BYTES/2);
+		memcpy(raw_data_dma_extra, &raw_data[0], RAW_HALF_DMA_BYTES/2);
+		do_send = 0;
+		rx_state = 1;
+	}
+	else if (rx_state == 1 && do_send == 2) {
+		//memcpy(&raw_data_dma_extra[RAW_AUD_LEN/4], &raw_data[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
+		stereo_to_mono_float(raw_data_dma_extra, &filter_buf0[0], RAW_HALF_DMA_BYTES/2);
+		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
+
+		do_send = 3;
+		rx_state = 0;
+	}
+	else {  do_send = 0; rx_state = 0;} // ???
 
 	// Send on prepared data
-	// This should always be true, funny structure inherited
 	if (do_send == 3) {
-		//mic_data_callback(mono_data, MONO_DATA_BYTES);
+		do_send = 0;
 		mic_data_callback(); // changes do_send
 	}
 }
-
-
-// static void wait_one(void) {
-	// while( HAL_CONTINUATION::Dequeue_And_Execute() == TRUE ) ;
-	// __disable_irq();
-	// if (do_send == 0) __WFI();
-	// __enable_irq();
-// }
 
 // IRQs
 extern "C" {
@@ -441,6 +461,8 @@ BOOL I2S_Internal_Initialize() {
 	//memset(mono_data, 0, sizeof(mono_data));
 	mic_cont.InitializeCallback(mic_cont_do, NULL);
 	mic_error_cont.InitializeCallback(mic_err_do, NULL);
+	memset(filter_buf0, 0, sizeof(filter_buf0));
+	memset(filter_buf1, 0, sizeof(filter_buf1));
 	return TRUE;
 }
 
@@ -451,3 +473,5 @@ void I2S_Test() {
 }
 
 BOOL I2S_Internal_Uninitialize() { stop_microphone(); }
+
+#pragma GCC pop_options

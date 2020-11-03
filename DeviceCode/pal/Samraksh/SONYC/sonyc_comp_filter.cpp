@@ -84,6 +84,7 @@ static void RunIIRBiquadForm1(float *Input, float *Output, int NumSigPts)
 
 int sonyc_init_filters(void) {
 	memcpy(filt_taps_fir, filt_taps_fir_rom, sizeof(filt_taps_fir));
+	memset(firStateF32, 0, sizeof(firStateF32));
 	arm_fir_init_f32(&S, NUM_TAPS, (float *)filt_taps_fir, firStateF32, BLOCK_SIZE);
 	init_iir_coefs();
 	sonyc_filter_is_init = true;
@@ -91,16 +92,27 @@ int sonyc_init_filters(void) {
 }
 
 // About 16.5ms @ 480 MHz for a 32000 sample block of data @ -Og
-int sonyc_iir_filter_go(const float *src, float *dest) {
+int sonyc_iir_filter_go(const float *src, float *dest, unsigned blocksize) {
 	if (!sonyc_filter_is_init) return -1;
-	RunIIRBiquadForm1((float *)src, dest, BLOCK_SIZE);
+	RunIIRBiquadForm1((float *)src, dest, blocksize);
 	//arm_biquad_cascade_df1_f32(&sonyc_a_weight_iir, (float *)src, dest, BLOCK_SIZE);
 	return 0;
 }
 
 // About 117.5ms @ 480 MHz for a 32000 sample block of data @ -Og
-int sonyc_comp_filter_go(const float *src, float *dest) {
+int sonyc_comp_filter_go(const float *src, float *dest, unsigned blocksize) {
 	if (!sonyc_filter_is_init) return -1;
-	arm_fir_f32(&S, (float *)src, dest, BLOCK_SIZE);
+	arm_fir_f32(&S, (float *)src, dest, blocksize);
 	return 0;
+}
+
+void sonyc_iir_filter_reset(void) {
+	memset(RegX1, 0, sizeof(RegX1));
+	memset(RegX2, 0, sizeof(RegX1));
+	memset(RegY1, 0, sizeof(RegX1));
+	memset(RegY2, 0, sizeof(RegX1));
+}
+
+void sonyc_fir_filter_reset(void) {
+	memset(firStateF32, 0, sizeof(firStateF32));
 }
