@@ -82,6 +82,12 @@ static void RunIIRBiquadForm1(float *Input, float *Output, int NumSigPts)
 }
 // END IIR STUFF
 
+int sonyc_fir_tap_change(unsigned tap, float val) {
+	if (tap >= 769) return -1;
+	filt_taps_fir[tap] = val;
+	return 0;
+}
+
 int sonyc_init_filters(void) {
 	memcpy(filt_taps_fir, filt_taps_fir_rom, sizeof(filt_taps_fir));
 	memset(firStateF32, 0, sizeof(firStateF32));

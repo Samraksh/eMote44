@@ -40,7 +40,7 @@ void ManagedAICallback(UINT32 arg1, UINT32 arg2)
 	SaveNativeEventToHALQueue( AI_ne_Context, arg1, arg2 );
 }
 
-static float my_down_thresh[8];
+static float my_down_thresh[8] __attribute__ (( section (".ram_d2"), aligned(32) ));
 void AudioInterface::mel_get_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArray_float param0, HRESULT &hr )
 {
 	for(int i=0; i<8; i++) {
@@ -56,9 +56,17 @@ INT32 AudioInterface::mel_set_thresh( CLR_RT_HeapBlock* pMngObj, CLR_RT_TypedArr
     return 0;
 }
 
+extern int sonyc_fir_tap_change(unsigned tap, float val);
 INT8 AudioInterface::set_fir_taps_internal( CLR_RT_HeapBlock* pMngObj, UINT32 param0, CLR_RT_TypedArray_float param1, HRESULT &hr )
 {
-	return ML_FAIL;
+	if (param0 > 769) return ML_FAIL;
+	float* taps = param1.GetBuffer();
+	UINT32 size = param1.GetSize();
+	for(int i=0; i<size; i++) {
+		int ret = sonyc_fir_tap_change(i, taps[i]);
+		if (ret) return ML_FAIL;
+	}
+	return ML_SUCCESS;
 }
 
 void AudioInterface::set_model_recording_internal( CLR_RT_HeapBlock* pMngObj, INT8 param0, INT8 param1, HRESULT &hr )
@@ -142,7 +150,8 @@ INT8 AudioInterface::set_dB_thresh( CLR_RT_HeapBlock* pMngObj, float param0, HRE
 	return ML_SUCCESS;
 }
 
-// NYI
+// NYI -- Fixed to 1-second
+// Sets the time interval over which the SPL is calculated.
 INT8 AudioInterface::set_time_interval( CLR_RT_HeapBlock* pMngObj, UINT32 param0, HRESULT &hr )
 {
 	return ML_FAIL;

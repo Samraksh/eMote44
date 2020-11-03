@@ -2,7 +2,8 @@
 #include <stdint.h>
 
 #ifndef FRAME_MAX_SIZE
-#define FRAME_MAX_SIZE 2048 // Only used for decoding. Host end should set larger for audio etc.
+//#define FRAME_MAX_SIZE 2048 // Only used for decoding. Host end should set larger for audio etc.
+#define FRAME_MAX_SIZE (18*1024) // Larger to be able to handle large input strings setting taps
 #endif
 
 #define FRAME_MIN_SIZE 20 // Size of a 0 payload frame
