@@ -5,6 +5,7 @@
 #include <tinyhal.h>
 #include <Samraksh/VirtualTimer.h>
 #include <Samraksh/serial_frame_pal.h>
+#include "Samraksh/SONYC_ML/sonyc_util.h" // for sonyc filter init
 
 #define GPIO_0 _P(B,12)
 #define GPIO_1 _P(B,13)
@@ -84,13 +85,15 @@ void nathan_rtc_handler(void *arg) {
 		CPU_GPIO_SetPinState(GPIO_2, FALSE);
 }
 
+extern "C" void MX_FMC_Init(void); // TODO MAKE NOT STUPID
+
 ////////////////////////////////////////////////////////////////////////////////
 void ApplicationEntryPoint()
 {
     CLR_SETTINGS clrSettings;
-#ifdef MEL_USE_SERIAL_FRAMES
+	MX_FMC_Init();
 	framed_serial_init();
-#endif
+	sonyc_init_filters();
 
 	// Initial delay to allow UART terminals to start and catch startup messages
     //HAL_Delay(5000);
@@ -128,8 +131,6 @@ void ApplicationEntryPoint()
 	//VirtTimer_SetTimer(VIRT_TIMER_LED_GREEN, 0, 800000, FALSE, FALSE, Timer_Green_Handler, LOW_DRIFT_TIMER);
 	//VirtTimer_Start(VIRT_TIMER_LED_GREEN);
 	I2S_Internal_Initialize();
-	//I2S_Test();
-    //hal_printf(" CLR 30 ");
     ClrStartup( clrSettings );
 
 	// while(1) {

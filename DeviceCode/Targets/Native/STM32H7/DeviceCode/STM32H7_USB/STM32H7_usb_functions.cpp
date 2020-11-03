@@ -29,12 +29,13 @@ NPS 2019-11-22
 // Generic Port Stuff
 
 static HAL_CONTINUATION rx_event_contin; // For signaling to CLR that COM2 data is available
-uint8_t usb_com2_rx_buf[512];
+uint8_t usb_com2_rx_buf[512] __attribute__ (( section (".ram_d2"), aligned(32) ));
 uint32_t usb_com2_rx_buf_sz;
 
 void add_bytes_to_com2(uint8_t *data, unsigned len) {
 	if(len + usb_com2_rx_buf_sz > sizeof(usb_com2_rx_buf)) return;
 	memcpy(&usb_com2_rx_buf[usb_com2_rx_buf_sz], data, len);
+	usb_com2_rx_buf_sz += len;
 	rx_event_contin.Enqueue();
 }
 
@@ -183,10 +184,9 @@ extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 static bool USB_initialized = false;
 static unsigned last_malloc_size;
-static uint8_t rx_pkt_buf[128]; 			// TODO: Assumes packets are handled fast
+static uint8_t rx_pkt_buf[64]; 			// TODO: Assumes packets are handled fast, and should be size 64
 
-// TX buffer is huge to accomodate simple 32 kHz Mic streaming
-static uint8_t tx_pkt_buf[128*1024+1024] __attribute__ (( section (".ram_d1"), aligned(32) ));
+static uint8_t tx_pkt_buf[32*1024] __attribute__ (( section (".ram_d2"), aligned(32) )); // MAX SIZE 32 kByte... if you need memory, reduce this first
 static usb_cdc_status_t usb_cdc_status;
 
 static HAL_CONTINUATION usb_retry_contin;

@@ -29,6 +29,10 @@
     <Set Name="SRAM4_BaseAddress"        Value="0x38000020"/>
     <Set Name="SRAM4_Size"               Value="0x0000FFE0"/>
 
+	<!-- 1 MByte EXT SRAM -->
+    <Set Name="EXT_SRAM_BaseAddress"        Value="0x60000000"/>
+    <Set Name="EXT_SRAM_Size"               Value="0x00100000"/>
+
 	<Set Name="Heap_End"       			Value="0x2001EBFF"/> <!-- 1KB -->
 	<Set Name="Custom_Heap_Begin"       Value="0x2001EC00"/> <!-- 1KB -->
 	<Set Name="Custom_Heap_End"         Value="0x2001EFFF"/>
@@ -75,6 +79,7 @@
         <LoadRegion Name="RAM_D1" Base="%AXI_SRAM_BaseAddress%" Size="%AXI_SRAM_Size%" />
 		<LoadRegion Name="RAM_D2" Base="%SRAM1_BaseAddress%" Size="%SRAM1_Size%" />
 		<LoadRegion Name="RAM_D3" Base="%SRAM4_BaseAddress%" Size="%SRAM4_Size%" />
+		<LoadRegion Name="EXT_SRAM" Base="%EXT_SRAM_BaseAddress%" Size="%EXT_SRAM_Size%" />
 		<LoadRegion Name="LR_%TARGETLOCATION%" Base="%Code_BaseAddress%" Size="%Code_Size%" />
     </NamedGroup>
 
@@ -145,6 +150,10 @@
 
         <ExecRegion Name=".RAM_D3" Base="(NOLOAD)" Options="&gt;RAM_D3">
 			<FileMapping Name="*(.ram_d3)" />
+        </ExecRegion>
+
+        <ExecRegion Name=".EXT_SRAM" Base="(NOLOAD)" Options="&gt;EXT_SRAM">
+			<FileMapping Name="*(.ext_sram)" />
         </ExecRegion>
 
         <ExecRegion Name="/DISCARD/">
