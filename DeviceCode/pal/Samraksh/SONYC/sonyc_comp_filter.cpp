@@ -6,6 +6,10 @@
 #include <stdbool.h>
 #include "sonyc_util.h"
 
+// This value, if set as compensation filter fir tap[0], will skip the filter step and do a straight copy.
+// Does NOT bypass the IIR filter.
+#define MKII_COMP_FILTER_BYPASS_MAGIC (12345.0f)
+
 // Not a real header, just has the taps array in a separate file
 #include "filt_taps_fir.h" // const static float filt_taps_fir_rom[769]
 
@@ -108,6 +112,10 @@ int sonyc_iir_filter_go(const float *src, float *dest, unsigned blocksize) {
 // About 117.5ms @ 480 MHz for a 32000 sample block of data @ -Og
 int sonyc_comp_filter_go(const float *src, float *dest, unsigned blocksize) {
 	if (!sonyc_filter_is_init) return -1;
+	if (filt_taps_fir[0] == MKII_COMP_FILTER_BYPASS_MAGIC) {
+		memcpy(dest, src, blocksize*sizeof(float));
+		return 0;
+	}
 	arm_fir_f32(&S, (float *)src, dest, blocksize);
 	return 0;
 }
