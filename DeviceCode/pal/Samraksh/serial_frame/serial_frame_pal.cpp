@@ -383,7 +383,8 @@ void framed_serial_init(void) {
 // Simple version for TinyCLR, DEBUG and STRING types
 // Will drop data instead of failing. Probably need to re-think that.
 int send_framed_serial(const uint8_t *data, unsigned sz, BOOL isDebug) {
-	int ret, usb_ret;
+	bool err = false;
+	int ret;
 	uint32_t frame_type;
 	uint8_t *buf;
 	unsigned buf_max = (FRAME_MIN_SIZE + sz)*2;
@@ -394,7 +395,7 @@ int send_framed_serial(const uint8_t *data, unsigned sz, BOOL isDebug) {
 		frame_type = FRAME_TYPE_DATA_STRING;
 
 	buf = (uint8_t *)usb_serial_ext_malloc(buf_max);
-	if (buf == NULL) { frame_error_handler(); return sz; }
+	if (buf == NULL) { err = true; goto out; }
 	memset(buf, 0, buf_max);
 	ret = serial_frame_encode(data, sz, buf_max, buf, DEST_BASE, frame_type);
 
@@ -402,9 +403,12 @@ int send_framed_serial(const uint8_t *data, unsigned sz, BOOL isDebug) {
 		usb_serial_ext_free(ret); // Free, add to TX buffer, and queues TX all in one. What a deal.
 	}
 	else {
-		frame_error_handler();
-		usb_serial_ext_free(0);   // Error, cleanup
+		err = true;
+		goto out;
 	}
+
+out:
+	if (err) usb_serial_ext_free(0);   // usb_serial_ext_free() must be called to unwind / cleanup
 	return sz;
 }
 

@@ -150,7 +150,7 @@ int serial_frame_decode(const uint8_t *in, uint32_t len_in, serial_frame_t *fram
 		if (state == DONE && out_idx == 0) {
 			go = true;
 			state = FLAG_ON;
-		}
+		} else if (state == DONE) go = false; // Error detect. Not sure how but we can lockup without
 	}
 
 	// Mop things up

@@ -478,7 +478,7 @@ BOOL I2S_Internal_Initialize() {
 	mic_power_ctrl(MIC_ON);
 	MX_X_CUBE_AI_Init();
 	mfcc_init();
-	//memset(mono_data, 0, sizeof(mono_data));
+	memset(mono_data, 0, sizeof(mono_data));
 	mic_cont.InitializeCallback(mic_cont_do, NULL);
 	mic_error_cont.InitializeCallback(mic_err_do, NULL);
 	memset(filter_buf0, 0, sizeof(filter_buf0));

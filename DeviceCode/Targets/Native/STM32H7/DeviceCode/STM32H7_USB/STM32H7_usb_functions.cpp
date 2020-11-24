@@ -393,7 +393,15 @@ int usb_serial_ext_free(unsigned size) {
 	usb_cdc_status.TxBytesQueued += size;
 	last_malloc_size = 0;
 	free_lock(&usb_lock);
-	if (size) do_usb_retry(NULL);
+
+	// Start the send now if not IRQ, else queue it
+	if (size && !isInterrupt() ) {
+		do_usb_retry(NULL);
+	}
+	else if (size && isInterrupt() ) {
+		usb_retry_contin.Enqueue();
+	}
+
 	return 0;
 }
 
