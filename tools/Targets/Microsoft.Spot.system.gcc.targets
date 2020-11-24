@@ -45,14 +45,14 @@
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >$(CC_CPP_TARGETTYPE_FLAGS) -Os</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"        >$(CC_CPP_TARGETTYPE_FLAGS) -Og -ggdb3</CC_CPP_TARGETTYPE_FLAGS>
     <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'" >$(CC_CPP_TARGETTYPE_FLAGS) -O0</CC_CPP_TARGETTYPE_FLAGS>
-    <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >$(CC_CPP_TARGETTYPE_FLAGS) -Os</CC_CPP_TARGETTYPE_FLAGS>
+    <CC_CPP_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >$(CC_CPP_TARGETTYPE_FLAGS) -Og -ggdb3</CC_CPP_TARGETTYPE_FLAGS>
 
     <CC_FLAGS>$(CC_FLAGS)-xc</CC_FLAGS>
     
     <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"          >-Os</ARCH_TARGETTYPE_FLAGS>
     <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"        >-Og -ggdb3</ARCH_TARGETTYPE_FLAGS>
     <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'" >-O0</ARCH_TARGETTYPE_FLAGS>
-    <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >-Os</ARCH_TARGETTYPE_FLAGS>
+    <ARCH_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"      >-Og -ggdb3</ARCH_TARGETTYPE_FLAGS>
 
     <!--
     Disabling all warnings for GCC - it's just too noisy to be useful.
@@ -76,7 +76,7 @@
   <!-- Assembler flags -->
   <PropertyGroup>
     <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='RTM'"         >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=1</AS_TARGETTYPE_FLAGS>
-    <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"     >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 </AS_TARGETTYPE_FLAGS>
+    <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Release'"     >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 -ggdb3</AS_TARGETTYPE_FLAGS>
     <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Debug'"       >$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 -ggdb3</AS_TARGETTYPE_FLAGS>
     <AS_TARGETTYPE_FLAGS Condition="'$(FLAVOR)'=='Instrumented'">$(AS_TARGETTYPE_FLAGS) --defsym BUILD_RTM=0 -g</AS_TARGETTYPE_FLAGS>
 

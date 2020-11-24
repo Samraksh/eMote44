@@ -9,7 +9,7 @@ void amp_to_db(float *f, unsigned len);
 int maxarg_float(const float *f, unsigned len);
 
 float * mfcc_test(const int32_t *data);
-//float * mfcc_test_float(const float *data);
+float * mfcc_test_float(const float *data);
 void mfcc_init(void);
 
 #define HOP_SIZE 160

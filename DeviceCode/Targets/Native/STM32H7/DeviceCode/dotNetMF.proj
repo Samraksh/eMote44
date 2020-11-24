@@ -75,6 +75,9 @@
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_lptim.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_crc.c" />
 	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_crc_ex.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_sram.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_hal_nor.c" />
+	<Compile Include="$(SPOCLIENT)\DeviceCode\Targets\Native\STM32H7\DeviceCode\HAL_Driver\Src\stm32h7xx_ll_fmc.c" />
 	<HFiles  Include="stm32h7xx.h" />
 	<HFiles  Include="stm32h7xx_hal_conf.h" />
 </ItemGroup>

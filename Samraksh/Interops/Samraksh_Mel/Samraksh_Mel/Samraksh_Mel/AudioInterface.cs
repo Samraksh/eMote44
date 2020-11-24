@@ -345,14 +345,7 @@ namespace Samraksh_Mel
         /// <returns>True on success. False on invalid parameters or not supported.</returns>
         public bool set_fir_taps(uint num_taps, float[] taps)
         {
-            float[] my_taps;
-
-            if (taps == null) my_taps = EMPTY_FLOAT;
-            else my_taps = taps;
-
-            if (num_taps > 0 && num_taps > my_taps.Length) return false;
-
-            return set_fir_taps_internal(num_taps, my_taps);
+            return set_fir_taps_internal(num_taps, taps);
         }
 
         private void aiCallbackFunction(uint data1, uint data2, DateTime time)

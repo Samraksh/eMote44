@@ -311,7 +311,7 @@ DeviceStatus DiscoveryHandler::CADDoneHandler(bool status){
 				break;				
 		}
 #ifdef OMAC_DEBUG_PRINTF
-		OMAC_HAL_PRINTF("DiscoveryHandler::CAD!\r\n");
+		//OMAC_HAL_PRINTF("DiscoveryHandler::CAD!\r\n");
 		g_OMAC.m_omac_RadioControl.StartRx();
 #endif
 	}
