@@ -69,7 +69,7 @@
 #define USBD_MANUFACTURER_STRING     "The Samraksh Company"
 #define USBD_PID_FS     22336
 //#define USBD_PRODUCT_STRING_FS     "STM32 Virtual ComPort"
-#define USBD_PRODUCT_STRING_FS     "MKII Virtual ComPort"
+#define USBD_PRODUCT_STRING_FS     "Dot Mel ComPort"
 #define USBD_CONFIGURATION_STRING_FS     "CDC Config"
 #define USBD_INTERFACE_STRING_FS     "CDC Interface"
 
