@@ -185,6 +185,8 @@ UINT32 CPU_Radio_GetSNR(UINT8 radioID);
 UINT32 CPU_Radio_GetRSSI(UINT8 radioID);
 UINT32 CPU_Radio_SetDefaultRxState(UINT8 state); // default state is sleep, so CSMA needs to call this to keep RX always on
 
+uint16_t get_cpu_uid_hash16(void); // Computes node_id (see network_id.cpp in Solution TinyCLR dir)
+
 //Aggregate apis
 BOOL CPU_Radio_SwitchType(UINT8 radioID);
 //Radio* CPU_Radio_GetRadio(UINT8 radioID);

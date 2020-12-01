@@ -7,6 +7,8 @@
 #include <Samraksh/serial_frame_pal.h>
 #include "Samraksh/SONYC_ML/sonyc_util.h" // for sonyc filter init
 
+#include "network_id.h"
+
 #define GPIO_0 _P(B,12)
 #define GPIO_1 _P(B,13)
 #define GPIO_2 _P(C,12)
@@ -94,6 +96,18 @@ void ApplicationEntryPoint()
 	MX_FMC_Init();
 	framed_serial_init();
 	sonyc_init_filters();
+
+	// print the CPU UID and the hash16 used for network ID
+	const uint8_t *uid = get_cpu_uid();
+	uint16_t uid_hash = get_cpu_uid_hash16();
+	if (get_cpu_uid_len() > 0) {
+		hal_printf("CPU UID: 0x");
+		for(int i=0; i < get_cpu_uid_len()-1; i++) {
+			hal_printf("%.2X", uid[i]);
+		}
+		hal_printf("%.2X\r\n", uid[get_cpu_uid_len()-1]);
+	}
+	hal_printf("Device Network ID %u (0x%.4X)\r\n", uid_hash, uid_hash);
 
 	// Initial delay to allow UART terminals to start and catch startup messages
     //HAL_Delay(5000);

@@ -22,33 +22,7 @@ INT8 radioName;
 UINT16 preloadedMsgSize;
 INT16 packetRSSI;
 
-// This somehow gets put in the radio function. Out of scope for now, but fix me later.
-static void GetCPUSerial(uint8_t * ptr, unsigned num_of_bytes ){
-	uint32_t Device_Serial0;
-	uint32_t Device_Serial1; 
-	uint32_t Device_Serial2;
-	Device_Serial0 = (*(uint32_t*)0x1FF1E800);// *(uint32_t*)(0x1FF0F420);
-	Device_Serial1 = (*(uint32_t*)0x1FF1E804);// *(uint32_t*)(0x1FF0F424);
-	Device_Serial2 = (*(uint32_t*)0x1FF1E808);// *(uint32_t*)(0x1FF0F428);
 
-	if(num_of_bytes==12){
-	    ptr[0] = (uint8_t)(Device_Serial0 & 0x000000FF);
-	    ptr[1] = (uint8_t)((Device_Serial0 & 0x0000FF00) >> 8);
-	    ptr[2] = (uint8_t)((Device_Serial0 & 0x00FF0000) >> 16);
-	    ptr[3] = (uint8_t)((Device_Serial0 & 0xFF000000) >> 24);
-
-	    ptr[4] = (uint8_t)(Device_Serial1 & 0x000000FF);
-	    ptr[5] = (uint8_t)((Device_Serial1 & 0x0000FF00) >> 8);
-	    ptr[6] = (uint8_t)((Device_Serial1 & 0x00FF0000) >> 16);
-	    ptr[7] = (uint8_t)((Device_Serial1 & 0xFF000000) >> 24);
-
-	    ptr[8] = (uint8_t)(Device_Serial2 & 0x000000FF);
-	    ptr[9] = (uint8_t)((Device_Serial2 & 0x0000FF00) >> 8);
-	    ptr[10] = (uint8_t)((Device_Serial2 & 0x00FF0000) >> 16);
-	    ptr[11] = (uint8_t)((Device_Serial2 & 0xFF000000) >> 24);
-	}
-}
-	
 void SX1276_HAL_ValidHeaderDetected(){	
 	void* dummy_ptr = NULL;
 	received_ts_ticks = HAL_Time_CurrentTicks();
@@ -171,6 +145,7 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 	events.DataStatusCallback 	= SX1276_HAL_DataStatusCallback;
 	events.ValidHeaderDetected  = SX1276_HAL_ValidHeaderDetected;
 
+#if 0 // DEPRECATED CODE. PLEASE USE FUNCTIONS IN network_id.cpp in TinyCLR Solution dir
 	{
 		//Get cpu serial and hash it to use as node id. THIS IS NOT A DRIVER FUNCTION and NOT A MAC FUNCTION. CREATE A NAMING SERVICE
 		UINT8 cpuserial[12];
@@ -186,6 +161,9 @@ DeviceStatus SX1276_HAL_Initialize(RadioEventHandler *event_handler){
 
 		//hal_printf("Address: %d\r\n", tempNum);
 	}
+#endif
+
+	SX1276_HAL_SetAddress(get_cpu_uid_hash16());
 	
 	received_ts_ticks = UNSET_TS;
 	

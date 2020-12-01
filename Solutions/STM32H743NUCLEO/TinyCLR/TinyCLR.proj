@@ -43,6 +43,7 @@
     <ItemGroup>
         <IncludePaths Include="DeviceCode\PAL" />
         <Compile Include="allocator.cpp" />
+		<Compile Include="network_id.cpp" />
         <Compile Include="tinyclr.cpp" />
         <HFiles Include="$(SPOCLIENT)\clr\include\tinyclr_application.h" />
         <ObjFiles Include="$(OBJ_DIR)\tinyclr_dat.$(OBJ_EXT)" />
