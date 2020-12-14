@@ -33,6 +33,7 @@
 
 #define MKII_BASE_CONFIG // Otherwise fence assumed
 #define MKII_DEBUG_PRINT_BMS
+#define ML_RUN_MODULO_DEFAULT 1 // FOR POMERENE BASE ONLY, 100% DUTY-CYCLE
 //#define ALLOW_BKPT
 #define PAUSE_AFTER_USB_INIT_MS 5000 // in milli-seconds to allow terminal to be bought up etc. Can be undefined.
 #define PRINTF_MAX_RETRIES 0
