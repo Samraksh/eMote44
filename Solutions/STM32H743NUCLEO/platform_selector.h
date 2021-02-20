@@ -31,6 +31,7 @@
 
 #define STM32H743xx
 
+#define MKII_RAW_AUDIO_ONLY // Only send raw data (base64 encoded), no ML inferece. Requires base config.
 #define MKII_BASE_CONFIG // Otherwise fence assumed
 #define MKII_DEBUG_PRINT_BMS
 #define ML_RUN_MODULO_DEFAULT 1 // FOR POMERENE BASE ONLY, 100% DUTY-CYCLE
@@ -42,6 +43,14 @@
 #define MEL_USE_SERIAL_FRAMES
 #define BOOTLOADER_MAGIC_WORD 0xEE33BB22
 #define BOOTLOADER_MAGIC_ADDR 0x38000000 // first word of D3
+
+#if defined(MKII_RAW_AUDIO_ONLY) && !defined(MKII_BASE_CONFIG)
+#error "MKII_RAW_AUDIO_ONLY requires MKII_BASE_CONFIG"
+#endif
+
+#ifdef MKII_RAW_AUDIO_ONLY
+#define KILL_SONYC_MODEL
+#endif
 
 #define MACBASE_CALLBACK_QUEUE_DEPTH 8
 

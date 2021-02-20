@@ -101,6 +101,7 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, float * param0, C
 	// Return upstream if on upstream_data
 	if (keepUp) {
 		float *my_ret = get_ml_upstream();
+		if (my_ret == NULL) return ML_SUCCESS; // Abort
 		float* data = param1.GetBuffer();
 		for (int i = 0; i < 256; i++) {
 			data[i] = my_ret[i];
@@ -110,6 +111,7 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, float * param0, C
 	// Return downstream if on
 	if (keepDown) {
 		float *my_ret = get_ml_downstream();
+		if (my_ret == NULL) return ML_SUCCESS; // Abort
 		float* data = param2.GetBuffer();
 		for (int i = 0; i < 8; i++){
 			data[i] = my_ret[i];

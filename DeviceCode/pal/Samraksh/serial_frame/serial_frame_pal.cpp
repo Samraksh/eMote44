@@ -9,7 +9,7 @@ extern "C" {
 
 #ifndef JUMBO_FRAME_MAX
 //#define JUMBO_FRAME_MAX (128*1024) // 128 kiB
-#define JUMBO_FRAME_MAX (3*1024) // 3 kiB
+#define JUMBO_FRAME_MAX (16*1024) // 32 kiB
 #endif
 
 // Mostly hold-over from host side

@@ -303,6 +303,10 @@ static bool is_usb_tx_not_empty(void) {
 	else return false; // empty
 }
 
+bool is_usb_ready(void) {
+	return !is_usb_tx_not_empty();
+}
+
 static bool is_usb_tx_queued(void) {
 	return (usb_cdc_status.TxBytesQueued > 0);
 }

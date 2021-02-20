@@ -56,24 +56,24 @@ int hal_vsnprintf( char* buffer, size_t len, const char* format, va_list arg );
 #endif
 
 #if defined(PLATFORM_ARM) || defined(PLATFORM_SH)
-#define printf     DoNotUse_*printf []
-#define sprintf    DoNotUse_*printf []
-#define fprintf    DoNotUse_*printf []
+// #define printf     DoNotUse_*printf []
+// #define sprintf    DoNotUse_*printf []
+// #define fprintf    DoNotUse_*printf []
 
-#define _printf    DoNotUse_*printf []
-#define _sprintf   DoNotUse_*printf []
-#define _fprintf   DoNotUse_*printf []
+// #define _printf    DoNotUse_*printf []
+// #define _sprintf   DoNotUse_*printf []
+// #define _fprintf   DoNotUse_*printf []
 
-#define snprintf   DoNotUse_*printf []
-#define vsnprintf  DoNotUse_*printf []
+// #define snprintf   DoNotUse_*printf []
+// #define vsnprintf  DoNotUse_*printf []
 
-#define _snprintf  DoNotUse_*printf []
-#define _vsnprintf DoNotUse_*printf []
+// #define _snprintf  DoNotUse_*printf []
+// #define _vsnprintf DoNotUse_*printf []
 
-#define strcpy    DoNotUse_*strcpy  []
-#define strncpy   DoNotUse_*strcpy  []
-#define strlen    DoNotUse_*strlen  []
-#define strncmp   DoNotUse_*strncmp  []
+// #define strcpy    DoNotUse_*strcpy  []
+// #define strncpy   DoNotUse_*strcpy  []
+// #define strlen    DoNotUse_*strlen  []
+// #define strncmp   DoNotUse_*strncmp  []
 
 
 int hal_strcpy_s ( char* strDst, size_t sizeInBytes, const char* strSrc );
