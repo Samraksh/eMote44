@@ -252,7 +252,8 @@ static void mic_data_callback(void *buf, unsigned len) {
 
 		//debug_printf("Encoding %d bytes to base64 for %d bytes\r\n", CHUNK_SIZE_BYTES, encoded_len);
 
-		snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"b64\": \"");
+		//snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"b64\": \"");
+		snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"sender_node_id\": \"");
 		int json_len = strnlen((char *)mono_data_base64_buf, MY_BUF_SIZE);
 		int encode_ret = Base64encode((char *)&mono_data_base64_buf[json_len], (const char *)&my_raw_data[ii], CHUNK_SIZE_BYTES);
 		strncat( (char *)mono_data_base64_buf, "\" }", MY_BUF_SIZE );
