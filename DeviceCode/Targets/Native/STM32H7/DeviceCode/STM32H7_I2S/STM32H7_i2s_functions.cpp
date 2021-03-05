@@ -237,7 +237,8 @@ static void mic_data_callback(void *buf, unsigned len) {
 #ifdef MKII_RAW_AUDIO_ONLY
 {
 	// Process in 2000 sample chunks for 4 each second
-#define CHUNK_SIZE_SAMP 2000
+//#define CHUNK_SIZE_SAMP 2000
+#define CHUNK_SIZE_SAMP 160
 #define CHUNK_SIZE_BYTES (CHUNK_SIZE_SAMP*sizeof(int32_t))
 #define MY_BUF_SIZE (sizeof(mono_data_base64_buf))
 
@@ -252,8 +253,9 @@ static void mic_data_callback(void *buf, unsigned len) {
 
 		//debug_printf("Encoding %d bytes to base64 for %d bytes\r\n", CHUNK_SIZE_BYTES, encoded_len);
 
-		//snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"b64\": \"");
-		snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"sender_node_id\": \"");
+		static uint16_t json_seq = 0; // Simple sequence number
+		snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"b64Seq\":%u, \"b64\": \"", json_seq++);
+		//snprintf((char *)mono_data_base64_buf, MY_BUF_SIZE, "{ \"sender_node_id\": \"");
 		int json_len = strnlen((char *)mono_data_base64_buf, MY_BUF_SIZE);
 		int encode_ret = Base64encode((char *)&mono_data_base64_buf[json_len], (const char *)&my_raw_data[ii], CHUNK_SIZE_BYTES);
 		strncat( (char *)mono_data_base64_buf, "\" }", MY_BUF_SIZE );
