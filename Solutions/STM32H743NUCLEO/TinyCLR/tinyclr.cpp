@@ -52,7 +52,7 @@ UINT16 testDest=0;
 RadioEvents_t native_events;
 
 UINT16 nodeID;
-UINT8 nodeType = FENCE;
+UINT8 nodeType = BASE;
 UINT8 stateType = 0;
 //UINT8 countForSendingPkg = 1;
 UINT8 countForStateZero = 0;
@@ -70,6 +70,7 @@ UINT8 DataChannel = 2;
 UINT8 BeaconChannel = 2;
 
 UINT8 ListenChannel = 2;
+UINT16 countForReset = 0;
 // This somehow gets put in the radio function. Out of scope for now, but fix me later.
 static void GetCPUSerial(uint8_t * ptr, unsigned num_of_bytes ){
 	uint32_t Device_Serial0;
@@ -110,8 +111,16 @@ void PeriodTimerHandler(void * arg){
 }
 
 void radio_tx_done(void) {
-	//debug_printf("%s\r\n", __func__);
-	//SX1276SetRx(0);
+	if (nodeType == FENCE) {
+		//debug_printf("%s\r\n", __func__);
+		SX1276SetRx(0);
+	}
+	else if (nodeType == BASE) {
+		if (stateType == 0) {
+			SX1276SetRx(0);
+		}
+	}
+	//
 }
 
 void rx_timeout(void) {
@@ -139,25 +148,33 @@ void valid_header_detected() {
 //	debug_printf("%s\r\n", __func__);
 }
 
+int channel_to_frequency(int channel) {
+	int freq = 902000000 + (channel * 500000);
+	//hal_printf("setting SX1276 radio to %d MHz\r\n", freq);
+	SX1276SetChannel(freq);
+	return freq;
+}
+
 void rx_done(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
 
 	UINT8 index;
 	VirtualTimerReturnMessage rm;
 
 	//debug_printf("Packet Size:%d\r\n", size);
-	if (size == 4 && stateType == 0) { // channel_info_pkt_struct
+	if (size == 4 && stateType == 0 && nodeType == FENCE) { // channel_info_pkt_struct
 		channel_info_pkt_t *ci_pkt=(channel_info_pkt_t *) payload;
 		if (ci_pkt->packet_id == 11) {
-			debug_printf("Channel Info(%d) %d %d\r\n", ci_pkt->packet_id, ci_pkt->next_channel, ci_pkt->node_id);
+			debug_printf("SRB:%d,%d ", ci_pkt->next_channel, ci_pkt->node_id);
 			ListenChannel = ci_pkt->next_channel;
 			stateType = 1;
+			countForStateZero = 0;
 
 			rm = VirtTimer_Stop(LocalClockMonitor_TIMER1);
 			rm = VirtTimer_Change(LocalClockMonitor_TIMER1, 0, 1, TRUE, LOW_DRIFT_TIMER );
 			rm = VirtTimer_Start(LocalClockMonitor_TIMER1);
 		}
 	}
-	else if (size == 28 && stateType == 2) { // data_pkt_struct
+	else if (size == 28 && stateType == 2 && nodeType == FENCE) { // data_pkt_struct
 		data_pkt_t *dp_pkt=(data_pkt_t *) payload;
 		if (dp_pkt->packet_id == 44) {
 			noiseSignalforFence[dp_pkt->count] = SX1276ReadRssi(MODEM_LORA);
@@ -173,14 +190,14 @@ void rx_done(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
 			}
 		}
 	}
-	else if (stateType == 0) {
+	else if (stateType == 0 && nodeType == BASE) {
 		info_pkt_t *ip_pkt=(info_pkt_t *) payload;
 		if (ip_pkt->packet_id == 22) {
-			debug_printf("Node ID : %d size :%d\r\n", ip_pkt->node_id, size);
+			hal_printf("\r\n");
 
 			for (int i = 0; i < 25; i=i+5) {
-				int freq = 902000000 + (ip_pkt->info[i] * 500000);
-				debug_printf("Frequency: %d, Noise: %d, SNR: %d, RSSI: %d, Count: %d\r\n", freq, ip_pkt->info[i+1]-200, ip_pkt->info[i+2]-200, ip_pkt->info[i+3]-200, ip_pkt->info[i+4]);
+				int freq = 9020 + (ip_pkt->info[i] * 5);
+				hal_printf("{%d/%d/%d/%d/%d/%d}\r\n", ip_pkt->node_id, freq, ip_pkt->info[i+1]-200, ip_pkt->info[i+2]-200, ip_pkt->info[i+3]-200, ip_pkt->info[i+4]);
 			}
 
 			ack_pkt_t ap_pkt_send;
@@ -190,11 +207,11 @@ void rx_done(uint8_t *payload, uint16_t size, int16_t rssi, int8_t snr) {
 			SX1276Send( (uint8_t *)&ap_pkt_send, sizeof(ap_pkt_send), 0 );
 		}
 	}
-	else if (stateType == 3) {
+	else if (stateType == 3 && nodeType == FENCE) {
 		ack_pkt_t *ap_pkt = (ack_pkt_t *) payload;
 		if (ap_pkt->packet_id == 33) {
 			if (ap_pkt->node_id == nodeID) {
-				debug_printf("ACK Node ID : %d size :%d\r\n", ap_pkt->node_id, size);
+				hal_printf("SRA:%d ", ap_pkt->node_id);
 				if(checkLossInfoPacket != 2) countForStateThree = 5;
 				checkLossInfoPacket = 0;
 
@@ -244,7 +261,7 @@ void native_link_test()
                                    LORA_SYMBOL_TIMEOUT, LORA_FIX_LENGTH_PAYLOAD_ON,
                                    0, true, 0, 0, LORA_IQ_INVERSION_ON, true );
 
-	sx1276_interop_change_channel(BeaconChannel);
+	channel_to_frequency(BeaconChannel);
 	//SX1276SetChannel(RF_FREQUENCY);
 	SX1276SetSleep();
 	if(nodeType == FENCE) SX1276SetRx(0);
@@ -281,11 +298,14 @@ void ChangeState(){
 					BeaconChannel = DataChannel;
 				}
 				else {
+					SX1276SetSleep();
 					if (BeaconChannel+10 > 50) BeaconChannel = BeaconChannel - 40;
 					else BeaconChannel = BeaconChannel + 10;
-					sx1276_interop_change_channel(BeaconChannel);
+					channel_to_frequency(BeaconChannel);
 				}
-				hal_printf("Beacon channel: %d\r\n", BeaconChannel);
+
+				//channel_to_frequency(BeaconChannel);
+				hal_printf("BS0:%d ", BeaconChannel);
 			}
 
 			channel_info_pkt_t ci_pkt;
@@ -305,9 +325,11 @@ void ChangeState(){
 		}
 		else if (stateType == 1) {
 			SX1276SetSleep();
+
 			BeaconChannel = DataChannel;
-			sx1276_interop_change_channel(BeaconChannel);
-			hal_printf("Listening channel: %d\r\n", BeaconChannel);
+			channel_to_frequency(BeaconChannel);
+			hal_printf("BS1:%d ", BeaconChannel);
+
 			SX1276SetRx(0);
 			stateType = 0;
 			//countForSendingPkg++;
@@ -318,9 +340,10 @@ void ChangeState(){
 		}
 		else if (stateType == 2) {
 			if (countForStateTwo == 0) {
-				//if (countForSendingPkg%6 != 1 && countForSendingPkg%6 != 2) sx1276_interop_change_channel(DataChannel);
-				if (DataChannel%5 != 2) sx1276_interop_change_channel(DataChannel);
-				hal_printf("Sending channel: %d\r\n", DataChannel);
+				//if (countForSendingPkg%6 != 1 && countForSendingPkg%6 != 2) channel_to_frequency(DataChannel);
+				SX1276SetSleep();
+				if (DataChannel%5 != 2) channel_to_frequency(DataChannel);
+				hal_printf("BS2:%d ", DataChannel);
 			}
 
 			data_pkt_t dp_pkt;
@@ -351,8 +374,8 @@ void ChangeState(){
 		if (stateType == 0) {
 			if (countForStateZero == 0) {
 				SX1276SetSleep();
-				hal_printf("Listening: %d\r\n", ListenChannel);
-				sx1276_interop_change_channel(ListenChannel);
+				hal_printf("FS0:%d ", ListenChannel);
+				channel_to_frequency(ListenChannel);
 			}
 
 			SX1276SetRx(0);
@@ -372,8 +395,9 @@ void ChangeState(){
 		}
 		else if (stateType == 1) {
 			SX1276SetSleep();
-			hal_printf("Receiving Data Packet : %d\r\n", ListenChannel);
-			sx1276_interop_change_channel(ListenChannel);
+			hal_printf("FS1:%d ", ListenChannel);
+			channel_to_frequency(ListenChannel);
+			SX1276SetStby();
 			SX1276SetRx(0);
 			stateType = 2;
 
@@ -437,15 +461,22 @@ void ChangeState(){
 				SNRforFence[i] = 999;
 				RSSIforFence[i] = 999;
 			}
+			if (countTotal == 0) countForReset = countForReset+1;
+			else countForReset = 0;
+
 			allInfoforFence[arrayCalculation+4] = countTotal;
 
-			hal_printf("NS:%d, SNR:%d, TR:%d, Count:%d\r\n", allInfoforFence[arrayCalculation+1]-200, allInfoforFence[arrayCalculation+2]-200, allInfoforFence[arrayCalculation+3]-200, allInfoforFence[arrayCalculation+4]);
+			hal_printf("\r\n{%d/%d/%d/%d/%d}\r\n", 9020 + (ListenChannel * 5), allInfoforFence[arrayCalculation+1]-200, allInfoforFence[arrayCalculation+2]-200, allInfoforFence[arrayCalculation+3]-200, allInfoforFence[arrayCalculation+4]);
 
 			ListenChannel = ListenChannel + 1;
 			if (ListenChannel >= 52) ListenChannel = 2;
 			if (ListenChannel % 5 == 2) stateType = 3;
 			else stateType = 1;
 
+			if (countForReset > 20) {
+				stateType = 0;
+				ListenChannel = 2;
+			}
 			rm = VirtTimer_Stop(LocalClockMonitor_TIMER1);
 			rm = VirtTimer_Change(LocalClockMonitor_TIMER1, 0, 1, TRUE, LOW_DRIFT_TIMER );
 			rm = VirtTimer_Start(LocalClockMonitor_TIMER1);
@@ -453,8 +484,8 @@ void ChangeState(){
 		else if (stateType == 3) {
 			if (countForStateThree == 0) {
 				SX1276SetSleep();
-				hal_printf("Sending channel: %d\r\n", ListenChannel);
-				sx1276_interop_change_channel(ListenChannel);
+				hal_printf("FS3:%d ", ListenChannel);
+				channel_to_frequency(ListenChannel);
 			}
 
 			if (countForStateThree < 3) {
@@ -474,29 +505,36 @@ void ChangeState(){
 					}
 				}
 				countForStateThree++;
+				//hal_printf("S:%d ",countForStateThree);
 				SX1276Send( (uint8_t *)&ip_pkt, sizeof(ip_pkt), 0 );
 			}
 
-			SX1276SetSleep();
-			SX1276SetRx(0);
+			//SX1276SetSleep();
+			//SX1276SetStby();
+			//SX1276SetRx(0);
 
 			if (countForStateThree >= 3) {
 				rm = VirtTimer_Stop(LocalClockMonitor_TIMER1);
-				rm = VirtTimer_Change(LocalClockMonitor_TIMER1, 0, 10000000 - (1000000*countForStateThree), TRUE, LOW_DRIFT_TIMER );
+				rm = VirtTimer_Change(LocalClockMonitor_TIMER1, 0, 10500000 - ((nodeID%100)*10000*countForStateThree), TRUE, LOW_DRIFT_TIMER );
 				rm = VirtTimer_Start(LocalClockMonitor_TIMER1);
 				for (UINT8 i = 0; i < 25; i++) {
 					oldAllInfoforFence[i] = allInfoforFence [i];
 					allInfoforFence[i] = 0;
 				}
-				if (countForStateThree == 5) checkLossInfoPacket = 0;
-				else checkLossInfoPacket = 1;
-
+				if (countForStateThree == 5) {
+					hal_printf("SSI ");
+					checkLossInfoPacket = 0;
+				}
+				else {
+					hal_printf("FSI ");
+					checkLossInfoPacket = 1;
+				}
 				stateType = 1;
 				countForStateThree = 0;
 			}
 			else {
 				rm = VirtTimer_Stop(LocalClockMonitor_TIMER1);
-				rm = VirtTimer_Change(LocalClockMonitor_TIMER1, 0, 1000000, TRUE, LOW_DRIFT_TIMER );
+				rm = VirtTimer_Change(LocalClockMonitor_TIMER1, 0, ((nodeID%100)*10000), TRUE, LOW_DRIFT_TIMER );
 				rm = VirtTimer_Start(LocalClockMonitor_TIMER1);
 			}
 		}
