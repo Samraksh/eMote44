@@ -33,10 +33,12 @@ extern CLR_RT_HeapBlock_NativeEventDispatcher *AI_ne_Context;
 
 static BOOL keepDown = TRUE;
 static BOOL keepUp = FALSE;
+static BOOL next_is_spl_only = FALSE;
 
 void ManagedAICallback(UINT32 arg1, UINT32 arg2)
 {
 	GLOBAL_LOCK(irq);
+	if (arg1 != 0) next_is_spl_only = TRUE;
 	SaveNativeEventToHALQueue( AI_ne_Context, arg1, arg2 );
 }
 
@@ -97,6 +99,23 @@ INT8 AudioInterface::GetResultData( CLR_RT_HeapBlock* pMngObj, float * param0, C
 {
 	// Return dbSPL
 	*param0 = get_db_spl();
+
+	if (next_is_spl_only == TRUE) {
+		if (keepUp) {
+			float* data = param1.GetBuffer();
+			for (int i = 0; i < 256; i++) {
+				data[i] = -1.0f;
+			}
+		}
+		if (keepDown) {
+			float* data = param2.GetBuffer();
+			for (int i = 0; i < 8; i++){
+				data[i] = -1.0f;
+			}
+		}
+		next_is_spl_only = FALSE;
+		return ML_SUCCESS;
+	}
 
 	// Return upstream if on upstream_data
 	if (keepUp) {

@@ -22,8 +22,16 @@
 #define DO_COMP_AND_A_WEIGHT_FILTERS
 #endif
 
-#define SPL_CALC_SAMPLE_SKIP 256 // At front *and* back
-#define IIR_FILTER_SKIP 780 // At front *and* back (but only front for ML calc)
+//#define SPL_CALC_SAMPLE_SKIP 256 // At front *and* back
+//#define IIR_FILTER_SKIP 780 // At front *and* back
+
+#ifndef SPL_CALC_SAMPLE_SKIP
+#define SPL_CALC_SAMPLE_SKIP 0
+#endif
+
+#ifndef IIR_FILTER_SKIP
+#define IIR_FILTER_SKIP 0
+#endif
 
 static HAL_CONTINUATION mic_cont;
 static HAL_CONTINUATION mic_error_cont;
@@ -90,6 +98,7 @@ static myTypeA output_swapped __attribute__ (( section (".ram_d2") )); // 64 x 5
 static float upstream_out[256] __attribute__ (( section (".ram_d2") ));
 static float class_out_data[8] __attribute__ (( section (".ram_d2") ));
 static volatile uint32_t do_send; // flag
+static bool is_processing; // flag
 
 typedef enum { MIC_OFF, MIC_ON } mic_power_state_t;
 static void mic_power_ctrl(mic_power_state_t x) {
@@ -211,36 +220,42 @@ static void mic_data_callback(void) {
 	uint64_t now;
 #endif
 
-	if (ml_run_idx++ % ml_run_modulo != 0) {
-		do_send = 0; // reset
-		return;
-	}
-
 #ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
 	now = start_stopwatch();
 #endif
-	// Burst to max clock speed
-	GLOBAL_LOCK(irq);
-	MaxSystemClock_Config();
-	irq.Release();
 
 #ifdef DO_COMP_AND_A_WEIGHT_FILTERS // Do the filtering...
 	sonyc_comp_filter_go(filter_buf0, filter_buf1, FILTER_BUF_SZ_SAMPS); // Mic compensated data is in filter_buf1
+#if (IIR_FILTER_SKIP > 0)
 	memset(filter_buf1, 0, IIR_FILTER_SKIP*sizeof(float)); // Clear the start of the filtered data which is garbage due to FIR delay
-	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
+#endif
 
-	sonyc_iir_filter_reset(); // not sure if good idea... given that we have duty cycling (but also skipping...) ???
+	// Only do this if we are going to do ML step
+	if (ml_run_idx % ml_run_modulo == 0) {
+		decimate_32_to_8(&mono_data[HALF_FFT], filter_buf1, FILTER_BUF_SZ_SAMPS); // mono-data now contains 8 kHz data for ML
+	}
+
+	//sonyc_iir_filter_reset(); // not sure if good idea... given that we have duty cycling (but also skipping...) ???
 	sonyc_iir_filter_go(&filter_buf1[IIR_FILTER_SKIP], filter_buf0, FILTER_BUF_SZ_SAMPS-IIR_FILTER_SKIP*2); // Data for SPL computation is now in filter_buf0
-#else
-	decimate_32_to_8(&mono_data[HALF_FFT], filter_buf0, FILTER_BUF_SZ_SAMPS); // Mono-data now contains 8 kHz data for ML
+#else // #ifdef DO_COMP_AND_A_WEIGHT_FILTERS
+	if (ml_run_idx % ml_run_modulo == 0) {
+		decimate_32_to_8(&mono_data[HALF_FFT], filter_buf0, FILTER_BUF_SZ_SAMPS); // Mono-data now contains 8 kHz data for ML
+	}
 #endif
 
 	// Compute db SPL with SPL_CALC_SAMPLE_SKIP just because I'm a little paranoid around the edges
 	dBSPL = compute_spl_db_float(&filter_buf0[SPL_CALC_SAMPLE_SKIP], ARRAY_LEN(filter_buf0)-SPL_CALC_SAMPLE_SKIP*2);
+
+	if (ml_run_idx++ % ml_run_modulo != 0) {
+		ManagedAICallback(1,0); // Indicates only SPL update
+		goto out;
+	}
+
 	if (dBSPL < dBSPL_thresh) {
 #ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
 		hal_printf("SPL of %d below processing threshold, skipping\r\n", (int)dBSPL);
 #endif
+		ManagedAICallback(1,0);
 		goto out; // Below threshold, do not run ML
 	}
 
@@ -256,13 +271,12 @@ static void mic_data_callback(void) {
 	my_ai_process((float *)output_swapped);
 	ManagedAICallback(0,0);
 #ifdef MKII_AUDIO_PROCESSING_DEBUG_STATS
-	hal_printf("Audio Processing Took %lu ms\r\n", stop_stopwatch_ms(now));
+	hal_printf("Audio Processing Took %lu ms dBSPL was %d dB\r\n", stop_stopwatch_ms(now), (int)(dBSPL));
 	hal_printf("Time since last frame: %lu\r\n", stop_stopwatch_ms(last));
 	last = now;
 #endif
 out:
-	irq.Acquire();
-	MinSystemClock_Config();
+	return;
 }
 
 static void stereo_to_mono_float(int32_t *s, float *m, uint32_t s_len_bytes) {
@@ -310,9 +324,8 @@ static void stereo_to_mono(int32_t *s, int32_t *m, uint32_t s_len_bytes) {
 	}
 }
 
-static volatile bool mic_dma_error_flag = false;
 static void mic_err_do(void *p) {
-	hal_printf("Mic dropped frame or error %d\r\n", mic_dma_error_flag);
+	hal_printf("Mic dropped frame or error\r\n");
 }
 
 /*
@@ -323,47 +336,35 @@ static void mic_err_do(void *p) {
 	Note that stereo_to_mono_float() is doing a lot of work: removes unused channel, sign extends, converts to float, and copys to processing buffer
 */
 static void mic_cont_do(void *p) {
-	static int rx_state=0;
 
-	// 16k samples to processing buffer
-	if (rx_state == 0 && do_send == 1) {
-		stereo_to_mono_float(&raw_data[0], &filter_buf0[0], RAW_HALF_DMA_BYTES/2);
-		do_send = 0;
-		rx_state = 0;
-	}
-	// Next 16k samples to processing buffer and ship it
-	else if (rx_state == 0 && do_send == 2) {
-		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
-		do_send = 3;
-		rx_state = 1;
-	}
 	// Copy 16k samples to side buffer (because processing buffer might be in use)
-	else if (rx_state == 1 && do_send == 1) {
+	if (do_send == 1) {
 		stereo_to_mono_float(&raw_data[0], raw_data_dma_extra, RAW_HALF_DMA_BYTES/2);
 		do_send = 0;
-		rx_state = 1;
 	}
 	// Processing buffer *must* be free now so copy both the previous side buffer and the new data to procsesing buffer and ship it
-	else if (rx_state == 1 && do_send == 2) {
+	else if (do_send == 2) {
+		// Burst to max clock speed a little earlier...
+		GLOBAL_LOCK(irq);
+		MaxSystemClock_Config();
+		irq.Release();
+		is_processing = true;
 		memcpy(filter_buf0, raw_data_dma_extra, sizeof(raw_data_dma_extra));
-		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/4], RAW_HALF_DMA_BYTES/2);
-		do_send = 3;
-		rx_state = 0;
-	}
-	else {  do_send = 0; rx_state = 0;} // ???
-
-	// Send on prepared data
-	if (do_send == 3) {
-		do_send = 0;
+		stereo_to_mono_float(&raw_data[RAW_AUD_LEN/4], &filter_buf0[RAW_AUD_LEN/8], RAW_HALF_DMA_BYTES/2);
+		do_send = 0; // Can flag now because of side buffer in next round
 		mic_data_callback();
+		is_processing = false;
+		irq.Acquire();
+		MinSystemClock_Config();
 	}
 }
 
 // IRQs
 extern "C" {
 void HAL_I2S_ErrorCallback(I2S_HandleTypeDef *hi2s){
-	mic_dma_error_flag = true;
-	mic_cont.Enqueue();
+	//mic_cont.Enqueue();
+	__BKPT();
+	mic_error_cont.Enqueue();
 }
 
 void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
@@ -377,7 +378,7 @@ void HAL_I2S_RxHalfCpltCallback(I2S_HandleTypeDef *hi2s) {
 }
 
 void HAL_I2S_RxCpltCallback(I2S_HandleTypeDef *hi2s) {
-	if (do_send != 0) {
+	if (do_send != 0 || is_processing) {
 		//__BKPT();
 		mic_error_cont.Enqueue();
 		return; // Abort. Behind schedule?
@@ -475,6 +476,7 @@ BOOL I2S_Internal_Initialize() {
 	hi2s3.Init.MasterKeepIOState = I2S_MASTER_KEEP_IO_STATE_DISABLE;
 	if (HAL_I2S_Init(&hi2s3) != HAL_OK) { /*__BKPT();*/ return FALSE; }
 	do_send = 0;
+	is_processing = false;
 	mic_power_ctrl(MIC_ON);
 	MX_X_CUBE_AI_Init();
 	mfcc_init();
