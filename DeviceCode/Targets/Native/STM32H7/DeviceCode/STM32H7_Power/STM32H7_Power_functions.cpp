@@ -35,18 +35,31 @@ BOOL CPU_Initialize()
     return TRUE;
 }
 
+extern void MaxSystemClock_Config(void);
+extern void MinSystemClock_Config(void);
+
+static void set_cpu_480(void) {
+	GLOBAL_LOCK(irq);
+	MaxSystemClock_Config();
+}
+
+static void set_cpu_60(void) {
+	GLOBAL_LOCK(irq);
+	MinSystemClock_Config();
+}
+
 void CPU_ChangePowerLevel(POWER_LEVEL level)
 {
     switch(level)
     {
-        case POWER_LEVEL__MID_POWER:
+        case POWER_LEVEL__MID_POWER: set_cpu_480();
             break;
 
-        case POWER_LEVEL__LOW_POWER:
+        case POWER_LEVEL__LOW_POWER: set_cpu_60();
             break;
 
         case POWER_LEVEL__HIGH_POWER:
-        default:
+        default: set_cpu_480();
             break;
     }
 }
@@ -86,7 +99,7 @@ void HAL_CPU_Sleep( SLEEP_LEVEL level, UINT64 wakeEvents )
 		case SLEEP_LEVEL__OFF:
 		default: __BKPT(); // No other sleep levels are supported
     }
-	
+
 // #ifdef _DEBUG
 	// if (!check_pending_isr()) __BKPT(); // lets try to figure out who woke us...
 	// volatile int count = get_count_isr();
