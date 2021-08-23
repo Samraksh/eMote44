@@ -176,7 +176,7 @@ extern UART_HandleTypeDef huart2;
 UART_HandleTypeDef *BMS_UART = &huart2;
 static volatile uint8_t bms_rx_buf[512];
 static volatile uint32_t bms_rx_bytes;
-static volatile bool uart2_error;
+static volatile uint32_t uart2_error;
 static volatile uint32_t uart2_timeout; // IRQ loop timeout
 static const bool bms_active_transmit = false; // not used for now
 
@@ -276,12 +276,14 @@ static void handle_bms_rx(void *p) {
 
 	if (uart2_error) { err = -1; goto out; }
 	decode_ret = serial_frame_decode((const uint8_t *)bms_rx_buf, bms_rx_bytes, &f);
-	if (decode_ret < 0) { err = -1; goto out; }
-	parse_ret = parse_frame(&f, &bms_frame_status, false); // should resolve to bms_stats_frame_handler()
-	if (parse_ret == false) { err = -1; goto out; }
+	if (decode_ret < 0) { err = -2; goto out; }
+	parse_ret = parse_frame(&f, &bms_frame_status, true); // should resolve to bms_stats_frame_handler()
+	if (parse_ret == false) { err = -3; goto out; }
 
 out:
-	if (err) hal_printf("Failed BMS Data Reception\r\n");
+	if (err == -1) hal_printf("Failed BMS Data Reception: UART %lu\r\n", uart2_error);
+	else if (err == -2) hal_printf("Failed BMS Data Reception: DECODE\r\n");
+	else if (err == -3) hal_printf("Failed BMS Data Reception: PARSE\r\n");
 	return;
 }
 
@@ -294,7 +296,7 @@ static void got_bms_rts(GPIO_PIN Pin, BOOL PinState, void* context) {
 	// Setup for incoming BMS transmission
 	uart2_enable(true);
 	bms_rx_bytes = 0;
-	uart2_error = false;
+	uart2_error = 0;
 	uart2_timeout = 1000;
 	set_uart_rx_it(true);
 	bms_assert_rts(); // must be last
@@ -352,7 +354,9 @@ static void bms_uart_irq_handler(void) {
 
 	if (errorflags != 0U || uart2_timeout == 0 || bms_rx_bytes >= sizeof(bms_rx_buf)) {
 		bms_uart_abort(BMS_UART);
-		uart2_error = true;
+		if (errorflags != 0U) uart2_error |= 0x1;
+		if (uart2_timeout == 0) uart2_error |= 0x2;
+		if (bms_rx_bytes >= sizeof(bms_rx_buf)) uart2_error |= 0x4;
 		return;
 	}
 
